@@ -60,7 +60,7 @@ public:
     typedef enum {
         ASSERT_NEVER=0,
         ASSERT_CRITICAL,
-        ASSERT_CASUAL,
+        ASSERT_CASUAL
     } assertion_level_t;
     assertion_level_t assert_level;
 
@@ -74,10 +74,10 @@ public:
         }
     }
 
-    inline verbosity(std::ostream& targetStream = std::cout)
+    inline verbosity(verbosity_level_t verb_level = LOG, std::ostream& targetStream = std::cout)
     {
         _outputstream = &targetStream;
-        level = verbosity::LOG;
+        level = verb_level;
         _streamtype = verbosity::LOG;
         assert_level = ASSERT_CRITICAL;
     }
@@ -176,6 +176,8 @@ public:
                 abort();
             }
         }
+
+        return condition;
     }
 
 private:
