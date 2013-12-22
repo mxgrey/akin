@@ -1,0 +1,4 @@
+akin
+====
+
+Abstract Kinematics library
