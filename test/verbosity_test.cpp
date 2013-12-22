@@ -5,25 +5,44 @@ using namespace akin;
 
 void printDifferentLevels(verbosity& verb)
 {
-    verb << "This is default level" << verb.end();
-    verb.log() << "This is log level" << verb.end();
-    verb.brief() << "This is brief level" << verb.end();
-    verb.desc() << "This is descriptive level" << verb.end();
-    verb.debug() << "This is debug level" << verb.end();
+    verb << "Printing default level"; verb.end();
+    verb.log() << "Printing log level"; verb.end();
+    verb.brief() << "Printing brief level"; verb.end();
+    verb.desc() << "Printing descriptive level"; verb.end();
+    verb.debug() << "Printing debug level"; verb.end();
 }
 
 int main(int argc, char* argv[])
 {
     verbosity verb;
 
-    verb.level = verbosity::DEBUG;
-    std::cout << "Verbosity level on debug:" << std::endl;
+    std::cout << "Verbosity level after construction:" << std::endl;
     printDifferentLevels(verb);
+    std::cout << std::endl;
 
-    verb.level = verbosity::BRIEF;
-    std::cout << "Verbosity level on descriptive:" << std::endl;
-    printDifferentLevels(verb);
+    for(int i=0; i<verbosity::MAX_VERBOSITY_LEVEL; i++)
+    {
+        verb.level = verbosity::verbosity_level_t(i);
+        std::cout << "Verbosity level on " << verb.level << ":" << std::endl;
+        printDifferentLevels(verb);
+        std::cout << std::endl;
+    }
 
+    verb.assert_level = verbosity::ASSERT_NEVER;
+
+    std::cout << "My assertiveness level is " << verb.assert_level << "\n" << std::endl;
+
+    std::cout << "Making a casual assertion" << std::endl;
+    verb.assert(false, verbosity::ASSERT_CASUAL,
+                "This casual assertion should only get triggered if your assertiveness"
+                "is set to ASSERT_CASUAL");
+    std::cout << std::endl;
+
+    std::cout << "Making a critical assertion" << std::endl;
+    verb.assert(false, verbosity::ASSERT_CRITICAL,
+                "This critical assertion should always get triggered unless your"
+                "assertiveness is set to ASSERT_NEVER");
+    std::cout << std::endl;
 
     return 0;
 }

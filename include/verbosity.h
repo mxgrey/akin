@@ -3,7 +3,7 @@
 
 #include <string>
 #include <iostream>
-
+#include <stdlib.h>
 
 namespace akin {
 
@@ -31,7 +31,8 @@ public:
         LOG,
         BRIEF,
         DESCRIPTIVE,
-        DEBUG
+        DEBUG,
+        MAX_VERBOSITY_LEVEL
     } verbosity_level_t;
     verbosity_level_t level;
 
@@ -44,6 +45,7 @@ public:
             case BRIEF: return "BRIEF"; break;
             case DESCRIPTIVE: return "DESCRIPTIVE"; break;
             case DEBUG: return "DEBUG"; break;
+            case MAX_VERBOSITY_LEVEL: return "MAX_VERBOSITY_LEVEL"; break;
         }
     }
 
@@ -56,16 +58,27 @@ public:
      * is not met.
      */
     typedef enum {
-        ASSERT_PERMISSIVE=0,
+        ASSERT_NEVER=0,
         ASSERT_CRITICAL,
-        ASSERT_STRICT
+        ASSERT_CASUAL,
     } assertion_level_t;
     assertion_level_t assert_level;
+
+    static inline std::string assert_level_to_string(assertion_level_t assert_level)
+    {
+        switch(assert_level)
+        {
+            case ASSERT_NEVER: return "ASSERT_NEVER"; break;
+            case ASSERT_CRITICAL: return "ASSERT_CRITICAL"; break;
+            case ASSERT_CASUAL: return "ASSERT_CASUAL"; break;
+        }
+    }
 
     inline verbosity(std::ostream& targetStream = std::cout)
     {
         _outputstream = &targetStream;
         level = verbosity::LOG;
+        _streamtype = verbosity::LOG;
         assert_level = ASSERT_CRITICAL;
     }
 
@@ -140,7 +153,7 @@ public:
     */
     inline verbosity& end()
     {
-        *_outputstream << /*"\n" <<*/ std::endl;
+        *_outputstream << std::endl;
         _streamtype = LOG; // TODO: Consider making this SILENT
         return *this;
     }
@@ -148,6 +161,21 @@ public:
     inline verbosity& operator<<(const verbosity& verb_right)
     {
         return *this;
+    }
+
+    inline bool assert(bool condition, assertion_level_t importance, std::string explanation)
+    {
+        if(!condition)
+        {
+            if( ASSERT_NEVER < importance && importance <= assert_level)
+            {
+                *_outputstream << explanation << std::endl;
+                *_outputstream << "ASSERTION LEVEL: " << assert_level_to_string(importance);
+                *_outputstream << " | MY ASSERTIVENESS LEVEL: "
+                               << assert_level_to_string(assert_level) << std::endl;
+                abort();
+            }
+        }
     }
 
 private:
@@ -162,6 +190,13 @@ inline std::ostream& operator<<(std::ostream& oStrStream,
                                 const verbosity::verbosity_level_t verb_level)
 {
     oStrStream << verbosity::verbosity_level_to_string(verb_level);
+    return oStrStream;
+}
+
+inline std::ostream& operator<<(std::ostream& oStrStream,
+                                const verbosity::assertion_level_t assert_level)
+{
+    oStrStream << verbosity::assert_level_to_string(assert_level);
     return oStrStream;
 }
 
