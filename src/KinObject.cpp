@@ -20,19 +20,27 @@ KinObject::KinObject(Frame& referenceFrame,
     name(myName);
     _type = myType;
 
+    referenceFrame._gainChildObject(this);
     _referenceFrame = &referenceFrame;
+}
+
+KinObject& KinObject::Generic()
+{
+    static KinObject generic(Frame::World(), "generic",
+                             verbosity::INHERIT, "Placeholder");
+    return generic;
 }
 
 KinObject::~KinObject()
 {
-
+    refFrame()._loseChildObject(this);
 }
 
 Frame& KinObject::refFrame() { return *_referenceFrame; }
 std::string KinObject::name() { return _name; }
 void KinObject::name(std::string newName) { _name = newName; }
 
-void KinObject::changeRefFrame(Frame &newRefFrame)
+bool KinObject::changeRefFrame(Frame &newRefFrame)
 {
     verb.desc() << "Changing the reference frame of " << name() << " from "
                 << refFrame().name() << " to " << newRefFrame.name();
@@ -42,4 +50,17 @@ void KinObject::changeRefFrame(Frame &newRefFrame)
     newRefFrame._gainChildObject(this);
 
     _referenceFrame = &newRefFrame;
+}
+
+bool KinObject::descendsFrom(const Frame &someFrame)
+{
+    Frame* descentCheck = &refFrame();
+    while(!descentCheck->isWorld())
+    {
+        if(&descentCheck->refFrame() == &someFrame)
+            return true;
+        descentCheck = &descentCheck->refFrame();
+    }
+
+    return false;
 }

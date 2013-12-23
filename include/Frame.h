@@ -30,13 +30,19 @@ public:
 
     ~KinObject();
 
+    static KinObject& Generic();
+
     Frame& refFrame();
 
     std::string name();
     virtual void name(std::string newName);
-    virtual void changeRefFrame(Frame& newRefFrame);
+    virtual bool changeRefFrame(Frame& newRefFrame);
+
+    bool descendsFrom(const Frame& someFrame);
 
     verbosity verb;
+
+
 
 protected:
 
@@ -44,6 +50,8 @@ protected:
     std::string _type;
 
     Frame* _referenceFrame;
+
+private:
 
 };
 
@@ -61,8 +69,10 @@ public:
     Frame& childFrame(size_t childFrameNum);
     size_t numChildFrames() const;
 
-    Frame& childObject(size_t childNum);
+    KinObject &childObject(size_t childObjNum);
     size_t numChildObjects() const;
+
+    virtual bool changeRefFrame(Frame& newRefFrame);
 
     bool isWorld() const;
 

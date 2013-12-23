@@ -159,6 +159,7 @@ public:
     {
         if(buffer.size() > 0)
             *_outputstream << buffer << std::endl;
+        buffer.clear();
         _streamtype = LOG; // TODO: Consider making this SILENT
         return *this;
     }
@@ -168,13 +169,17 @@ public:
         return *this;
     }
 
-    inline bool assert(bool condition, assertion_level_t importance, std::string explanation)
+    inline bool assert(bool condition, assertion_level_t importance, std::string brief_explanation,
+                       std::string desc_explanation = "")
     {
         if(!condition)
         {
+            brief() << brief_explanation;
+            desc() << desc_explanation;
+            end();
+
             if( ASSERT_NEVER < importance && importance <= assert_level)
             {
-                *_outputstream << explanation << std::endl;
                 *_outputstream << "ASSERTION LEVEL: " << assert_level_to_string(importance);
                 *_outputstream << " | MY ASSERTIVENESS LEVEL: "
                                << assert_level_to_string(assert_level) << std::endl;
