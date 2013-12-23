@@ -34,6 +34,7 @@ public:
 
     std::string name();
     virtual void name(std::string newName);
+    virtual void changeRefFrame(Frame& newRefFrame);
 
     verbosity verb;
 
@@ -48,22 +49,33 @@ protected:
 
 class Frame : public KinObject
 {
+    friend class KinObject;
+
 public:
     Frame(Frame& referenceFrame = World(),
           std::string frameName = "arbitrary frame",
-          verbosity::verbosity_level_t report_level = verbosity::LOG);
+          verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     static Frame& World();
 
-    Frame* childFrame(size_t childNum);
-    Frame* childObject(size_t childNum);
+    Frame& childFrame(size_t childFrameNum);
+    size_t numChildFrames() const;
 
-    bool isWorld();
+    Frame& childObject(size_t childNum);
+    size_t numChildObjects() const;
+
+    bool isWorld() const;
 
 protected:
 
     std::vector<Frame*> _childFrames;
     std::vector<KinObject*> _childObjects;
+
+    void _gainChildFrame(Frame* child);
+    void _loseChildFrame(Frame* child);
+
+    void _gainChildObject(KinObject* child);
+    void _loseChildObject(KinObject* child);
 
 private:
 

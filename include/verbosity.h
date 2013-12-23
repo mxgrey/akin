@@ -32,7 +32,8 @@ public:
         BRIEF,
         DESCRIPTIVE,
         DEBUG,
-        MAX_VERBOSITY_LEVEL
+        MAX_VERBOSITY_LEVEL,
+        INHERIT
     } verbosity_level_t;
     verbosity_level_t level;
 
@@ -47,6 +48,8 @@ public:
             case DEBUG: return "DEBUG"; break;
             case MAX_VERBOSITY_LEVEL: return "MAX_VERBOSITY_LEVEL"; break;
         }
+
+        return "Invalid Verbosity Level Type";
     }
 
     /*!
@@ -80,6 +83,7 @@ public:
         level = verb_level;
         _streamtype = verbosity::LOG;
         assert_level = ASSERT_CRITICAL;
+        buffer.clear();
     }
 
     /*!
@@ -102,7 +106,7 @@ public:
     inline verbosity& operator<<(const std::string& message)
     {
         if(_streamtype <= level)
-            *_outputstream << message;
+            buffer += message;
         return *this;
     }
 
@@ -153,7 +157,8 @@ public:
     */
     inline verbosity& end()
     {
-        *_outputstream << std::endl;
+        if(buffer.size() > 0)
+            *_outputstream << buffer << std::endl;
         _streamtype = LOG; // TODO: Consider making this SILENT
         return *this;
     }
@@ -179,6 +184,8 @@ public:
 
         return condition;
     }
+
+    std::string buffer;
 
 private:
     verbosity_level_t _streamtype;
