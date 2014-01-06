@@ -74,3 +74,8 @@ std::ostream& operator<<(std::ostream& oStrStream, const KinObject& mObject)
                << "' in frame '" << mObject.refFrame().name() << "'";
     return oStrStream;
 }
+
+void KinObject::notifyUpdate()
+{
+    _needsUpdate = true;
+}

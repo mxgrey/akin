@@ -7,7 +7,17 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _isWorld(false)
 {
+    
 }
+
+Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
+    KinObject(referenceFrame, frameName, report_level, "Frame"),
+    _isWorld(false),
+    _respectToRef(relativeTf)
+{
+    
+}
+
 
 Frame::Frame(bool createWorld) :
     _isWorld(true),
@@ -22,27 +32,7 @@ Frame& Frame::World()
     return world;
 }
 
-bool Frame::isWorld() const { return _isWorld; }
 
-
-
-bool Frame::changeRefFrame(Frame &newRefFrame)
-{
-    if(!verb.Assert(this != &newRefFrame,
-                    verbosity::ASSERT_CASUAL,
-                    "You requested to make frame " + name() + " into its own reference"
-                    + " frame, which is not permitted."))
-        return false;
-
-    if(!verb.Assert(!newRefFrame.descendsFrom(*this),
-                verbosity::ASSERT_CASUAL,
-                "Cannot change the reference frame of " + name() + " to "
-                + newRefFrame.name() + " because it creates a circular kinematic chain!",
-                " We will leave " + name() + " in the frame of " + refFrame().name()))
-        return false;
-
-    KinObject::changeRefFrame(newRefFrame);
-}
 
 void Frame::_gainChildFrame(Frame *child)
 {
@@ -186,3 +176,34 @@ KinObject& Frame::childObject(size_t childObjNum)
     }
 }
 size_t Frame::numChildObjects() const { return _childObjects.size(); }
+
+bool Frame::changeRefFrame(Frame &newRefFrame)
+{
+    if(!verb.Assert(this != &newRefFrame,
+                    verbosity::ASSERT_CASUAL,
+                    "You requested to make frame " + name() + " into its own reference"
+                    + " frame, which is not permitted."))
+        return false;
+
+    if(!verb.Assert(!newRefFrame.descendsFrom(*this),
+                verbosity::ASSERT_CASUAL,
+                "Cannot change the reference frame of " + name() + " to "
+                + newRefFrame.name() + " because it creates a circular kinematic chain!",
+                " We will leave " + name() + " in the frame of " + refFrame().name()))
+        return false;
+
+    KinObject::changeRefFrame(newRefFrame);
+}
+
+bool Frame::isWorld() const { return _isWorld; }
+
+void Frame::notifyUpdate()
+{
+    if(_needsUpdate)
+        return;
+    
+    _needsUpdate = true;
+    for(size_t i=0; i<numChildObjects(); i++)
+        childObject(i).notifyUpdate();
+}
+

@@ -11,7 +11,7 @@ KinTransform::KinTransform(Frame &referenceFrame, string tfName, verbosity::verb
     
 }
 
-KinTransform::KinTransform(Frame &referenceFrame, const Transform &relativeTf, string tfName, verbosity::verbosity_level_t report_level) :
+KinTransform::KinTransform(const Transform &relativeTf, Frame &referenceFrame, string tfName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, tfName, report_level, "Transform"),
     Transform(relativeTf)
 {

@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     cout << ktf << endl;
     
     testTransform.translate(Eigen::Vector3d(20, 1, 0));
-    KinTransform altTf(Frame::World(), testTransform, "alt_constructed");
+    KinTransform altTf(testTransform, Frame::World(), "alt_constructed");
     
     cout << altTf << endl;
 }

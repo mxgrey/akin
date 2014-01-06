@@ -43,8 +43,8 @@ public:
                  std::string tfName="transform",
                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     
-    KinTransform(Frame& referenceFrame,
-                 const Transform& relativeTf,
+    KinTransform(const Transform& relativeTf,
+                 Frame& referenceFrame,
                  std::string tfName="transform",
                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     

@@ -31,7 +31,11 @@ public:
     Frame(Frame& referenceFrame = World(),
           std::string frameName = "arbitrary_frame",
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-
+    
+    Frame(const Transform& relativeTf,
+          Frame& referenceFrame = World(),
+          std::string frameName = "arbitrary_frame",
+          verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     /*!
       * \fn World()
       * \brief Returns the World Frame
@@ -45,7 +49,6 @@ public:
       */
     static Frame& World();
     
-
     /*!
       * \fn childFrame()
       * \brief Returns this frame's child frame, corresponding to childFrameNum
@@ -90,10 +93,101 @@ public:
     size_t numChildObjects() const;
 
     virtual bool changeRefFrame(Frame& newRefFrame);
-
+    
+    /*!
+      * \fn isWorld()
+      * \brief Returns true if the frame is the World Frame
+      *
+      * This can be useful for terminating a search through a kinematic tree.
+      * Every search is guaranteed to terminate at the World Frame if it is
+      * strictly moving toward the parents.
+      *
+      * This can also be useful for validity checks, because the World Frame
+      * is returned whenever an invalid frame is requested.
+      */
     bool isWorld() const;
+    
+    /*!
+      * \fn notifyUpdate()
+      * \brief Notify this frame and its children that an update is necessary
+      *
+      * This function is used to efficiently handle kinematic updates. Kinematic
+      * computations are only performed when needed, and they are never performed
+      * more often than necessary. The update notification system is what ensures
+      * these things.
+      * 
+      * As a user, you should never have to explicitly call this function, because
+      * any other function which warrants an update should already be calling it.
+      * If you find that this is not the case, please report it as an issue on Github.
+      */
+    virtual void notifyUpdate();
+    
+    /*!
+      * \fn respectToRef(const Transform& newTf)
+      * \brief Updates the relative transform of this frame
+      * 
+      * This function is used to modify this frame's transformation with respect
+      * to its parent.
+      */
+    virtual void respectToRef(const Transform& newTf);
+    
+    /*!
+      * \fn respectToRef()
+      * \brief Returns this frame's transformation with respect to its parent
+      * 
+      * This returns a reference, but it is const, so you cannot use this function
+      * to modify this frame's transform with respect to its parent. Instead, you
+      * should use the function respectToRef(const Transform& newTf).
+      *
+      * Note that calling this function automatically performs all necessary
+      * updates to the kinematic tree.
+      */
+    const Transform& respectToRef();
+    
+    /*!
+      * \fn respectToWorld()
+      * \brief Returns this frame's transformation with respect to the world
+      *
+      * This returns a reference, but it is const, so you cannot use this function
+      * to modify this frame's transform with respect to the world. Instead, you
+      * should use the function respectToRef(const Transform& newTf) and indicate
+      * the desired transformation in this frame's reference frame. If you want to
+      * change the reference frame, you must use the function
+      * changeRefFrame(Frame& newRefFrame).
+      *
+      * Note that calling this function automatically performs all necessary
+      * updates to the kinematic tree.
+      */
+    const Transform& respectToWorld();
+    
+    /*!
+      * \fn withRespectTo()
+      * \brief Returns this frame's transformation with respect to otherFrame
+      * 
+      * Note: If otherFrame is the reference frame, then it is more efficient
+      * to use the function respectToRef(). If otherFrame is the World Frame,
+      * it is more efficient to use the function respectToWorld().
+      *
+      * Also note that calling this function automatically performs all necessary
+      * updates to any relevant kinematic trees.
+      */
+    Transform withRespectTo(Frame& otherFrame);
+    
+    /*!
+      * \fn notifyUpdate()
+      * \brief Notify this frame that it needs to update itself
+      *
+      * This function is triggered when a change occurs anywhere upstream on the
+      * kinematic tree. It indicates to the frame that its location in the
+      * world has changed. The notification will trickle down to all child frames
+      * and objects.
+      */
+    virtual void notifyUpdate();
 
 protected:
+    
+    Transform _respectToRef;
+    Transform _respectToWorld;
 
     std::vector<Frame*> _childFrames;
     std::vector<KinObject*> _childObjects;

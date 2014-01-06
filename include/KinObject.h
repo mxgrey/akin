@@ -88,6 +88,8 @@ public:
       * KinObject so that it does not move in the world frame. But implementations
       * may vary, so consult the particular KinObject that you are dealing with
       * in order to know what to expect.
+      *
+      * Returns false if the requested change of reference frame was not valid for any reason.
       */
     virtual bool changeRefFrame(Frame& newRefFrame); // TODO: Make a bitflag of options for this
                                                      // such as retaining the relative value
@@ -100,14 +102,30 @@ public:
     
     verbosity verb;
 
-
-
+    /*!
+      * \fn notifyUpdate()
+      * \brief Notify this object that it needs to update itself
+      *
+      * This function is triggered when a change occurs anywhere upstream on the
+      * kinematic tree. It indicates to the KinObject that its location in the
+      * world has changed.
+      */
+    virtual void notifyUpdate();
+    
+    /*!
+      * \fn needsUpdate()
+      * \brief Returns true if this object needs to update itself
+      */
+    bool needsUpdate();
+    
 protected:
 
     std::string _name;
     std::string _type;
 
     Frame* _referenceFrame;
+    
+    bool _needsUpdate;
 
 private:
 
