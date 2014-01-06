@@ -2,6 +2,7 @@
 #define TRANSFORM_H
 
 #include "KinObject.h"
+#include "Translation.h"
 
 namespace akin {
 
@@ -23,9 +24,51 @@ public:
         (Eigen::Isometry3d&)(*this) =
                 Eigen::Isometry3d::Identity();
     }
+
+    inline Transform(const Eigen::Isometry3d& tf)
+    {
+        (Eigen::Isometry3d&)(*this) = tf;
+    }
+
+    inline akin::Transform operator*(const akin::Transform& other) const
+    {
+        return akin::Transform((Eigen::Isometry3d&)(*this) * (Eigen::Isometry3d&)(other));
+    }
+
+    inline akin::Translation operator*(const akin::Translation& other) const
+    {
+        return akin::Translation((Eigen::Isometry3d&)(*this) * (Eigen::Vector3d&)(other));
+    }
+
+    inline akin::FreeVector operator*(const akin::FreeVector& other) const
+    {
+
+    }
+
+//    inline akin::Transform& operator=(const Eigen::Isometry3d& tf)
+//    {
+//        (Eigen::Isometry3d&)(*this) = tf;
+//        return *this;
+//    }
     
 };
 
+} // namespace akin
+inline std::ostream& operator<<(std::ostream& oStrStream,
+                                const akin::Transform& mTransform)
+{
+    oStrStream << mTransform.matrix();
+    return oStrStream;
+}
+
+//template<typename OtherDerived>
+//inline akin::Transform operator*(const EigenBase<OtherDerived>& other, Transform& tf)
+//{
+//    return akin::Transform(other * (Eigen::Isometry3d&)tf);
+//}
+
+
+namespace akin {
 
 /*!
   * \class KinTransform
@@ -43,6 +86,7 @@ public:
                  std::string tfName="transform",
                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     
+    // TODO: Consider switching the first and second arguments
     KinTransform(const Transform& relativeTf,
                  Frame& referenceFrame,
                  std::string tfName="transform",
@@ -53,12 +97,6 @@ public:
 
 } // namespace akin
 
-inline std::ostream& operator<<(std::ostream& oStrStream,
-                                const akin::Transform& mTransform)
-{
-    oStrStream << mTransform.matrix();
-    return oStrStream;
-}
 
 std::ostream& operator<<(std::ostream& oStrStream, const akin::KinTransform& mTransform);
 

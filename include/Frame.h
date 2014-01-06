@@ -142,7 +142,7 @@ public:
       * Note that calling this function automatically performs all necessary
       * updates to the kinematic tree.
       */
-    const Transform& respectToRef();
+    const Transform& respectToRef() const;
     
     /*!
       * \fn respectToWorld()
@@ -172,20 +172,28 @@ public:
       * updates to any relevant kinematic trees.
       */
     Transform withRespectTo(Frame& otherFrame);
-    
+
     /*!
-      * \fn notifyUpdate()
-      * \brief Notify this frame that it needs to update itself
-      *
-      * This function is triggered when a change occurs anywhere upstream on the
-      * kinematic tree. It indicates to the frame that its location in the
-      * world has changed. The notification will trickle down to all child frames
-      * and objects.
-      */
-    virtual void notifyUpdate();
+     * \fn forceUpdate();
+     * \brief Forces the frame to update itself
+     *
+     * This function is the same as _update(). The reason its name differs is to
+     * reinforce the idea that you should not ever have to instruct the kinematic
+     * model to update. It should do so automatically as necessary. Also, any use
+     * of this function is guaranteed to reduce the efficiency of operation. However,
+     * if for some reason you want the updates to happen according to a certain time
+     * schedule, then this function could be used for that purpose.
+     *
+     * If you ever find that using this function changes the numerical results that
+     * akin produces, please report this as an issue on Github, and try to provide
+     * enough detail to recreate the problem.
+     */
+    void forceUpdate();
 
 protected:
     
+    void _update();
+
     Transform _respectToRef;
     Transform _respectToWorld;
 
