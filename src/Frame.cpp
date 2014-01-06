@@ -15,7 +15,7 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
     _isWorld(false),
     _respectToRef(relativeTf)
 {
-    
+
 }
 
 

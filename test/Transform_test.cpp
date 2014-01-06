@@ -28,23 +28,24 @@ void test_operators()
     Axis test_axis;
     test_axis = vec;
     cout << endl << vec.transpose() << " -> " << test_axis.transpose() << endl;
+
+    cout << endl << (tf1 * test_axis).transpose() << endl;
+    cout << (tf2 * test_axis).transpose() << endl;
+
+}
+
+void test_rotations()
+{
+    Eigen::Quaterniond rot(Eigen::AngleAxisd(90*M_PI/180, Eigen::Vector3d(1,0,0)));
+
+    cout << rot.matrix() << endl;
+
 }
 
 int main(int argc, char* argv[])
 {
     test_operators();
 
-//    Transform testTransform;
-    
-//    cout << testTransform << endl;
-    
-//    cout << "\n";
-    
-//    KinTransform ktf(Frame::World());
-//    cout << ktf << endl;
-    
-//    testTransform.translate(Eigen::Vector3d(20, 1, 0));
-//    KinTransform altTf(testTransform, Frame::World(), "alt_constructed");
-    
-//    cout << altTf << endl;
+//    test_rotations();
+
 }

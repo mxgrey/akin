@@ -3,6 +3,7 @@
 
 #include "KinObject.h"
 #include "Translation.h"
+#include "Rotation.h"
 
 namespace akin {
 
@@ -19,15 +20,16 @@ public:
       * \fn Transform()
       * \brief Every akin::Transform is initialized to identity unless the copy constructor is used
       */
-    inline Transform()
+    inline Transform() :
+        Eigen::Isometry3d(Eigen::Isometry3d::Identity())
     {
-        (Eigen::Isometry3d&)(*this) =
-                Eigen::Isometry3d::Identity();
+
     }
 
-    inline Transform(const Eigen::Isometry3d& tf)
+    inline Transform(const Eigen::Isometry3d& tf) :
+        Eigen::Isometry3d(tf)
     {
-        (Eigen::Isometry3d&)(*this) = tf;
+
     }
 
     inline akin::Transform operator*(const akin::Transform& other) const
@@ -42,14 +44,13 @@ public:
 
     inline akin::FreeVector operator*(const akin::FreeVector& other) const
     {
-
+        return FreeVector(rotation() * (Eigen::Vector3d&)(other));
     }
 
-//    inline akin::Transform& operator=(const Eigen::Isometry3d& tf)
-//    {
-//        (Eigen::Isometry3d&)(*this) = tf;
-//        return *this;
-//    }
+    inline akin::Rotation operator*(const akin::Rotation& other) const
+    {
+        return Rotation(rotation() * (Eigen::Quaterniond&)(other));
+    }
     
 };
 
@@ -61,22 +62,15 @@ inline std::ostream& operator<<(std::ostream& oStrStream,
     return oStrStream;
 }
 
-//template<typename OtherDerived>
-//inline akin::Transform operator*(const EigenBase<OtherDerived>& other, Transform& tf)
-//{
-//    return akin::Transform(other * (Eigen::Isometry3d&)tf);
-//}
-
 
 namespace akin {
 
 /*!
   * \class KinTransform
-  * \brief A transform which keeps track of its kinematic relationships
+  * \brief A Transform which keeps track of its kinematic relationships
   *
-  * Like its inherited class Transform, you can use the template parameter to
-  * set the precision to float (more efficient) or double (more precise).
-  * The default is double.
+  * As a KinObject, any time the kinematic tree upstream of this transform is
+  * changed, it will update its value with respect to the world.
   */
 
 class KinTransform : public Transform, public KinObject
@@ -91,7 +85,17 @@ public:
                  Frame& referenceFrame,
                  std::string tfName="transform",
                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+
+    const Transform& respectToWorld();
+    Transform withRespectTo(Frame& someFrame);
+
+protected:
+
+    void _update();
+    Transform _respectToWorld;
     
+private:
+
 };
 
 

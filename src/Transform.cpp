@@ -1,5 +1,6 @@
 
 #include "Transform.h"
+#include "Frame.h"
 
 using namespace akin;
 using namespace std;
@@ -18,6 +19,25 @@ KinTransform::KinTransform(const Transform &relativeTf, Frame &referenceFrame, s
     
 }
 
+const Transform& KinTransform::respectToWorld()
+{
+    if(_needsUpdate)
+        _update();
+
+    return _respectToWorld;
+}
+
+Transform KinTransform::withRespectTo(Frame &someFrame)
+{
+    return someFrame.respectToWorld().inverse() * respectToWorld();
+}
+
+void KinTransform::_update()
+{
+    verb.debug() << "Updating transform '"+name()+"'"; verb.end();
+
+    _respectToWorld = refFrame().respectToWorld() * (Transform&)(*this);
+}
 
 std::ostream& operator<<(std::ostream& oStrStream, const KinTransform& mTransform)
 {

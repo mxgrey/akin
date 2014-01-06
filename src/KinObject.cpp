@@ -75,7 +75,5 @@ std::ostream& operator<<(std::ostream& oStrStream, const KinObject& mObject)
     return oStrStream;
 }
 
-void KinObject::notifyUpdate()
-{
-    _needsUpdate = true;
-}
+void KinObject::notifyUpdate() { _needsUpdate = true; }
+bool KinObject::needsUpdate() { return _needsUpdate; }
