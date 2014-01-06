@@ -28,18 +28,18 @@ int main(int argc, char* argv[])
         std::cout << std::endl;
     }
 
-    verb.assert_level = verbosity::ASSERT_NEVER;
+    verb.assertiveness = verbosity::ASSERT_NEVER;
 
-    std::cout << "My assertiveness level is " << verb.assert_level << "\n" << std::endl;
+    std::cout << "My assertiveness level is " << verb.assertiveness << "\n" << std::endl;
 
     std::cout << "Making a casual assertion" << std::endl;
-    verb.assert(false, verbosity::ASSERT_CASUAL,
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
                 "This casual assertion should only get triggered if your assertiveness"
                 "is set to ASSERT_CASUAL");
     std::cout << std::endl;
 
     std::cout << "Making a critical assertion" << std::endl;
-    verb.assert(false, verbosity::ASSERT_CRITICAL,
+    verb.Assert(false, verbosity::ASSERT_CRITICAL,
                 "This critical assertion should always get triggered unless your"
                 "assertiveness is set to ASSERT_NEVER");
     std::cout << std::endl;

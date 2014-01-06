@@ -28,13 +28,13 @@ bool Frame::isWorld() const { return _isWorld; }
 
 bool Frame::changeRefFrame(Frame &newRefFrame)
 {
-    if(!verb.assert(this != &newRefFrame,
+    if(!verb.Assert(this != &newRefFrame,
                     verbosity::ASSERT_CASUAL,
                     "You requested to make frame " + name() + " into its own reference"
                     + " frame, which is not permitted."))
         return false;
 
-    if(!verb.assert(!newRefFrame.descendsFrom(*this),
+    if(!verb.Assert(!newRefFrame.descendsFrom(*this),
                 verbosity::ASSERT_CASUAL,
                 "Cannot change the reference frame of " + name() + " to "
                 + newRefFrame.name() + " because it creates a circular kinematic chain!",
@@ -81,7 +81,7 @@ void Frame::_loseChildFrame(Frame *child)
             verb.desc() << " -- " << childFrame(i).name() << "\n";
         verb.end();
 
-        verb.assert(false, verbosity::ASSERT_CASUAL, "");
+        verb.Assert(false, verbosity::ASSERT_CASUAL, "");
     }
     else
     {
@@ -127,7 +127,7 @@ void Frame::_loseChildObject(KinObject *child)
             verb.desc() << " -- " << childObject(i).name() << "\n";
         verb.end();
 
-        verb.assert(false, verbosity::ASSERT_CASUAL, "");
+        verb.Assert(false, verbosity::ASSERT_CASUAL, "");
     }
     else
     {
@@ -146,7 +146,7 @@ Frame& Frame::childFrame(size_t childFrameNum)
         return World();
     }
 
-    if(verb.assert(childFrameNum < _childFrames.size(),
+    if(verb.Assert(childFrameNum < _childFrames.size(),
                    verbosity::ASSERT_CASUAL,
                    "Requested non-existent child frame index in Frame "+name()))
         return *_childFrames[childFrameNum];
@@ -172,7 +172,7 @@ KinObject& Frame::childObject(size_t childObjNum)
         return KinObject::Generic();
     }
 
-    if(verb.assert(childObjNum < _childFrames.size(),
+    if(verb.Assert(childObjNum < _childFrames.size(),
                    verbosity::ASSERT_CASUAL,
                    "Requested non-existent child object index in Frame "+name()))
         return *_childObjects[childObjNum];

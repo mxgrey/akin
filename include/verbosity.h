@@ -65,7 +65,7 @@ public:
         ASSERT_CRITICAL,
         ASSERT_CASUAL
     } assertion_level_t;
-    assertion_level_t assert_level;
+    assertion_level_t assertiveness;
 
     static inline std::string assert_level_to_string(assertion_level_t assert_level)
     {
@@ -82,13 +82,13 @@ public:
         _outputstream = &targetStream;
         level = verb_level;
         _streamtype = verbosity::LOG;
-        assert_level = ASSERT_CRITICAL;
+        assertiveness = ASSERT_CRITICAL;
         buffer.clear();
     }
 
     /*!
-     * \brief Get a reference to the verbosity object's stream
-     * \return The current stream of the verbosity object
+     * \brief Get a reference to the verbosity object's output stream
+     * \return The current output stream of the verbosity object
      */
     inline std::ostream& stream()
     {
@@ -169,7 +169,7 @@ public:
         return *this;
     }
 
-    inline bool assert(bool condition, assertion_level_t importance, std::string brief_explanation,
+    inline bool Assert(bool condition, assertion_level_t importance, std::string brief_explanation,
                        std::string desc_explanation = "")
     {
         if(!condition)
@@ -178,11 +178,11 @@ public:
             desc() << desc_explanation;
             end();
 
-            if( ASSERT_NEVER < importance && importance <= assert_level)
+            if( ASSERT_NEVER < importance && importance <= assertiveness)
             {
                 *_outputstream << "ASSERTION LEVEL: " << assert_level_to_string(importance);
                 *_outputstream << " | MY ASSERTIVENESS LEVEL: "
-                               << assert_level_to_string(assert_level) << std::endl;
+                               << assert_level_to_string(assertiveness) << std::endl;
                 abort();
             }
         }

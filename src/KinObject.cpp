@@ -36,9 +36,11 @@ KinObject::~KinObject()
     refFrame()._loseChildObject(this);
 }
 
-Frame& KinObject::refFrame() { return *_referenceFrame; }
-std::string KinObject::name() { return _name; }
+Frame& KinObject::refFrame() const { return *_referenceFrame; }
+std::string KinObject::name() const { return _name; }
 void KinObject::name(std::string newName) { _name = newName; }
+
+std::string KinObject::type() const { return _type; }
 
 bool KinObject::changeRefFrame(Frame &newRefFrame)
 {
@@ -63,4 +65,12 @@ bool KinObject::descendsFrom(const Frame &someFrame)
     }
 
     return false;
+}
+
+std::ostream& operator<<(std::ostream& oStrStream, const KinObject& mObject)
+{
+    oStrStream << mObject.type()
+               << " named '" << mObject.name()
+               << "' in frame '" << mObject.refFrame().name() << "'";
+    return oStrStream;
 }
