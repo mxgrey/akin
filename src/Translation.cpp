@@ -39,3 +39,73 @@ void KinTranslation::_update()
 
     _respectToWorld = refFrame().respectToWorld() * (Translation&)(*this);
 }
+
+KinFreeVector::KinFreeVector(Frame &referenceFrame, string freeVectorName, verbosity::verbosity_level_t report_level) :
+    KinObject(referenceFrame, freeVectorName, report_level, "FreeVector"),
+    FreeVector()
+{
+
+}
+
+KinFreeVector::KinFreeVector(const FreeVector &relativeFreeVector, Frame &referenceFrame, string freeVectorName, verbosity::verbosity_level_t report_level) :
+    KinObject(referenceFrame, freeVectorName, report_level, "FreeVector"),
+    FreeVector(relativeFreeVector)
+{
+
+}
+
+const FreeVector& KinFreeVector::respectToWorld()
+{
+    if(_needsUpdate)
+        _update();
+
+    return _respectToWorld;
+}
+
+FreeVector KinFreeVector::withRespectTo(Frame &someFrame)
+{
+    // TODO: Investigate if it is okay to leave off Transform()
+    return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
+}
+
+void KinFreeVector::_update()
+{
+    verb.debug() << "Updating FreeVector '"+name()+"'"; verb.end();
+
+    _respectToWorld = refFrame().respectToWorld() * (FreeVector&)(*this);
+}
+
+KinAxis::KinAxis(Frame &referenceFrame, string axisName, verbosity::verbosity_level_t report_level) :
+    KinObject(referenceFrame, axisName, report_level, "Axis"),
+    Axis()
+{
+
+}
+
+KinAxis::KinAxis(const Axis &relativeAxis, Frame &referenceFrame, string axisName, verbosity::verbosity_level_t report_level) :
+    KinObject(referenceFrame, axisName, report_level, "Axis"),
+    Axis(relativeAxis)
+{
+
+}
+
+
+const Axis& KinAxis::respectToWorld()
+{
+    if(_needsUpdate)
+        _update();
+
+    return _respectToWorld;
+}
+
+Axis KinAxis::withRespectTo(Frame &someFrame)
+{
+    return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
+}
+
+void KinAxis::_update()
+{
+    verb.debug() << "Updating Axis '"+name()+"'"; verb.end();
+
+    _respectToWorld = refFrame().respectToWorld() * (Axis&)(*this);
+}

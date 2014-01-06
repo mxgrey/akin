@@ -101,7 +101,7 @@ public:
  * \brief A FreeVector which keeps track of its kinematic relationships
  *
  * As a KinObject, any time the kinematic tree upstream of this transform is
- * changed, it will update its v alue with respect to the world.
+ * changed, it will update its value with respect to the world.
  */
 class KinFreeVector : public FreeVector, public KinObject
 {
@@ -116,13 +116,13 @@ public:
                   std::string freeVectorName="free_vector",
                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    const Translation& respectToWorld();
-    Translation withRespectTo(Frame& someFrame);
+    const FreeVector& respectToWorld();
+    FreeVector withRespectTo(Frame& someFrame);
 
 protected:
 
     void _update();
-    FreeVector _respectToWorld();
+    FreeVector _respectToWorld;
 };
 
 /*!
@@ -154,6 +154,28 @@ public:
 
 };
 
+class KinAxis : public Axis, public KinObject
+{
+public:
+
+    KinAxis(Frame& referenceFrame,
+            std::string axisName="axis",
+            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+
+    KinAxis(const Axis& relativeAxis,
+            Frame& referenceFrame,
+            std::string axisName="axis",
+            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+
+    const Axis& respectToWorld();
+    Axis withRespectTo(Frame& someFrame);
+
+protected:
+
+    void _update();
+    Axis _respectToWorld;
+
+};
 
 } // namespace akin
 
