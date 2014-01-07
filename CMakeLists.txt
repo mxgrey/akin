@@ -1,6 +1,27 @@
 cmake_minimum_required(VERSION 2.6)
 project(akin)
 
+
+## TODO: Make a seperate graphics library and only link GL stuff to that library
+find_package(GLUT REQUIRED)
+include_directories(${GLUT_INCLUDE_DIRS})
+add_definitions(${GLUT_DEFINITIONS})
+if(NOT GLUT_FOUND)
+  message(ERROR " GLUT not found!")
+endif(NOT GLUT_FOUND)
+link_libraries(${GLUT_LIBRARY})
+
+find_package(OpenGL REQUIRED)
+include_directories(${OpenGL_INCLUDE_DIRS})
+link_directories(${OpenGL_LIBRARY_DIRS})
+add_definitions(${OpenGL_DEFINITIONS})
+if(NOT OPENGL_FOUND)
+  message(ERROR " OPENGL not found!")
+endif(NOT OPENGL_FOUND)
+link_libraries(${OPENGL_LIBRARIES})
+##############################################
+
+
 set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
@@ -8,7 +29,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-file(GLOB lib_source "src/*.cpp" "include/*.h")
+## TODO: Seperate the graphics out into their own library
+file(GLOB lib_source "src/*.cpp" "include/*.h" "graphics/*.cpp")
 list(SORT lib_source)
 
 file(GLOB unit_tests_source "test/*.cpp")
