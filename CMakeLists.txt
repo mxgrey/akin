@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 project(akin)
 
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 ## TODO: Make a seperate graphics library and only link GL stuff to that library
 find_package(GLUT REQUIRED)
 include_directories(${GLUT_INCLUDE_DIRS})
@@ -10,6 +12,14 @@ if(NOT GLUT_FOUND)
   message(ERROR " GLUT not found!")
 endif(NOT GLUT_FOUND)
 link_libraries(${GLUT_LIBRARY})
+
+find_package(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIRS})
+add_definitions(${GLEW_DEFINITIONS})
+if(NOT GLEW_FOUND)
+  message(ERROR " GLEW not found!")
+endif(NOT GLEW_FOUND)
+link_libraries(${GLEW_LIBRARY})
 
 find_package(OpenGL REQUIRED)
 include_directories(${OpenGL_INCLUDE_DIRS})
