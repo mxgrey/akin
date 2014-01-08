@@ -105,6 +105,7 @@ protected:
 };
 
 typedef std::vector<GraphicsObject> GraphicsArray;
+typedef std::vector<GraphicsObject*> GraphicsPointerArray;
 
 class Box : public GraphicsObject
 {

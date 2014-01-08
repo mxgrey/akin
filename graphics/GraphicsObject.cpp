@@ -13,8 +13,8 @@ GraphicsObject::GraphicsObject(Frame &referenceFrame, std::string graphicName, v
 
 GraphicsObject::GraphicsObject(const VertexArray &graphicVertexArray, const FaceArray &graphicFaceArray, Frame &referenceFrame, std::string graphicName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, graphicName, report_level, "Graphic"),
-    vertices(graphicVertexArray),
-    faces(graphicFaceArray)
+    _vertices(graphicVertexArray),
+    _faces(graphicFaceArray)
 {
 
 }
@@ -35,7 +35,7 @@ const VertexArray& GraphicsObject::respectToWorld()
 void GraphicsObject::_updateWorld()
 {
     verb.debug() << "Updating GraphicsObject '"+name()+"'"; verb.end();
-    _respectToWorld = refFrame().respectToWorld() * vertices;
+    _respectToWorld = refFrame().respectToWorld() * _vertices;
 }
 
 const VertexArray& GraphicsObject::respectToCamera(Frame &cameraFrame)
@@ -56,8 +56,8 @@ void GraphicsObject::_updateCamera(Frame &cameraFrame)
 Box::Box(Frame &referenceFrame, std::string boxName, verbosity::verbosity_level_t report_level) :
     GraphicsObject(referenceFrame, boxName, report_level)
 {
-    vertices.resize(8);
-    faces.resize(24);
+    _vertices.resize(8);
+    _faces.resize(24);
     _type = "Box";
     dimensions();
 }
@@ -65,8 +65,8 @@ Box::Box(Frame &referenceFrame, std::string boxName, verbosity::verbosity_level_
 Box::Box(float width, float length, float height, Frame &referenceFrame, std::string boxName, verbosity::verbosity_level_t report_level) :
     GraphicsObject(referenceFrame, boxName, report_level)
 {
-    vertices.resize(8);
-    faces.resize(24);
+    _vertices.resize(8);
+    _faces.resize(24);
     _type = "Box";
     dimensions(width, length, height);
 }
@@ -86,56 +86,56 @@ void Box::dimensions(float new_width, float new_length, float new_height)
     _length = new_length;
     _height = new_height;
                             //     x           y           z
-    vertices[0] = Translation( -_width/2, -_length/2,  _height/2); // Top front left
-    vertices[1] = Translation(  _width/2, -_length/2,  _height/2); // Top front right
-    vertices[2] = Translation( -_width/2, -_length/2, -_height/2); // Bottom front left
-    faces[0] = createFace(0, 1, 2);
-    faces[1] = createFace(0, 2, 1);
+    _vertices[0] = Translation( -_width/2, -_length/2,  _height/2); // Top front left
+    _vertices[1] = Translation(  _width/2, -_length/2,  _height/2); // Top front right
+    _vertices[2] = Translation( -_width/2, -_length/2, -_height/2); // Bottom front left
+    _faces[0] = createFace(0, 1, 2);
+    _faces[1] = createFace(0, 2, 1);
 
-    vertices[3] = Translation(  _width/2, -_length/2, -_height/2); // Bottom front right
-    faces[2] = createFace(1, 2, 3);
-    faces[3] = createFace(1, 3, 2);
+    _vertices[3] = Translation(  _width/2, -_length/2, -_height/2); // Bottom front right
+    _faces[2] = createFace(1, 2, 3);
+    _faces[3] = createFace(1, 3, 2);
     // Front face done
 
-    vertices[4] = Translation( -_width/2,  _length/2,  _height/2); // Top back left
-    faces[4] = createFace(0, 1, 4);
-    faces[5] = createFace(0, 4, 1);
+    _vertices[4] = Translation( -_width/2,  _length/2,  _height/2); // Top back left
+    _faces[4] = createFace(0, 1, 4);
+    _faces[5] = createFace(0, 4, 1);
 
-    vertices[5] = Translation(  _width/2,  _length/2,  _height/2); // Top back right
-    faces[6] = createFace(4, 6, 1);
-    faces[7] = createFace(4, 1, 6);
+    _vertices[5] = Translation(  _width/2,  _length/2,  _height/2); // Top back right
+    _faces[6] = createFace(4, 6, 1);
+    _faces[7] = createFace(4, 1, 6);
     // Top face done
 
-    vertices[6] = Translation( -_width/2,  _length/2, -_height/2); // Bottom back left
-    faces[8] = createFace(4, 6, 2);
-    faces[9] = createFace(4, 2, 6);
+    _vertices[6] = Translation( -_width/2,  _length/2, -_height/2); // Bottom back left
+    _faces[8] = createFace(4, 6, 2);
+    _faces[9] = createFace(4, 2, 6);
 
-    faces[10] = createFace(0, 4, 2);
-    faces[11] = createFace(0, 2, 4);
+    _faces[10] = createFace(0, 4, 2);
+    _faces[11] = createFace(0, 2, 4);
     // Left face done
 
-    vertices[7] = Translation( _width/2,  _length/2, -_height/2); // Bottom back right
-    faces[12] = createFace(1, 5, 7);
-    faces[13] = createFace(1, 7, 5);
+    _vertices[7] = Translation( _width/2,  _length/2, -_height/2); // Bottom back right
+    _faces[12] = createFace(1, 5, 7);
+    _faces[13] = createFace(1, 7, 5);
 
-    faces[14] = createFace(1, 3, 7);
-    faces[15] = createFace(1, 7, 3);
+    _faces[14] = createFace(1, 3, 7);
+    _faces[15] = createFace(1, 7, 3);
     // Right face done
 
     // TBR-TBL-BBL
-    faces[16] = createFace(5, 4, 6);
-    faces[17] = createFace(5, 6, 4);
+    _faces[16] = createFace(5, 4, 6);
+    _faces[17] = createFace(5, 6, 4);
 
     // TBR-BBL-BBR
-    faces[18] = createFace(5, 6, 7);
-    faces[19] = createFace(5, 7, 6);
+    _faces[18] = createFace(5, 6, 7);
+    _faces[19] = createFace(5, 7, 6);
     // Back face done
 
     // BFL-BFR-BBL
-    faces[20] = createFace(2, 3, 6);
-    faces[21] = createFace(2, 6, 3);
+    _faces[20] = createFace(2, 3, 6);
+    _faces[21] = createFace(2, 6, 3);
 
     // BFR-BBL-BBR
-    faces[22] = createFace(3, 6, 7);
-    faces[23] = createFace(3, 7, 6);
+    _faces[22] = createFace(3, 6, 7);
+    _faces[23] = createFace(3, 7, 6);
 }

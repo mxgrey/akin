@@ -66,7 +66,7 @@ protected:
     IdArray _BufferIds;
     IdArray _ShaderIds;
 
-    GraphicsArray* _graphics;
+    GraphicsPointerArray _graphics;
     IdArray _graphicOffset;
 
     VertexArray _globalVertexArray;

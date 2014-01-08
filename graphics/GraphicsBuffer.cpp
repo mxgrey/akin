@@ -36,9 +36,14 @@ GraphicsBuffer* GraphicsBuffer::_buffer = 0;
 
 uint GraphicsBuffer::addGraphic(GraphicsObject &object)
 {
-    _graphics->push_back(&object);
+    _buffer->_graphics.push_back(&object);
 
-    return _graphics->size()-1;
+    return _buffer->_graphics.size()-1;
+}
+
+void GraphicsBuffer::removeGraphic(GraphicsObject &object)
+{
+
 }
 
 GraphicsBuffer::GraphicsBuffer(verbosity::verbosity_level_t report_level)
@@ -57,7 +62,7 @@ GraphicsBuffer::GraphicsBuffer(bool create) :
     _ActiveIndexBuffer(0)
 {
     Box dummyBox(Frame::World(), "dummy", verbosity::DEBUG);
-    graphics.push_back(dummyBox);
+    _graphics.push_back(&dummyBox);
 }
 
 uint32_t GraphicsBuffer::getActiveIndexBuffer() { return _buffer->_ActiveIndexBuffer; }
