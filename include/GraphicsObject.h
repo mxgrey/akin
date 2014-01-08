@@ -1,0 +1,7 @@
+#ifndef GRAPHICSOBJECT_H
+#define GRAPHICSOBJECT_H
+
+
+
+
+#endif // GRAPHICSOBJECT_H
