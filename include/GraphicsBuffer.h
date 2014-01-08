@@ -1,10 +1,33 @@
 #ifndef GRAPHICSBUFFER_H
 #define GRAPHICSBUFFER_H
 
-#include "IncludeGraphics.h"
-
+#include "IncludeGL.h"
+#include "GraphicsObject.h"
 
 namespace akin {
+
+
+typedef struct
+{
+    float m[16];
+} FloatMatrix;
+
+inline FloatMatrix convertToFloat(const Eigen::Isometry3d& other)
+{
+    FloatMatrix M;
+    for(size_t i=0; i<4; ++i)
+        for(size_t j=0; j<4; ++j)
+            M.m[4*i+j] = other(j,i);
+
+    return M;
+}
+
+inline FloatMatrix FloatIdentity()
+{
+    return convertToFloat(Eigen::Isometry3d::Identity());
+}
+
+typedef std::vector<GLuint> IdArray;
 
 class GraphicsBuffer
 {
@@ -23,6 +46,12 @@ public:
     
     static void drawElements();
 
+    static uint addGraphic(GraphicsObject& object);
+    static void removeGraphic(GraphicsObject& object);
+    static void removeGraphic(uint index);
+
+
+
     verbosity verb;
 
 protected:
@@ -33,6 +62,20 @@ protected:
     GLuint _VboId;
     GLuint _IndexBufferId[2];
     GLuint _ActiveIndexBuffer;
+
+    IdArray _BufferIds;
+    IdArray _ShaderIds;
+
+    GraphicsArray* _graphics;
+    IdArray _graphicOffset;
+
+    VertexArray _globalVertexArray;
+    FaceArray _globalFaceArray;
+
+
+    FloatMatrix _ProjectionMatrix;
+    FloatMatrix _ViewMatrix;
+    FloatMatrix _ModelMatrix;
 
     const static GLchar* _VertexShader;
     const static GLchar* _FragmentShader;
@@ -47,12 +90,8 @@ private:
 
 };
 
-typedef struct
-{
-    float XYZW[4];
-    float RGBA[4];
-} Vertex;
 
 } // namespace akin
+
 
 #endif // GRAPHICSBUFFER_H

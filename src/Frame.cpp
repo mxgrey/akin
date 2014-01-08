@@ -261,4 +261,6 @@ void Frame::_update()
     verb.debug() << "Updating frame '"+name()+"'";
 
     _respectToWorld = refFrame().respectToWorld() * _respectToRef;
+
+    _needsUpdate = false;
 }

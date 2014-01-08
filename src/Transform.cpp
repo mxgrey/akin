@@ -37,6 +37,8 @@ void KinTransform::_update()
     verb.debug() << "Updating transform '"+name()+"'"; verb.end();
 
     _respectToWorld = refFrame().respectToWorld() * (Transform&)(*this);
+
+    _needsUpdate = false;
 }
 
 std::ostream& operator<<(std::ostream& oStrStream, const KinTransform& mTransform)

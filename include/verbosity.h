@@ -29,11 +29,11 @@ public:
     typedef enum {
         SILENT=0,
         LOG,
+        INHERIT,
         BRIEF,
         DESCRIPTIVE,
         DEBUG,
-        MAX_VERBOSITY_LEVEL,
-        INHERIT
+        MAX_VERBOSITY_LEVEL
     } verbosity_level_t;
     verbosity_level_t level;
 
@@ -43,6 +43,7 @@ public:
         {
             case SILENT: return "SILENT"; break;
             case LOG: return "LOG"; break;
+            case INHERIT: return "INHERIT"; break;
             case BRIEF: return "BRIEF"; break;
             case DESCRIPTIVE: return "DESCRIPTIVE"; break;
             case DEBUG: return "DEBUG"; break;

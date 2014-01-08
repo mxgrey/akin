@@ -34,6 +34,13 @@ const GLchar* GraphicsBuffer::_FragmentShader =
 
 GraphicsBuffer* GraphicsBuffer::_buffer = 0;
 
+uint GraphicsBuffer::addGraphic(GraphicsObject &object)
+{
+    _graphics->push_back(&object);
+
+    return _graphics->size()-1;
+}
+
 GraphicsBuffer::GraphicsBuffer(verbosity::verbosity_level_t report_level)
 {
     verb.level = report_level;
@@ -44,9 +51,13 @@ GraphicsBuffer::GraphicsBuffer(verbosity::verbosity_level_t report_level)
 }
 
 GraphicsBuffer::GraphicsBuffer(bool create) :
+    _ProjectionMatrix(FloatIdentity()),
+    _ViewMatrix(FloatIdentity()),
+    _ModelMatrix(FloatIdentity()),
     _ActiveIndexBuffer(0)
 {
-
+    Box dummyBox(Frame::World(), "dummy", verbosity::DEBUG);
+    graphics.push_back(dummyBox);
 }
 
 uint32_t GraphicsBuffer::getActiveIndexBuffer() { return _buffer->_ActiveIndexBuffer; }
@@ -89,7 +100,7 @@ void GraphicsBuffer::CreateVBO()
 //         0.8f, -0.8f, 0.0f, 1.0f
 //    };
     
-    Vertex Vertices[] =
+    CheapVertex Vertices[] =
     {
         { {  0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
         

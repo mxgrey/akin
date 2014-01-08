@@ -38,6 +38,8 @@ void KinTranslation::_update()
     verb.debug() << "Updating translation '"+name()+"'"; verb.end();
 
     _respectToWorld = refFrame().respectToWorld() * (Translation&)(*this);
+
+    _needsUpdate = false;
 }
 
 KinFreeVector::KinFreeVector(Frame &referenceFrame, string freeVectorName, verbosity::verbosity_level_t report_level) :
@@ -73,6 +75,8 @@ void KinFreeVector::_update()
     verb.debug() << "Updating FreeVector '"+name()+"'"; verb.end();
 
     _respectToWorld = refFrame().respectToWorld() * (FreeVector&)(*this);
+
+    _needsUpdate = false;
 }
 
 KinAxis::KinAxis(Frame &referenceFrame, string axisName, verbosity::verbosity_level_t report_level) :
@@ -108,4 +112,6 @@ void KinAxis::_update()
     verb.debug() << "Updating Axis '"+name()+"'"; verb.end();
 
     _respectToWorld = refFrame().respectToWorld() * (Axis&)(*this);
+
+    _needsUpdate = false;
 }

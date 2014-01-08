@@ -132,6 +132,17 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
 
     glClearColor(0.85f, 0.85f, 0.85f, 0.0f);
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    CheckGLError(verb, "Could not set OpenGL depth testing options");
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+    CheckGLError(verb, "Could not set OpenGL culling options");
+
+
+
     verb.debug() << "Creating shaders"; verb.end();
     _buffer.CreateShaders();
     verb.debug() << "Creating VBO"; verb.end();

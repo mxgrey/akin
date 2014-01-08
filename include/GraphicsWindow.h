@@ -1,7 +1,7 @@
 #ifndef GRAPHICSWINDOW_H
 #define GRAPHICSWINDOW_H
 
-#include "IncludeGraphics.h"
+#include "IncludeGL.h"
 
 #include "GraphicsBuffer.h"
 
