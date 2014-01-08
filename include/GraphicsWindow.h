@@ -1,7 +1,7 @@
 #ifndef GRAPHICSWINDOW_H
 #define GRAPHICSWINDOW_H
 
-#include "GlIncludes.h"
+#include "IncludeGraphics.h"
 
 #include "GraphicsBuffer.h"
 
@@ -16,7 +16,7 @@ public:
                    verbosity::verbosity_level_t report_level = verbosity::LOG);
 
     bool checkInstance();
-
+    
 
     static void Resize(int new_width, int new_height);
     static void Render();
@@ -26,11 +26,15 @@ public:
     static int get_window_handle();
     static void run();
     static std::string get_window_name();
+    static void static_keyboard(unsigned char key, int x, int y);
+    
     
     verbosity verb;
     
 protected:
 
+    virtual void _keyboard(unsigned char key, int x, int y);
+    
     void _Initialize(int argc, char* argv[], std::string name, int init_width, int init_height);
     
     int _current_width;

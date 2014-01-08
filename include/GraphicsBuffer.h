@@ -1,7 +1,7 @@
 #ifndef GRAPHICSBUFFER_H
 #define GRAPHICSBUFFER_H
 
-#include "GlIncludes.h"
+#include "IncludeGraphics.h"
 
 
 namespace akin {
@@ -17,6 +17,11 @@ public:
     static void DestroyVBO();
     static void CreateShaders();
     static void DestroyShaders();
+    
+    static uint32_t getActiveIndexBuffer();
+    static void setActiveIndexBuffer(uint32_t active);
+    
+    static void drawElements();
 
     verbosity verb;
 
@@ -26,7 +31,8 @@ protected:
     GLuint _ProgramId;
     GLuint _VaoId;
     GLuint _VboId;
-    GLuint _ColorBufferId;
+    GLuint _IndexBufferId[2];
+    GLuint _ActiveIndexBuffer;
 
     const static GLchar* _VertexShader;
     const static GLchar* _FragmentShader;
@@ -40,6 +46,12 @@ private:
     GraphicsBuffer(bool create);
 
 };
+
+typedef struct
+{
+    float XYZW[4];
+    float RGBA[4];
+} Vertex;
 
 } // namespace akin
 
