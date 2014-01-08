@@ -43,9 +43,25 @@ GraphicsBuffer::GraphicsBuffer(verbosity::verbosity_level_t report_level)
     makeBuffer(verb.level);
 }
 
-GraphicsBuffer::GraphicsBuffer(bool create)
+GraphicsBuffer::GraphicsBuffer(bool create) :
+    _ActiveIndexBuffer(0)
 {
 
+}
+
+uint32_t GraphicsBuffer::getActiveIndexBuffer() { return _buffer->_ActiveIndexBuffer; }
+void GraphicsBuffer::setActiveIndexBuffer(uint32_t active)
+{
+    _buffer->_ActiveIndexBuffer = active;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[_buffer->_ActiveIndexBuffer]);
+}
+
+void GraphicsBuffer::drawElements()
+{
+    if(_buffer->_ActiveIndexBuffer==0)
+        glDrawElements(GL_TRIANGLES, 48, GL_UNSIGNED_BYTE, NULL);
+    else
+        glDrawElements(GL_TRIANGLE_FAN, 36, GL_UNSIGNED_BYTE, NULL);
 }
 
 void GraphicsBuffer::makeBuffer(verbosity::verbosity_level_t report_level)
@@ -67,46 +83,103 @@ void GraphicsBuffer::Cleanup()
 
 void GraphicsBuffer::CreateVBO()
 {
-    GLfloat Vertices[] = {
-        -0.8f, -0.8f, 0.0f, 1.0f,
-         0.0f,  0.8f, 0.0f, 1.0f,
-         0.8f, -0.8f, 0.0f, 1.0f
+//    GLfloat Vertices[] = {
+//        -0.8f, -0.8f, 0.0f, 1.0f,
+//         0.0f,  0.8f, 0.0f, 1.0f,
+//         0.8f, -0.8f, 0.0f, 1.0f
+//    };
+    
+    Vertex Vertices[] =
+    {
+        { {  0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
+        
+        { { -0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+        { {  0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+        { {  0.0f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+        { {  0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+        
+        { { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+        { {  0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+        { {  0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+        { {  0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+        
+        { { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+        { { -0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+        { { -0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+        { { -1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+        
+        { { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+        { { 0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+        { { 0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+        { { 1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
     };
-
-    GLfloat Colors[] = {
-        1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f
+    
+    GLubyte Indices[] =
+    {
+        0, 1, 3,
+        0, 3, 2,
+        3, 1, 4,
+        3, 4, 2,
+        
+        0, 5, 7,
+        0, 7, 6,
+        7, 5, 8,
+        7, 8, 6,
+        
+        0, 9, 11,
+        0, 11, 10,
+        11, 9, 12,
+        11, 12, 10,
+        
+        0, 13, 15,
+        0, 15, 14,
+        15, 13, 16,
+        15, 16, 14
+    };
+    
+    GLubyte AlternateIndices[] =
+    {
+        3, 4, 16,
+        3, 15, 16,
+        15, 16, 8,
+        15, 7, 8,
+        7, 8, 12,
+        7, 11, 12,
+        11, 12, 4,
+        11, 3, 4,
+        
+        0, 11, 3,
+        0, 3, 15,
+        0, 15, 7,
+        0, 7, 11
     };
 
     GLenum ErrorCheckValue = glGetError();
+    const size_t BufferSize = sizeof(Vertices);
+    const size_t VertexSize = sizeof(Vertices[0]);
+    const size_t RgbaOffset = sizeof(Vertices[0].XYZW);
 
-    _buffer->verb.debug() << "Generating vertex arrays"; _buffer->verb.end();
-    glGenVertexArrays(1, &(_buffer->_VaoId));
-    _buffer->verb.debug() << "Binding vertex array"; _buffer->verb.end();
-    glBindVertexArray(_buffer->_VaoId);
-
-    _buffer->verb.debug() << "Generating vertex buffer"; _buffer->verb.end();
     glGenBuffers(1, &(_buffer->_VboId));
-    _buffer->verb.debug() << "Binding buffer"; _buffer->verb.end();
+    
+    glGenVertexArrays(1, &(_buffer->_VaoId));
+    glBindVertexArray(_buffer->_VaoId);
+    
     glBindBuffer(GL_ARRAY_BUFFER, _buffer->_VboId);
-    _buffer->verb.debug() << "Loading buffer data"; _buffer->verb.end();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-    _buffer->verb.debug() << "Setting vertex attributes"; _buffer->verb.end();
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    _buffer->verb.debug() << "Enabling vertex attribute array"; _buffer->verb.end();
+    glBufferData(GL_ARRAY_BUFFER, BufferSize, Vertices, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VertexSize, 0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, VertexSize, (GLvoid*)RgbaOffset);
+    
     glEnableVertexAttribArray(0);
-
-    _buffer->verb.debug() << "Generating color buffer"; _buffer->verb.end();
-    glGenBuffers(1, &(_buffer->_ColorBufferId));
-    _buffer->verb.debug() << "Binding buffer"; _buffer->verb.end();
-    glBindBuffer(GL_ARRAY_BUFFER, _buffer->_ColorBufferId);
-    _buffer->verb.debug() << "Loading buffer data"; _buffer->verb.end();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Colors), Colors, GL_STATIC_DRAW);
-    _buffer->verb.debug() << "Setting color (vertex?) attributes"; _buffer->verb.end();
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    _buffer->verb.debug() << "Enabling color (vertex?) attribute array"; _buffer->verb.end();
     glEnableVertexAttribArray(1);
+    
+    glGenBuffers(2, _buffer->_IndexBufferId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(AlternateIndices), AlternateIndices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[0]);
 
     ErrorCheckValue = glGetError();
     _buffer->verb.Assert(ErrorCheckValue == GL_NO_ERROR, verbosity::ASSERT_CRITICAL,
@@ -123,8 +196,10 @@ void GraphicsBuffer::DestroyVBO()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glDeleteBuffers(1, &(_buffer->_ColorBufferId));
     glDeleteBuffers(1, &(_buffer->_VboId));
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDeleteBuffers(2, _buffer->_IndexBufferId);
 
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &(_buffer->_VaoId));

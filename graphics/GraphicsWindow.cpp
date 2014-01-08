@@ -7,6 +7,25 @@ GraphicsWindow* GraphicsWindow::_window = 0;
 
 void GraphicsWindow::run() { glutMainLoop(); }
 
+void GraphicsWindow::_keyboard(unsigned char key, int x, int y)
+{
+    switch(key)
+    {
+        case 'T':
+        case 't':
+        {
+            _buffer.setActiveIndexBuffer(
+                        _buffer.getActiveIndexBuffer()==1 ? 0 : 1);
+            break;
+        }
+    }
+}
+
+void GraphicsWindow::static_keyboard(unsigned char key, int x, int y)
+{
+    _window->_keyboard(key, x, y);
+}
+
 void GraphicsWindow::Resize(int new_width, int new_height)
 {
     _window->_current_width = new_width;
@@ -19,7 +38,7 @@ void GraphicsWindow::Render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    GraphicsBuffer::drawElements();
 
     glutSwapBuffers();
     glutPostRedisplay();
@@ -99,6 +118,7 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glutReshapeFunc(akin::GraphicsWindow::Resize);
     glutDisplayFunc(akin::GraphicsWindow::Render);
     glutCloseFunc(akin::GraphicsBuffer::Cleanup);
+    glutKeyboardFunc(akin::GraphicsWindow::static_keyboard);
 
     verb.debug() << "Initializing GLEW"; verb.end();
 
