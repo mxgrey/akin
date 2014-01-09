@@ -36,6 +36,15 @@ public:
         XYZW[3] = 1.0f;
         memcpy(RGBA, rgba, sizeof(RGBA));
     }
+    
+    inline Vertex(const Eigen::Vector3d& vec)
+    {
+        XYZW[0] = (float)vec[0];
+        XYZW[1] = (float)vec[1];
+        XYZW[2] = (float)vec[2];
+        XYZW[3] = 1.0f;
+        memset(RGBA, 0, sizeof(RGBA));
+    }
 
     inline Vertex& operator=(const Translation& vec)
     {
