@@ -1,6 +1,5 @@
 
-#include "Transform.h"
-#include "Frame.h"
+#include "AkinIncludes.h"
 
 using namespace akin;
 using namespace std;
@@ -41,7 +40,5 @@ void KinTransform::_update()
     _needsUpdate = false;
 }
 
-std::ostream& operator<<(std::ostream& oStrStream, const KinTransform& mTransform)
-{
-    oStrStream << (KinObject&)mTransform << " has matrix:\n" << (Transform&)mTransform << endl;
-}
+//std::ostream& operator<<(std::ostream& oStrStream, const KinTransform& mTransform)
+

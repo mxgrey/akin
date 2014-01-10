@@ -25,6 +25,13 @@ public:
     {
 
     }
+    
+    inline Transform(const Translation& translation, const Rotation& rotation = Rotation::Identity()) :
+        Eigen::Isometry3d(Eigen::Isometry3d::Identity())
+    {
+        translate(translation);
+        rotate(rotation);
+    }
 
     inline Transform(const Eigen::Isometry3d& tf) :
         Eigen::Isometry3d(tf)
@@ -83,16 +90,8 @@ class KinTransform : public Transform, public KinObject
 public:
     KinMacro( KinTransform, Transform )
 
-//    KinTransform(Frame& referenceFrame,
-//                 std::string tfName="transform",
-//                 verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-
-//    KinTransform(const Transform& relativeTf,
-//                 Frame& referenceFrame,
-//                 std::string tfName="transform",
-//                 verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-
     const Transform& respectToWorld();
+    
     Transform withRespectTo(Frame& someFrame);
 
 protected:
@@ -108,6 +107,11 @@ private:
 } // namespace akin
 
 
-std::ostream& operator<<(std::ostream& oStrStream, const akin::KinTransform& mTransform);
+inline std::ostream& operator<<(std::ostream& oStrStream, akin::KinTransform& mTransform)
+{
+    oStrStream << (akin::KinObject&)mTransform << " has relative matrix:\n" << (akin::Transform&)mTransform
+               << "\nAnd global matrix:\n" << mTransform.respectToWorld() << std::endl;
+    return oStrStream;
+}
 
 #endif // TRANSFORM_H

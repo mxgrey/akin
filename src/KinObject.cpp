@@ -1,4 +1,4 @@
-#include "Frame.h"
+#include "AkinIncludes.h"
 
 using namespace akin;
 
@@ -12,9 +12,11 @@ KinObject::KinObject(Frame& referenceFrame,
     else
         verb.level = report_level;
 
-    verb.debug() << "Creating " << myName << " which is a " << myType;
+    verb.debug() << "Creating '" << myName << "' which is a '" << myType;
     if(!thisIsTheWorld)
-        verb << " in the frame of " << referenceFrame.name();
+        verb << "' in the frame of '" << referenceFrame.name() << "'";
+    else
+        verb << "'";
     verb.end();
 
     name(myName);
@@ -27,11 +29,14 @@ KinObject::KinObject(Frame& referenceFrame,
 
 KinObject::KinObject(const KinObject &other)
 {
+    verb.level = other.verb.level;
+    verb.debug() << "Making a copy of object '" << other.name() << "' which is a '" << other.type() << "'"; verb.end();
     _copyValues(other);
 }
 
 KinObject& KinObject::operator =(const KinObject& other)
 {
+    verb.level = other.verb.level;
     verb.debug() << "Assigning object '" << name() << "' to have the values of '" << other.name() << "'";
 
     _copyValues(other);
@@ -39,8 +44,6 @@ KinObject& KinObject::operator =(const KinObject& other)
 
 void KinObject::_copyValues(const KinObject &other)
 {
-    verb.debug() << "Copying object '" << other.name() << "' which is a " << other.type() << "'";
-
     verb.level = other.verb.level;
     name(other.name());
     _type = other.type();
@@ -70,14 +73,16 @@ std::string KinObject::type() const { return _type; }
 
 bool KinObject::changeRefFrame(Frame &newRefFrame)
 {
-    verb.desc() << "Changing the reference frame of " << name() << " from "
-                << refFrame().name() << " to " << newRefFrame.name();
+    verb.desc() << "Changing the reference frame of '" << name() << "'' from '"
+                << refFrame().name() << "'' to '" << newRefFrame.name() << "'";
     verb.end();
 
     refFrame()._loseChildObject(this);
     newRefFrame._gainChildObject(this);
 
     _referenceFrame = &newRefFrame;
+    
+    return true;
 }
 
 bool KinObject::descendsFrom(const Frame &someFrame)

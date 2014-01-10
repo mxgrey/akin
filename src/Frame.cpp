@@ -1,4 +1,4 @@
-#include "Frame.h"
+#include "AkinIncludes.h"
 
 using namespace akin;
 using namespace std;
@@ -7,7 +7,7 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _isWorld(false)
 {
-
+    referenceFrame._gainChildFrame(this);
 }
 
 Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
@@ -15,7 +15,7 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
     _isWorld(false),
     _respectToRef(relativeTf)
 {
-
+    referenceFrame._gainChildFrame(this);
 }
 
 
@@ -30,6 +30,7 @@ void Frame::_kinitialize(const Frame &other)
 {
     _isWorld = false;
     _respectToRef = other.respectToRef();
+    other.refFrame()._gainChildFrame(this);
     notifyUpdate();
 }
 
@@ -37,6 +38,7 @@ Frame::~Frame()
 {
     for(size_t i=0; i < _childObjects.size(); ++i)
         _childObjects[i]->_loseParent();
+    refFrame()._loseChildFrame(this);
 }
 
 Frame& Frame::World()
@@ -52,12 +54,10 @@ void Frame::_gainChildFrame(Frame *child)
     if(_isWorld)
         return;
 
-    verb.debug() << "Adding Frame '" << child->name() << "'' into the Frame '" << name() << "'";
+    verb.debug() << "Adding Frame '" << child->name() << "' into the Frame '" << name() << "'";
     verb.end();
 
     _childFrames.push_back(child);
-
-    _gainChildObject(child);
 }
 
 void Frame::_loseChildFrame(Frame *child)
@@ -92,8 +92,6 @@ void Frame::_loseChildFrame(Frame *child)
     {
         _childFrames.erase(_childFrames.begin()+childIndex);
     }
-
-    _loseChildObject(child);
 }
 
 void Frame::_gainChildObject(KinObject *child)
@@ -101,7 +99,7 @@ void Frame::_gainChildObject(KinObject *child)
     if(_isWorld)
         return;
 
-    verb.debug() << "Adding '" << child->name() << "' to the Frame '" << name() << "'";
+    verb.debug() << "Adding object '" << child->name() << "' to the Frame '" << name() << "'";
     verb.end();
 
     _childObjects.push_back(child);
@@ -181,7 +179,7 @@ KinObject& Frame::childObject(size_t childObjNum)
         return KinObject::Generic();
     }
 
-    if(verb.Assert(childObjNum < _childFrames.size(),
+    if(verb.Assert(childObjNum < _childObjects.size(),
                    verbosity::ASSERT_CASUAL,
                    "Requested non-existent child object index in Frame '"+name()+"'"))
         return *_childObjects[childObjNum];
@@ -189,7 +187,7 @@ KinObject& Frame::childObject(size_t childObjNum)
     {
         verb.brief() << "Requested a child object of Frame '" << name()
                      << "' which does not exist."
-                     << " Returning a generic object instead";
+                     << " Returning a generic object instead.";
         verb.end();
         return KinObject::Generic();
     }
@@ -211,7 +209,15 @@ bool Frame::changeRefFrame(Frame &newRefFrame)
                     " We will leave '" + name() + "' in the frame of '" + refFrame().name() + "'"))
         return false;
 
-    KinObject::changeRefFrame(newRefFrame);
+    refFrame()._loseChildFrame(this);
+    refFrame()._loseChildObject(this);
+    
+    newRefFrame._gainChildFrame(this);
+    newRefFrame._gainChildObject(this);
+    
+    _referenceFrame = &newRefFrame;
+    
+    return true;
 }
 
 bool Frame::isWorld() const { return _isWorld; }
@@ -244,7 +250,7 @@ void Frame::respectToRef(const Transform &newTf)
         return;
     }
 
-    verb.debug() << "Changing the relative transform of frame '"+refFrame().name()
+    verb.debug() << "Changing the relative transform going from '"+refFrame().name()
                     +"' to frame '"+name()+"'"; verb.end();
 
     _respectToRef = newTf;
@@ -256,6 +262,9 @@ const Transform& Frame::respectToRef() const { return _respectToRef; }
 
 const Transform& Frame::respectToWorld()
 {
+    if(_isWorld)
+        return _respectToRef;
+    
     if(_needsUpdate)
         _update();
 
@@ -271,7 +280,7 @@ void Frame::forceUpdate() { _update(); }
 
 void Frame::_update()
 {
-    verb.debug() << "Updating frame '"+name()+"'";
+    verb.debug() << "Updating frame '"+name()+"'"; verb.end();
 
     _respectToWorld = refFrame().respectToWorld() * _respectToRef;
 

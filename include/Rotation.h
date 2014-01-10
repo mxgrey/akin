@@ -2,7 +2,6 @@
 #define ROTATION_H
 
 #include "KinObject.h"
-#include "Translation.h"
 
 namespace akin {
 

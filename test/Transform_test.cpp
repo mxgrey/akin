@@ -1,6 +1,5 @@
 
-#include "Transform.h"
-#include "Frame.h"
+#include "AkinIncludes.h"
 
 using namespace akin;
 using namespace std;

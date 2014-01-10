@@ -43,14 +43,16 @@ public:
 class KinTranslation : public Translation, public KinObject
 {
 public:
-    KinTranslation(Frame& referenceFrame,
-                   std::string translationName="translation",
-                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    
+    KinMacro( KinTranslation, Translation )
+//    KinTranslation(Frame& referenceFrame,
+//                   std::string translationName="translation",
+//                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    KinTranslation(const Translation& relativeTranslation,
-                   Frame& referenceFrame,
-                   std::string translationName="translation",
-                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+//    KinTranslation(const Translation& relativeTranslation,
+//                   Frame& referenceFrame,
+//                   std::string translationName="translation",
+//                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const Translation& respectToWorld();
     Translation withRespectTo(Frame& someFrame);
@@ -107,14 +109,15 @@ class KinFreeVector : public FreeVector, public KinObject
 {
 public:
 
-    KinFreeVector(Frame& referenceFrame,
-                  std::string freeVectorName="free_vector",
-                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    KinMacro( KinFreeVector, FreeVector )
+//    KinFreeVector(Frame& referenceFrame,
+//                  std::string freeVectorName="free_vector",
+//                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    KinFreeVector(const FreeVector& relativeFreeVector,
-                  Frame& referenceFrame,
-                  std::string freeVectorName="free_vector",
-                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+//    KinFreeVector(const FreeVector& relativeFreeVector,
+//                  Frame& referenceFrame,
+//                  std::string freeVectorName="free_vector",
+//                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const FreeVector& respectToWorld();
     FreeVector withRespectTo(Frame& someFrame);
@@ -158,14 +161,15 @@ class KinAxis : public Axis, public KinObject
 {
 public:
 
-    KinAxis(Frame& referenceFrame,
-            std::string axisName="axis",
-            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    KinMacro( KinAxis, Axis )
+//    KinAxis(Frame& referenceFrame,
+//            std::string axisName="axis",
+//            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    KinAxis(const Axis& relativeAxis,
-            Frame& referenceFrame,
-            std::string axisName="axis",
-            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+//    KinAxis(const Axis& relativeAxis,
+//            Frame& referenceFrame,
+//            std::string axisName="axis",
+//            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const Axis& respectToWorld();
     Axis withRespectTo(Frame& someFrame);

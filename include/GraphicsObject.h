@@ -2,7 +2,7 @@
 #define GRAPHICSOBJECT_H
 
 #include "IncludeGL.h"
-#include "Frame.h"
+#include "AkinIncludes.h"
 
 namespace akin {
 

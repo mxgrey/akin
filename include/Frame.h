@@ -219,4 +219,11 @@ private:
 
 } // namespace akin
 
+inline std::ostream& operator<<(std::ostream& oStrStream, akin::Frame& mFrame)
+{
+    oStrStream << (akin::KinObject&)mFrame << " has relative transform:\n" << mFrame.respectToRef()
+               << "\nAnd World transform:\n" << mFrame.respectToWorld() << std::endl;
+    return oStrStream;
+}
+
 #endif // FRAME_H
