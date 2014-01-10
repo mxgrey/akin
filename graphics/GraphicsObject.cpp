@@ -19,6 +19,12 @@ GraphicsObject::GraphicsObject(const VertexArray &graphicVertexArray, const Face
 
 }
 
+void GraphicsObject::_kinitialize(const GraphicsObject &copy)
+{
+    _vertices = copy._vertices;
+    _faces = copy._faces;
+}
+
 GraphicsObject::~GraphicsObject()
 {
     GraphicsBuffer::unstageGraphic(*this);

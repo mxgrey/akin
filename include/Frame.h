@@ -22,7 +22,7 @@ class Frame : public KinObject
 
 public:
 
-    KinInitMacro( Frame )
+    KinCustomMacro( Frame )
 
     /*!
       * \fn Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level)

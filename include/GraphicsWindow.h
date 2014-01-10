@@ -44,8 +44,6 @@ protected:
 
     static GraphicsWindow* _window;
 
-    GraphicsBuffer _buffer;
-
 private:
 
     GraphicsWindow(bool create);

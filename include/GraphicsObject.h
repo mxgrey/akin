@@ -6,6 +6,8 @@
 
 namespace akin {
 
+class GraphicsBuffer;
+
 typedef struct
 {
     float XYZW[4];
@@ -81,6 +83,10 @@ class GraphicsObject : public KinObject
 {
 public:
 
+    friend class GraphicsBuffer;
+
+    KinCustomMacro( GraphicsObject )
+
     GraphicsObject(Frame& referenceFrame = Frame::World(),
                    std::string graphicName="graphic",
                    verbosity::verbosity_level_t report_level = verbosity::INHERIT);
@@ -102,6 +108,9 @@ public:
     VertexArray withRespectTo(Frame& someFrame);
 
 protected:
+
+    GLuint _vertexBufferAddress;
+    GLuint _faceBufferAddress;
 
     VertexArray _vertices;
     FaceArray _faces;

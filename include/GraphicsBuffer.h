@@ -3,6 +3,8 @@
 
 #include "IncludeGL.h"
 #include "GraphicsObject.h"
+#include "map"
+#include "GraphicsShader.h"
 
 namespace akin {
 
@@ -22,13 +24,20 @@ inline FloatMatrix convertToFloat(const Eigen::Isometry3d& other)
     return M;
 }
 
+inline FloatMatrix FloatZeros()
+{
+    FloatMatrix M;
+    memset(M.m, sizeof(M.m), 0);
+    return M;
+}
+
 inline FloatMatrix FloatIdentity()
 {
     return convertToFloat(Eigen::Isometry3d::Identity());
 }
 
 typedef std::vector<GLuint> IdArray;
-typedef std::vector<uint> IndexMap;
+typedef std::map<uint,GraphicsObject*> GraphicsPointerMap;
 
 class GraphicsBuffer
 {
@@ -41,9 +50,6 @@ public:
     static void DestroyVBO();
     static void CreateShaders();
     static void DestroyShaders();
-    
-    static uint32_t getActiveIndexBuffer();
-    static void setActiveIndexBuffer(uint32_t active);
     
     static void drawElements();
 
@@ -108,29 +114,37 @@ public:
      */
     static void deleteGrahpic(uint graphicId);
 
+    /*!
+     * \fn displayStoredGraphic();
+     * \brief Equivalent to displayGraphic( retrieveGraphic( graphicId ) );
+     * \param graphicId
+     */
     static void displayStoredGraphic(uint graphicId);
+
+    /*!
+     * \fn unstageStoredGraphic();
+     * \brief Equivalent to unstageGraphic( retrieveGraphic( graphicId ) );
+     * \param graphicId
+     */
     static void unstageStoredGraphic(uint graphicId);
+
+
+    static void setProjectionMatrix(float field_of_view,
+                                    float aspect_ratio,
+                                    float near_plane,
+                                    float far_plane);
 
     verbosity verb;
 
 protected:
-    GLuint _VertexShaderId;
-    GLuint _FragmentShaderId;
-    GLuint _ProgramId;
-    GLuint _VaoId;
-    GLuint _VboId;
-    GLuint _IndexBufferId[2];
-    GLuint _ActiveIndexBuffer;
-
-    IdArray _BufferIds;
-    IdArray _ShaderIds;
 
     GraphicsPointerArray _graphics;
+    GraphicsShader _vertexShader;
+    GraphicsShader _fragmentShader;
+    GLuint _shaderProgramId;
 
-    IdArray _graphicOffset;
-
-    GraphicsPointerArray _storedGraphics;
-    IndexMap _storageMap;
+    GraphicsPointerMap _storedGraphics;
+    uint _nextStorageIndex;
 
     GraphicsObject _emptyGraphic;
 
@@ -138,8 +152,9 @@ protected:
     FloatMatrix _ViewMatrix;
     FloatMatrix _ModelMatrix;
 
-    const static GLchar* _VertexShader;
-    const static GLchar* _FragmentShader;
+    GLint _ProjectionMatrixId;
+    GLint _ViewMatrixId;
+    GLint _ModelMatrixId;
 
     static GraphicsBuffer* _buffer;
 
@@ -147,7 +162,7 @@ protected:
 
 private:
 
-    GraphicsBuffer(bool create);
+    GraphicsBuffer(bool create, verbosity::verbosity_level_t report_level);
 
 };
 

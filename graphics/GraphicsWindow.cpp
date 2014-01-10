@@ -14,8 +14,6 @@ void GraphicsWindow::_keyboard(unsigned char key, int x, int y)
         case 'T':
         case 't':
         {
-            _buffer.setActiveIndexBuffer(
-                        _buffer.getActiveIndexBuffer()==1 ? 0 : 1);
             break;
         }
     }
@@ -32,11 +30,17 @@ void GraphicsWindow::Resize(int new_width, int new_height)
     _window->_current_height = new_height;
 
     glViewport(0, 0, new_width, new_height);
+    CheckGLError(_window->verb, "Set the viewport");
+
+    GraphicsBuffer::setProjectionMatrix(60, (float)(new_width)/(float)(new_height), 1.0f, 100.0f);
+    CheckGLError(_window->verb, "Set the projection matrix");
 }
 
 void GraphicsWindow::Render()
 {
+//    CheckGLError(_window->verb, "About to clear screen");
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    CheckGLError(_window->verb, "Could not clear screen");
 
     GraphicsBuffer::drawElements();
 
@@ -45,8 +49,7 @@ void GraphicsWindow::Render()
 }
 
 GraphicsWindow::GraphicsWindow(int argc, char *argv[], std::string name, int width, int height,
-                               verbosity::verbosity_level_t report_level) :
-    _buffer(report_level)
+                               verbosity::verbosity_level_t report_level)
 {
     verb.level = report_level;
     if(verb.level == verbosity::INHERIT)
@@ -74,6 +77,8 @@ void GraphicsWindow::makeInstance(int argc, char *argv[], std::string name, int 
         verb.debug() << "Finished instantiation"; verb.end();
 
         _Initialize(argc, argv, name, init_width, init_height);
+
+        GraphicsBuffer instantiation(verb.level);
     }
 }
 
@@ -120,19 +125,22 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glutCloseFunc(akin::GraphicsBuffer::Cleanup);
     glutKeyboardFunc(akin::GraphicsWindow::static_keyboard);
 
-    verb.debug() << "Initializing GLEW"; verb.end();
+    CheckGLError(verb, "Checking errors before initializing GLEW");
 
     // TODO: Why does glewExperimental need to be true??
     glewExperimental = GL_TRUE;
+    CheckGLError(verb, "About to init GLEW");
     GLenum GlewInitResult = glewInit();
     verb.Assert(GLEW_OK == GlewInitResult, verbosity::ASSERT_CRITICAL,
                 "Could not initialize GLEW",
                 ": "+std::string((char*)glewGetErrorString(GlewInitResult)));
+    glGetError();
 
-
+    CheckGLError(verb, "About to set the clear color");
     glClearColor(0.85f, 0.85f, 0.85f, 0.0f);
 
     glEnable(GL_DEPTH_TEST);
+    CheckGLError(verb, "Could not enable depth testing options");
     glDepthFunc(GL_LESS);
     CheckGLError(verb, "Could not set OpenGL depth testing options");
 
@@ -143,10 +151,10 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
 
 
 
-    verb.debug() << "Creating shaders"; verb.end();
-    _buffer.CreateShaders();
-    verb.debug() << "Creating VBO"; verb.end();
-    _buffer.CreateVBO();
+//    verb.debug() << "Creating shaders"; verb.end();
+//    _buffer.CreateShaders();
+//    verb.debug() << "Creating VBO"; verb.end();
+//    _buffer.CreateVBO();
 
 
 
