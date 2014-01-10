@@ -34,16 +34,21 @@ const GLchar* GraphicsBuffer::_FragmentShader =
 
 GraphicsBuffer* GraphicsBuffer::_buffer = 0;
 
-uint GraphicsBuffer::addGraphic(GraphicsObject &object)
+void GraphicsBuffer::displayGraphic(GraphicsObject &object)
 {
     _buffer->_graphics.push_back(&object);
-
-    return _buffer->_graphics.size()-1;
 }
 
-void GraphicsBuffer::removeGraphic(GraphicsObject &object)
+void GraphicsBuffer::unstageGraphic(GraphicsObject &object)
 {
-
+    for(size_t i=0; i<_buffer->_graphics.size(); ++i)
+    {
+        if(_buffer->_graphics[i] == &object)
+        {
+            _buffer->_graphics.erase(_buffer->_graphics.begin()+i);
+            break;
+        }
+    }
 }
 
 GraphicsBuffer::GraphicsBuffer(verbosity::verbosity_level_t report_level)
@@ -52,7 +57,7 @@ GraphicsBuffer::GraphicsBuffer(verbosity::verbosity_level_t report_level)
     if(verb.level == verbosity::INHERIT)
         verb.level = verbosity::LOG;
 
-    makeBuffer(verb.level);
+    _makeBuffer(verb.level);
 }
 
 GraphicsBuffer::GraphicsBuffer(bool create) :
@@ -80,7 +85,7 @@ void GraphicsBuffer::drawElements()
         glDrawElements(GL_TRIANGLE_FAN, 36, GL_UNSIGNED_BYTE, NULL);
 }
 
-void GraphicsBuffer::makeBuffer(verbosity::verbosity_level_t report_level)
+void GraphicsBuffer::_makeBuffer(verbosity::verbosity_level_t report_level)
 {
     if(_buffer==0)
     {

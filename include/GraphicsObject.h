@@ -81,12 +81,12 @@ class GraphicsObject : public KinObject
 {
 public:
 
-    GraphicsObject(Frame& referenceFrame,
+    GraphicsObject(Frame& referenceFrame = Frame::World(),
                    std::string graphicName="graphic",
                    verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     GraphicsObject(const VertexArray& graphicVertexArray, const FaceArray& graphicFaceArray,
-                   Frame& referenceFrame,
+                   Frame& referenceFrame = Frame::World(),
                    std::string graphicName="graphic",
                    verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
@@ -119,12 +119,12 @@ typedef std::vector<GraphicsObject*> GraphicsPointerArray;
 class Box : public GraphicsObject
 {
 public:
-    Box(Frame& referenceFrame,
+    Box(Frame& referenceFrame = Frame::World(),
          std::string boxName="Box",
          verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     Box(float width, float length, float height,
-         Frame& referenceFrame,
+         Frame& referenceFrame = Frame::World(),
          std::string boxName="Box",
          verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 

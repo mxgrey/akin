@@ -7,7 +7,7 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _isWorld(false)
 {
-    
+
 }
 
 Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
@@ -24,6 +24,19 @@ Frame::Frame(bool createWorld) :
     KinObject(*this, "World", verbosity::LOG, "World Frame", true)
 {
 
+}
+
+void Frame::_kinitialize(const Frame &other)
+{
+    _isWorld = false;
+    _respectToRef = other.respectToRef();
+    notifyUpdate();
+}
+
+Frame::~Frame()
+{
+    for(size_t i=0; i < _childObjects.size(); ++i)
+        _childObjects[i]->_loseParent();
 }
 
 Frame& Frame::World()
@@ -101,7 +114,7 @@ void Frame::_loseChildObject(KinObject *child)
     if(_isWorld)
         return;
 
-    verb.debug() << "Removing '" << child->name() << "' from the Frame '" << name() << "'";
+    verb.debug() << "Removing '" << child->name() << "' as an object of the Frame '" << name() << "'";
     verb.end();
 
     int childIndex = -1;

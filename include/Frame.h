@@ -21,21 +21,25 @@ class Frame : public KinObject
     friend class KinObject;
 
 public:
-    
+
+    KinInitMacro( Frame )
+
     /*!
       * \fn Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level)
       * \brief Constructor for frames
-      *
       * 
       */
-    Frame(Frame& referenceFrame = World(),
-          std::string frameName = "arbitrary_frame",
+    Frame(Frame& referenceFrame,
+          std::string frameName,
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     
     Frame(const Transform& relativeTf,
           Frame& referenceFrame = World(),
           std::string frameName = "arbitrary_frame",
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+
+    ~Frame();
+
     /*!
       * \fn World()
       * \brief Returns the World Frame

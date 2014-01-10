@@ -28,6 +28,7 @@ inline FloatMatrix FloatIdentity()
 }
 
 typedef std::vector<GLuint> IdArray;
+typedef std::vector<uint> IndexMap;
 
 class GraphicsBuffer
 {
@@ -46,11 +47,69 @@ public:
     
     static void drawElements();
 
-    static uint addGraphic(GraphicsObject& object);
-    static void removeGraphic(GraphicsObject& object);
-    static void removeGraphic(uint index);
+    /*!
+     * \fn displayGraphic();
+     * \brief Add the graphic to the list of things to be rendered
+     *
+     * This will register your GraphicsObject as something which should
+     * be rendered in the display. However, if your object is destroyed
+     * (for example, if it falls out of scope during runtime), then it
+     * can no longer be displayed. To make sure that this does not happen,
+     * you can use storeGraphic().
+     */
+    static void displayGraphic(GraphicsObject& object);
 
+    /*!
+     * \fn unstageGraphic();
+     * \brief Remove the graphic from the list of things to be rendered
+     *
+     * This will take your graphic out of the queue of graphics to be
+     * rendered in the display.
+     */
+    static void unstageGraphic(GraphicsObject& object);
 
+    /*!
+     * \fn storeGraphic()
+     * \brief Store the graphic in persistent memory
+     * \return Unsigned int which provides a unique identifier for your stored graphic
+     *
+     * This function will ensure that your graphic continues to exist
+     * for as long as your program is running, or until you run the
+     * function deleteGrahpic().
+     *
+     * The return value will start from 0 and increase by 1 throughout execution, even
+     * if earlier graphics get deleted. If the ID of a deleted graphic is passed in
+     * to any function, that function will either not perform an operation, or it could
+     * print out an error and even abort, depending on verbosity and assertiveness
+     * settings.
+     *
+     * displayGraphic() is run automatically at the end of this function
+     */
+    static uint storeGraphic(const GraphicsObject& object);
+
+    /*!
+     * \fn retrieveGraphic()
+     * \brief Provides a reference to a stored GraphicsObject
+     * \param graphicId
+     * \return Reference to a stored GraphicsObject corresponding to graphicId
+     *
+     * If this attempts to access a graphic which has been deleted, it will
+     * return an empty GraphicsObject.
+     */
+    static GraphicsObject& retrieveGraphic(uint graphicId);
+
+    /*!
+     * \fn deleteGrahpic()
+     * \brief Removes the designated graphic from storage, freeing up its memory
+     * \param graphicId
+     *
+     * This deletes the persistent graphic created by an earlier call to storeGraphic().
+     * The graphicId will no longer point to any graphic.
+     */
+    static void deleteGrahpic(uint graphicId);
+
+    static void displayStoredGraphic(uint graphicId);
+    static void unstageStoredGraphic(uint graphicId);
 
     verbosity verb;
 
@@ -67,11 +126,13 @@ protected:
     IdArray _ShaderIds;
 
     GraphicsPointerArray _graphics;
+
     IdArray _graphicOffset;
 
-    VertexArray _globalVertexArray;
-    FaceArray _globalFaceArray;
+    GraphicsPointerArray _storedGraphics;
+    IndexMap _storageMap;
 
+    GraphicsObject _emptyGraphic;
 
     FloatMatrix _ProjectionMatrix;
     FloatMatrix _ViewMatrix;
@@ -82,7 +143,7 @@ protected:
 
     static GraphicsBuffer* _buffer;
 
-    void makeBuffer(verbosity::verbosity_level_t report_level);
+    void _makeBuffer(verbosity::verbosity_level_t report_level);
 
 private:
 

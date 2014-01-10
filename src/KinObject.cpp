@@ -22,6 +22,32 @@ KinObject::KinObject(Frame& referenceFrame,
 
     referenceFrame._gainChildObject(this);
     _referenceFrame = &referenceFrame;
+    notifyUpdate();
+}
+
+KinObject::KinObject(const KinObject &other)
+{
+    _copyValues(other);
+}
+
+KinObject& KinObject::operator =(const KinObject& other)
+{
+    verb.debug() << "Assigning object '" << name() << "' to have the values of '" << other.name() << "'";
+
+    _copyValues(other);
+}
+
+void KinObject::_copyValues(const KinObject &other)
+{
+    verb.debug() << "Copying object '" << other.name() << "' which is a " << other.type() << "'";
+
+    verb.level = other.verb.level;
+    name(other.name());
+    _type = other.type();
+
+    other.refFrame()._gainChildObject(this);
+    _referenceFrame = &(other.refFrame());
+    notifyUpdate();
 }
 
 KinObject& KinObject::Generic()
@@ -77,3 +103,8 @@ std::ostream& operator<<(std::ostream& oStrStream, const KinObject& mObject)
 
 void KinObject::notifyUpdate() { _needsUpdate = true; }
 bool KinObject::needsUpdate() { return _needsUpdate; }
+
+void KinObject::_loseParent()
+{
+    _referenceFrame = &Frame::World();
+}

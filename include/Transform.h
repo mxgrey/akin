@@ -81,15 +81,16 @@ namespace akin {
 class KinTransform : public Transform, public KinObject
 {
 public:
-    KinTransform(Frame& referenceFrame,
-                 std::string tfName="transform",
-                 verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-    
-    // TODO: Consider switching the first and second arguments
-    KinTransform(const Transform& relativeTf,
-                 Frame& referenceFrame,
-                 std::string tfName="transform",
-                 verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    KinMacro( KinTransform, Transform )
+
+//    KinTransform(Frame& referenceFrame,
+//                 std::string tfName="transform",
+//                 verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+
+//    KinTransform(const Transform& relativeTf,
+//                 Frame& referenceFrame,
+//                 std::string tfName="transform",
+//                 verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const Transform& respectToWorld();
     Transform withRespectTo(Frame& someFrame);

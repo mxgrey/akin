@@ -21,7 +21,7 @@ GraphicsObject::GraphicsObject(const VertexArray &graphicVertexArray, const Face
 
 GraphicsObject::~GraphicsObject()
 {
-    GraphicsBuffer::removeGraphic(*this);
+    GraphicsBuffer::unstageGraphic(*this);
 }
 
 const VertexArray& GraphicsObject::respectToWorld()
