@@ -8,11 +8,17 @@
 
 namespace akin {
 
+class GraphicsWindow; // Forward declaration for convenience
 
 typedef struct
 {
     float m[16];
 } FloatMatrix;
+
+typedef struct
+{
+    float v[4];
+} FloatVec;
 
 inline FloatMatrix convertToFloat(const Eigen::Isometry3d& other)
 {
@@ -36,12 +42,38 @@ inline FloatMatrix FloatIdentity()
     return convertToFloat(Eigen::Isometry3d::Identity());
 }
 
+inline FloatVec convertToFloat(const Eigen::Vector3d& other)
+{
+    FloatVec vec;
+    memset(vec.v, sizeof(vec.v), 0);
+    for(int i=0; i<3; i++)
+        vec.v[i] = other[i];
+    vec.v[3] = 1;
+}
+
+inline FloatVec operator*(const FloatMatrix& mat, const FloatVec& vec)
+{
+    FloatVec result; memset(result.v, sizeof(result.v), 0);
+    for(int i=0; i<4; ++i)
+        for(int j=0; j<4; ++j)
+            result.v[i] += mat.m[i+4*j]*vec.v[j];
+    return result;
+}
+
+inline FloatMatrix FloatRotation(const FloatMatrix& mat)
+{
+    FloatMatrix result = mat;
+    result.m[12] = 0;
+    result.m[13] = 0;
+    result.m[14] = 0;
+}
+
 typedef std::vector<GLuint> IdArray;
 typedef std::map<uint,GraphicsObject*> GraphicsPointerMap;
 
 typedef struct {
-    float XYZW[4];
-    float RGBA[4];
+    GLfloat XYZW[4];
+    GLfloat RGBA[4];
 } TestVertex;
 
 
@@ -49,6 +81,8 @@ typedef struct {
 class GraphicsBuffer
 {
 public:
+
+    friend class GraphicsWindow;
 
     GraphicsBuffer(verbosity::verbosity_level_t report_level = verbosity::LOG);
 
@@ -139,13 +173,15 @@ public:
     static void setProjectionMatrix(float field_of_view,
                                     float aspect_ratio,
                                     float near_plane,
-                                    float far_plane);
+                                    float far_plane,
+                                    bool perspective = false);
 
     verbosity verb;
 
 protected:
     
-    GLuint _testVertexAddress;
+    GLuint _testVertexBufferAddress;
+    GLuint _testVertexArrayAddress;
     GLuint _testFaceAddress;
     GLuint _testSize;
     void _createTestObject();

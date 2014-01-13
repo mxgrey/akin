@@ -27,6 +27,7 @@ public:
     static void run();
     static std::string get_window_name();
     static void static_keyboard(unsigned char key, int x, int y);
+    static void simple_move_camera(float x, float dy, float dz);
     
     
     verbosity verb;

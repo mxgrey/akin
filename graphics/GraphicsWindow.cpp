@@ -16,7 +16,45 @@ void GraphicsWindow::_keyboard(unsigned char key, int x, int y)
         {
             break;
         }
+    case 'w':
+    case 'W':
+    {
+        simple_move_camera(0, 0, 0.1);
+        break;
     }
+    case 's':
+    case 'S':
+    {
+        simple_move_camera(0, 0, -0.1);
+        break;
+    }
+    case 'a':
+    case 'A':
+    {
+        simple_move_camera(-0.1, 0, 0);
+        break;
+    }
+    case 'd':
+    case 'D':
+    {
+        simple_move_camera(0.1, 0, 0);
+        break;
+    }
+    }
+}
+
+void GraphicsWindow::simple_move_camera(float dx, float dy, float dz)
+{
+    // 0  4  8 12
+    // 1  5  9 13
+    // 2  6 10 14
+    // 3  7 11 15
+    FloatVec dr; dr.v[0] = -dx; dr.v[1] = -dy; dr.v[2] = -dz;
+    FloatVec rdr = FloatRotation(GraphicsBuffer::_buffer->_ViewMatrix) * dr;
+
+    GraphicsBuffer::_buffer->_ViewMatrix.m[12]  += rdr.v[0];
+    GraphicsBuffer::_buffer->_ViewMatrix.m[13]  += rdr.v[1];
+    GraphicsBuffer::_buffer->_ViewMatrix.m[14]  += rdr.v[2];
 }
 
 void GraphicsWindow::static_keyboard(unsigned char key, int x, int y)
@@ -33,7 +71,8 @@ void GraphicsWindow::Resize(int new_width, int new_height)
     _window->verb.debug() << "Set the viewport check"; _window->verb.end();
     CheckGLError(_window->verb, "Set the viewport");
 
-    GraphicsBuffer::setProjectionMatrix(60, (float)(new_width)/(float)(new_height), 1.0f, 100.0f);
+    GraphicsBuffer::setProjectionMatrix(60, (float)(new_width)/(float)(new_height), 1.0f, 100.0f,
+                                        false);
     CheckGLError(_window->verb, "Set the projection matrix");
 }
 
@@ -129,7 +168,7 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
 
     CheckGLError(verb, "Checking errors before initializing GLEW");
 
-    // TODO: Why does glewExperimental need to be true??
+    // TODO: Why does glewExperimental need to be true?? Answer: dumb GLEW bug
     glewExperimental = GL_TRUE;
     CheckGLError(verb, "About to init GLEW");
     GLenum GlewInitResult = glewInit();
@@ -146,9 +185,9 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glDepthFunc(GL_LESS);
     CheckGLError(verb, "Could not set OpenGL depth testing options");
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+//    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
+//    glFrontFace(GL_CCW);
     CheckGLError(verb, "Could not set OpenGL culling options");
 
 

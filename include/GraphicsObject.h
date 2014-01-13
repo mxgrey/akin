@@ -79,6 +79,11 @@ inline Face createFace(uint v1, uint v2, uint v3)
 typedef std::vector<Vertex> VertexArray;
 typedef std::vector<Face> FaceArray;
 
+inline GLuint numFaceElements(const FaceArray& array)
+{
+    return array.size()*3;
+}
+
 class GraphicsObject : public KinObject
 {
 public:
