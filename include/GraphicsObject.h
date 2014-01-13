@@ -64,7 +64,7 @@ public:
 
 typedef struct
 {
-    uint index[3];
+    GLuint index[3];
 } Face;
 
 inline Face createFace(uint v1, uint v2, uint v3)

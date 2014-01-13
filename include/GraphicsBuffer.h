@@ -39,6 +39,13 @@ inline FloatMatrix FloatIdentity()
 typedef std::vector<GLuint> IdArray;
 typedef std::map<uint,GraphicsObject*> GraphicsPointerMap;
 
+typedef struct {
+    float XYZW[4];
+    float RGBA[4];
+} TestVertex;
+
+
+
 class GraphicsBuffer
 {
 public:
@@ -137,6 +144,11 @@ public:
     verbosity verb;
 
 protected:
+    
+    GLuint _testVertexAddress;
+    GLuint _testFaceAddress;
+    GLuint _testSize;
+    void _createTestObject();
 
     GraphicsPointerArray _graphics;
     GraphicsShader _vertexShader;

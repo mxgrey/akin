@@ -30,6 +30,7 @@ void GraphicsWindow::Resize(int new_width, int new_height)
     _window->_current_height = new_height;
 
     glViewport(0, 0, new_width, new_height);
+    _window->verb.debug() << "Set the viewport check"; _window->verb.end();
     CheckGLError(_window->verb, "Set the viewport");
 
     GraphicsBuffer::setProjectionMatrix(60, (float)(new_width)/(float)(new_height), 1.0f, 100.0f);
@@ -79,6 +80,7 @@ void GraphicsWindow::makeInstance(int argc, char *argv[], std::string name, int 
         _Initialize(argc, argv, name, init_width, init_height);
 
         GraphicsBuffer instantiation(verb.level);
+        // ^ This makes sure that the graphics buffer has been properly created at start-up
     }
 }
 
@@ -148,14 +150,6 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     CheckGLError(verb, "Could not set OpenGL culling options");
-
-
-
-//    verb.debug() << "Creating shaders"; verb.end();
-//    _buffer.CreateShaders();
-//    verb.debug() << "Creating VBO"; verb.end();
-//    _buffer.CreateVBO();
-
 
 
     verb.log() << "INFO: OpenGL Version: "+std::string((char*)glGetString(GL_VERSION)); verb.end();

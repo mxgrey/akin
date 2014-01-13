@@ -138,7 +138,7 @@ void GraphicsBuffer::setProjectionMatrix(float field_of_view, float aspect_ratio
     _buffer->_ProjectionMatrix.m[14] = -((2*near_plane*far_plane)/frustrum_length);
 
     // TODO: Remove this when done debugging
-    _buffer->_ProjectionMatrix = FloatIdentity();
+//    _buffer->_ProjectionMatrix = FloatIdentity();
 
     glUseProgram(_buffer->_shaderProgramId);
     glUniformMatrix4fv(_buffer->_ProjectionMatrixId, 1, GL_FALSE, _buffer->_ProjectionMatrix.m);
@@ -166,31 +166,69 @@ GraphicsBuffer::GraphicsBuffer(bool create, verbosity::verbosity_level_t report_
 
 void GraphicsBuffer::drawElements()
 {
-//    CheckGLError(_buffer->verb, "About to draw elements");
     glUseProgram(_buffer->_shaderProgramId);
-//    CheckGLError(_buffer->verb, "Could not use shader program");
+    CheckGLError(_buffer->verb, "Attempted to use shading program");
 
     glUniformMatrix4fvARB(_buffer->_ViewMatrixId, 1, GL_FALSE, _buffer->_ViewMatrix.m);
     glUniformMatrix4fvARB(_buffer->_ProjectionMatrixId, 1, GL_FALSE, _buffer->_ProjectionMatrix.m);
-
+    CheckGLError(_buffer->verb, "Attempted to set view matrices");
+    
+    /////////////////// TEST OBJECT /////////////////////
+    
+    glUniformMatrix4fvARB(_buffer->_ModelMatrixId, 1, GL_FALSE, _buffer->_ModelMatrix.m);
+    CheckGLError(_buffer->verb, "Attempted to set model matrix");
+    
+    glBindBufferARB( GL_ARRAY_BUFFER_ARB, _buffer->_testVertexAddress);
+    CheckGLError(_buffer->verb, "Attempted to bind test vertex buffer");
+    
+    glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, _buffer->_testFaceAddress);
+    CheckGLError(_buffer->verb, "Attempted to bind test face buffer");
+    
+    glDrawElements( GL_TRIANGLES, _buffer->_testSize, GL_UNSIGNED_INT, 0);
+    CheckGLError(_buffer->verb, "Attempted to draw test element");
+    
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+    CheckGLError(_buffer->verb, "Attempted to unbind the vertex and element buffers");
+    
+    ///////////////// END TEST OBJECT ///////////////////
     for(size_t i=0; i<_buffer->_graphics.size(); i++)
-    {
-        glUniformMatrix4fvARB(_buffer->_ModelMatrixId, 1, GL_FALSE, _buffer->_ModelMatrix.m);
-
+    {   
         GraphicsObject& graphic = *(_buffer->_graphics[i]);
+        _buffer->verb.debug() << "Rendering object '" << graphic.name() << "'"; _buffer->verb.end();
+        std::ostringstream data;
+        data << _buffer->_ViewMatrixId << ", " << _buffer->_ProjectionMatrixId << ", " << _buffer->_ModelMatrixId;
+        _buffer->verb.debug() << "Buffer Addresses: " << data.str(); _buffer->verb.end();
+        
+        glUniformMatrix4fvARB(_buffer->_ModelMatrixId, 1, GL_FALSE, _buffer->_ModelMatrix.m);
+        CheckGLError(_buffer->verb, "Attempted to set model matrix");
+    
         glBindBufferARB( GL_ARRAY_BUFFER_ARB, graphic._vertexBufferAddress);
+        CheckGLError(_buffer->verb, "Attempted to bind vertex buffer");
         glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, graphic._faceBufferAddress);
+        CheckGLError(_buffer->verb, "Attempted to bind face buffer");
 
-        // TODO: Check if the next two lines can live outside of the for loop
-        glEnableClientState( GL_VERTEX_ARRAY );
-        glVertexPointer(3, GL_FLOAT, 0, 0);
+//        // TODO: Check if the next two lines can live outside of the for loop
+//        glEnableClientState( GL_VERTEX_ARRAY );
+//        CheckGLError(_buffer->verb, "Attempted to enable vertex array");
+//        glVertexPointer(3, GL_FLOAT, 0, 0);
+//        CheckGLError(_buffer->verb, "Something with the vertex pointer...");
+        
+//        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex::XYZW), 0);
+//        CheckGLError(_buffer->verb, "Attempted to use glVertexAttribPointer for the vertices");
+//        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex::RGBA), (GLvoid*)sizeof(Vertex::XYZW));
+//        CheckGLError(_buffer->verb, "Attempted to use glVertexAttribPointer for the colors");
+        
 
         glDrawElements( GL_TRIANGLES, graphic._faces.size(), GL_UNSIGNED_INT, 0 );
+        CheckGLError(_buffer->verb, "Attempted glDrawElements");
 
         // TODO: check if the following lines can live otuside of the for loop
-        glDisableClientState( GL_VERTEX_ARRAY );
+//        glDisableClientState( GL_VERTEX_ARRAY );
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+        
+        CheckGLError(_buffer->verb, "Attempted to render object "+graphic.name());
     }
 
     glUseProgram(0);
@@ -205,10 +243,36 @@ void GraphicsBuffer::_makeBuffer(verbosity::verbosity_level_t report_level)
         verb.debug() << "Static buffer created"; verb.end();
 
         CreateShaders();
-
-        Box dummyBox(Frame::World(), "dummy", verbosity::DEBUG);
-        storeGraphic(dummyBox);
+        _createTestObject();
     }
+}
+
+void GraphicsBuffer::_createTestObject()
+{
+    TestVertex derp[] =
+    {
+        { { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
+        { { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
+        { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+    };
+    
+    Face herp[] = { 0, 1, 2 };
+    _buffer->_testSize = 1;
+    
+    glGenBuffersARB( 1, &(_buffer->_testVertexAddress) );
+    glBindBufferARB( GL_ARRAY_BUFFER_ARB, _buffer->_testVertexAddress );
+    glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(derp), derp, GL_STATIC_DRAW_ARB );
+    CheckGLError(_buffer->verb, "Error generating test vertex buffer");
+    
+    glGenBuffersARB( 1, &(_buffer->_testFaceAddress) );
+    CheckGLError(_buffer->verb, "Error generating test index buffer");
+    glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, _buffer->_testFaceAddress );
+    CheckGLError(_buffer->verb, "Error binding test index buffer");
+    glBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(herp), herp, GL_STATIC_DRAW_ARB );
+    CheckGLError(_buffer->verb, "Error loading test index buffer");
+    
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 }
 
 void GraphicsBuffer::Cleanup()
@@ -368,6 +432,7 @@ void GraphicsBuffer::CreateShaders()
     _buffer->_ModelMatrixId = glGetUniformLocationARB( _buffer->_shaderProgramId, "ModelMatrix");
     _buffer->_ViewMatrixId = glGetUniformLocationARB( _buffer->_shaderProgramId, "ViewMatrix");
     _buffer->_ProjectionMatrixId = glGetUniformLocationARB( _buffer->_shaderProgramId, "ProjectionMatrix");
+    
 
     _buffer->verb.debug() << "Finished creating shaders"; _buffer->verb.end();
 }
