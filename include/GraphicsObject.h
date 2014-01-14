@@ -21,7 +21,9 @@ public:
     inline Vertex()
     {
         memset(XYZW, 0, sizeof(XYZW));
+        XYZW[3] = 1.0f;
         memset(RGBA, 0, sizeof(RGBA));
+        RGBA[3] = 1.0f;
     }
 
     inline Vertex(const Vertex& otherVertex)
@@ -39,13 +41,34 @@ public:
         memcpy(RGBA, rgba, sizeof(RGBA));
     }
     
+    inline Vertex(float x, float y, float z)
+    {
+        XYZW[0] = x; XYZW[1] = y; XYZW[2] = z; XYZW[3] = 1.0f;
+        memset(RGBA, 0, sizeof(RGBA)); RGBA[3] = 1.0f;
+    }
+    
+    inline Vertex(float x, float y, float z, float r, float g, float b, float a)
+    {
+        XYZW[0] = x; XYZW[1] = y; XYZW[2] = z; XYZW[3] = 1.0f;
+        RGBA[0] = r; RGBA[1] = g; RGBA[2] = b; RGBA[3] = 1.0f;
+    }
+    
+    inline Vertex(const float (&xyz)[3], const float (&rgba)[4])
+    {
+        for(size_t i=0; i<3; ++i)
+            XYZW[i] = xyz[i];
+        XYZW[3] = 1.0f;
+        for(size_t i=0; i<4; ++i)
+            RGBA[i] = rgba[i];
+    }
+    
     inline Vertex(const Eigen::Vector3d& vec)
     {
         XYZW[0] = (float)vec[0];
         XYZW[1] = (float)vec[1];
         XYZW[2] = (float)vec[2];
         XYZW[3] = 1.0f;
-        memset(RGBA, 0, sizeof(RGBA));
+        memset(RGBA, 0, sizeof(RGBA)); RGBA[3] = 1.0f;
     }
 
     inline Vertex& operator=(const Translation& vec)
@@ -64,10 +87,10 @@ public:
 
 typedef struct
 {
-    GLuint index[3];
+    GLushort index[3];
 } Face;
 
-inline Face createFace(uint v1, uint v2, uint v3)
+inline Face createFace(GLushort v1, GLushort v2, GLushort v3)
 {
     Face newFace;
     newFace.index[0] = v1;
@@ -115,7 +138,9 @@ public:
 protected:
 
     GLuint _vertexBufferAddress;
+    GLuint _vertexArrayAddress;
     GLuint _faceBufferAddress;
+    GLuint _elementSize;
 
     VertexArray _vertices;
     FaceArray _faces;
@@ -141,6 +166,15 @@ public:
          Frame& referenceFrame = Frame::World(),
          std::string boxName="Box",
          verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    
+    typedef enum {
+        FRONT=0,
+        BACK,
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM
+    } box_side_t;
 
     float width();
     void width(float new_width);
@@ -152,6 +186,10 @@ public:
     void height(float new_height);
 
     void dimensions(float new_width=1, float new_length=1, float new_height=1);
+    void color(float red, float green, float blue, float alpha);
+    void color(const float (&rgba)[4]);
+    void sideColor(box_side_t side, float red, float green, float blue, float alpha);
+    void sideColor(box_side_t side, const float (&rgba)[4]);
 
 protected:
     float _width;

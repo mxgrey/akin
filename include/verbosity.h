@@ -170,8 +170,8 @@ public:
         return *this;
     }
 
-    inline bool Assert(bool condition, assertion_level_t importance, std::string brief_explanation,
-                       std::string desc_explanation = "")
+    inline bool Assert(bool condition, assertion_level_t importance, const std::string& brief_explanation,
+                       const std::string& desc_explanation = "")
     {
         if(!condition)
         {

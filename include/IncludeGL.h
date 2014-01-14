@@ -11,7 +11,7 @@ extern "C" {
 #include <stdio.h>
 }
 
-inline bool CheckGLError(akin::verbosity& verb, std::string message,
+inline bool CheckGLError(akin::verbosity& verb, const std::string& message,
                          akin::verbosity::assertion_level_t assert_level = akin::verbosity::ASSERT_CRITICAL)
 {
     GLenum GlErrorResult = glGetError();

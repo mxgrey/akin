@@ -11,8 +11,9 @@ int main(int argc, char* argv[])
 //    Frame dummyFrame(Transform(Translation(0, 0, 10)),
 //                     Frame::World(), "dummy_frame", verbosity::DEBUG);
 //    Box dummyBox(dummyFrame, "dummy_box", verbosity::DEBUG);
-//    dummyBox.dimensions(2, 2, 2);
-//    GraphicsBuffer::displayGraphic(dummyBox);
+    Box dummyBox(Frame::World(), "dummy_box", verbosity::DEBUG);
+    dummyBox.dimensions(3, 0.1, 0.2);
+    GraphicsBuffer::storeGraphic(dummyBox);
 
     CheckGLError(wmgr.verb, "About to start running");
     wmgr.run();

@@ -56,7 +56,7 @@ void GraphicsWindow::_keyboard(unsigned char key, int x, int y)
 
 void GraphicsWindow::simple_move_camera(float dx, float dy, float dz)
 {
-    // THIS CODE IS GARBAGE
+    // THIS CODE IS GARBAGE AND SHOULD BE REPLACED PROMPTLY
     
     // 0  4  8 12
     // 1  5  9 13
@@ -66,7 +66,6 @@ void GraphicsWindow::simple_move_camera(float dx, float dy, float dz)
     GraphicsBuffer::_buffer->_ViewMatrix.m[12]  -= dx;
     GraphicsBuffer::_buffer->_ViewMatrix.m[13]  -= dy;
     GraphicsBuffer::_buffer->_ViewMatrix.m[14]  -= dz;
-//    std::cout << "After addition:\n" << GraphicsBuffer::_buffer->_ViewMatrix << std::endl;
 }
 
 void GraphicsWindow::static_keyboard(unsigned char key, int x, int y)
@@ -86,6 +85,7 @@ void GraphicsWindow::Resize(int new_width, int new_height)
     GraphicsBuffer::setProjectionMatrix(60, (float)(new_width)/(float)(new_height), 1.0f, 100.0f,
                                         true);
     CheckGLError(_window->verb, "Set the projection matrix");
+    _window->verb.debug() << "Viewport set"; _window->verb.end();
 }
 
 void GraphicsWindow::Render()
@@ -197,9 +197,9 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glDepthFunc(GL_LESS);
     CheckGLError(verb, "Could not set OpenGL depth testing options");
 
-//    glEnable(GL_CULL_FACE);
-//    glCullFace(GL_BACK);
-//    glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
     CheckGLError(verb, "Could not set OpenGL culling options");
 
 
