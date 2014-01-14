@@ -14,6 +14,73 @@ typedef struct
     float RGBA[4];
 } CheapVertex;
 
+class ColorSpec
+{
+public:
+
+    float RGBA[4];
+
+    inline ColorSpec()
+    {
+        memset(RGBA, 0, sizeof(RGBA));
+    }
+
+    inline ColorSpec(float r, float g, float b, float a=1.0f)
+    {
+        set(r, g, b, a);
+    }
+
+    inline void set(float r, float g, float b, float a=1.0f)
+    {
+        RGBA[0] = r; RGBA[1] = g; RGBA[2] = b; RGBA[3] = a;
+    }
+
+    inline static ColorSpec black(float alpha=1.0f)
+    {
+        ColorSpec result; memset(result.RGBA, 0, sizeof(result.RGBA));
+        result.RGBA[3] = alpha;
+        return result;
+    }
+
+    inline static ColorSpec white(float alpha=1.0f)
+    {
+        ColorSpec result;
+        for(size_t i=0; i<3; ++i)
+            result.RGBA[i] = 1.0f;
+        result.RGBA[3] = alpha;
+        return result;
+    }
+
+    inline static ColorSpec red(float alpha=1.0f)
+    {
+        ColorSpec result; memset(result.RGBA, 0, sizeof(result.RGBA));
+        result.RGBA[0] = 1.0f;
+        result.RGBA[3] = alpha;
+        return result;
+    }
+
+    inline static ColorSpec green(float alpha=1.0f)
+    {
+        ColorSpec result; memset(result.RGBA, 0, sizeof(result.RGBA));
+        result.RGBA[1] = 1.0f;
+        result.RGBA[3] = alpha;
+        return result;
+    }
+
+    inline static ColorSpec blue(float alpha=1.0f)
+    {
+        ColorSpec result; memset(result.RGBA, 0, sizeof(result.RGBA));
+        result.RGBA[2] = 1.0f;
+        result.RGBA[3] = alpha;
+        return result;
+    }
+
+    inline ColorSpec(const float (&rgba)[4])
+    {
+        memcpy(RGBA, rgba, sizeof(RGBA));
+    }
+};
+
 class Vertex
 {
 public:
@@ -32,13 +99,13 @@ public:
         memcpy(RGBA, otherVertex.RGBA, sizeof(RGBA));
     }
 
-    inline Vertex(const Eigen::Vector3d& vec, const float (&rgba)[4])
+    inline Vertex(const Eigen::Vector3d& vec, const ColorSpec& rgba)
     {
         XYZW[0] = (float)vec[0];
         XYZW[1] = (float)vec[1];
         XYZW[2] = (float)vec[2];
         XYZW[3] = 1.0f;
-        memcpy(RGBA, rgba, sizeof(RGBA));
+        setColor(rgba);
     }
     
     inline Vertex(float x, float y, float z)
@@ -50,7 +117,7 @@ public:
     inline Vertex(float x, float y, float z, float r, float g, float b, float a)
     {
         XYZW[0] = x; XYZW[1] = y; XYZW[2] = z; XYZW[3] = 1.0f;
-        RGBA[0] = r; RGBA[1] = g; RGBA[2] = b; RGBA[3] = 1.0f;
+        RGBA[0] = r; RGBA[1] = g; RGBA[2] = b; RGBA[3] = a;
     }
     
     inline Vertex(const float (&xyz)[3], const float (&rgba)[4])
@@ -79,6 +146,11 @@ public:
         XYZW[3] = 1.0f;
 
         return *this;
+    }
+
+    inline void setColor(const ColorSpec& rgba)
+    {
+        memcpy(RGBA, rgba.RGBA, sizeof(RGBA));
     }
 
     float XYZW[4];
@@ -186,10 +258,15 @@ public:
     void height(float new_height);
 
     void dimensions(float new_width=1, float new_length=1, float new_height=1);
-    void color(float red, float green, float blue, float alpha);
-    void color(const float (&rgba)[4]);
-    void sideColor(box_side_t side, float red, float green, float blue, float alpha);
-    void sideColor(box_side_t side, const float (&rgba)[4]);
+    void color(float red, float green, float blue, float alpha=1.0f);
+    void color(const ColorSpec& rgba);
+    void sideColor(box_side_t side, float red, float green, float blue, float alpha=1.0f);
+    void sideColor(box_side_t side, const ColorSpec& rgba);
+    // TODO: Consider implementing vertex coloring options
+//    void vertexColor(box_side_t front_back, box_side_t left_right, box_side_t top_bottom,
+//                     float red, float green, float blue, float alpha=1.0f);
+//    void vertexColor(box_side_t front_back, box_side_t left_right, box_side_t top_bottom,
+//                     const ColorSpec& rgba);
 
 protected:
     float _width;

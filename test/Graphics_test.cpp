@@ -13,6 +13,9 @@ int main(int argc, char* argv[])
 //    Box dummyBox(dummyFrame, "dummy_box", verbosity::DEBUG);
     Box dummyBox(Frame::World(), "dummy_box", verbosity::DEBUG);
     dummyBox.dimensions(3, 0.1, 0.2);
+    dummyBox.color(1, 0, 0, 1);
+    dummyBox.sideColor(Box::TOP, 0, 1, 0);
+    dummyBox.sideColor(Box::LEFT, 0.7, 0, 0.7);
     GraphicsBuffer::storeGraphic(dummyBox);
 
     CheckGLError(wmgr.verb, "About to start running");
