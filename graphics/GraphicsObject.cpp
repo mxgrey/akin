@@ -6,7 +6,10 @@ using namespace akin;
 
 
 GraphicsObject::GraphicsObject(Frame &referenceFrame, std::string graphicName, verbosity::verbosity_level_t report_level) :
-    KinObject(referenceFrame, graphicName, report_level, "Graphic")
+    KinObject(referenceFrame, graphicName, report_level, "Graphic"),
+    _lineWidth(1),
+    _showFilled(true),
+    _showOutline(false)
 {
 
 }
@@ -14,7 +17,10 @@ GraphicsObject::GraphicsObject(Frame &referenceFrame, std::string graphicName, v
 GraphicsObject::GraphicsObject(const VertexArray &graphicVertexArray, const FaceArray &graphicFaceArray, Frame &referenceFrame, std::string graphicName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, graphicName, report_level, "Graphic"),
     _vertices(graphicVertexArray),
-    _faces(graphicFaceArray)
+    _faces(graphicFaceArray),
+    _lineWidth(1),
+    _showFilled(true),
+    _showOutline(false)
 {
 
 }
@@ -23,6 +29,7 @@ void GraphicsObject::_kinitialize(const GraphicsObject &copy)
 {
     _vertices = copy._vertices;
     _faces = copy._faces;
+    _lineWidth = copy._lineWidth;
 }
 
 GraphicsObject::~GraphicsObject()

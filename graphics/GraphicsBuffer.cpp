@@ -82,7 +82,14 @@ void GraphicsBuffer::displayGraphic(GraphicsObject &object)
                      &(object._faces[0]), GL_STATIC_DRAW_ARB );
     CheckGLError(_buffer->verb, "Error passing face data to graphics memory");
     
-    object._elementSize = 3*object._faces.size();
+    object._faceElementSize = 3*object._faces.size();
+
+    _buffer->verb.debug() << "Generating outline buffer for '" << object.name() << "'"; _buffer->verb.end();
+    glGenBuffersARB( 1, &(object._outlineIndexBufferAddress) );
+    glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, object._outlineIndexBufferAddress );
+    glBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, object._outline.size()*sizeof(LineElem),
+                     &(object._outline[0]), GL_STATIC_DRAW_ARB );
+    CheckGLError(_buffer->verb, "Error passing outline data to graphics memory");
 
     glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
     glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, 0 );
@@ -254,45 +261,51 @@ void GraphicsBuffer::drawElements()
     
 
     for(size_t i=0; i<_buffer->_graphics.size(); i++)
-    {   
-//        _buffer->verb.debug() << "Attempting to render graphic"; _buffer->verb.end();
+    {
         GraphicsObject& graphic = *(_buffer->_graphics[i]);
-        // TODO: Grab ModelMatrix from the graphic object
         glUniformMatrix4fvARB(_buffer->_ModelMatrixId, 1, GL_FALSE, _buffer->_ModelMatrix.m);
         CheckGLError(_buffer->verb, "Attempted to set model matrix");
-        
-        glBindBufferARB( GL_ARRAY_BUFFER_ARB, graphic._vertexBufferAddress);
-        CheckGLError(_buffer->verb, "Attempted to bind vertex buffer");
-        
-//        _buffer->verb.debug() << "Attempting to set vertex fijefijer"; _buffer->verb.end();
-        glVertexAttribPointerARB(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-        CheckGLError(_buffer->verb, "Error setting vertex attributes");
-        glVertexAttribPointerARB(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(Vertex::XYZW));
-        CheckGLError(_buffer->verb, "Error setting color attributes");
-        
-        glEnableVertexAttribArrayARB(0);
-        glEnableVertexAttribArrayARB(1);
-        CheckGLError(_buffer->verb, "Error enabling vertices");
-        
-//        _buffer->verb.debug() << "Attempting to bind element array"; _buffer->verb.end();
-        
-        glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, graphic._faceBufferAddress );
-        CheckGLError(_buffer->verb, "Attempted to bind face buffer");
-        
-//        _buffer->verb.debug() << "Attempting to draw elements"; _buffer->verb.end();
-        
-        glDrawElements( GL_TRIANGLES, graphic._elementSize, GL_UNSIGNED_SHORT, 0);
-        CheckGLError(_buffer->verb, "Attempted to draw element");
+
+        if(graphic.showingFilled())
+        {
+            _drawElement(graphic._vertexBufferAddress, graphic._faceBufferAddress,
+                         graphic._faceElementSize, GL_TRIANGLES);
+        }
+
+        if(graphic.showingOutline())
+        {
+            glLineWidth(graphic._lineWidth);
+
+            _drawElement(graphic._vertexBufferAddress, graphic._faceBufferAddress,
+                         graphic._faceElementSize, GL_LINES);
+        }
     }
-    
-    
-    
-    
+
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
     CheckGLError(_buffer->verb, "Attempted to unbind the vertex and element buffers");
 
     glUseProgram(0);
+}
+
+void GraphicsBuffer::_drawElement(GLuint vertexBufferAddress, GLuint elementBufferAddress, GLuint elementSize, GLuint elementType)
+{
+    glBindBufferARB( GL_ARRAY_BUFFER_ARB, vertexBufferAddress);
+    CheckGLError(_buffer->verb, "Attempted to bind vertex buffer");
+
+    glVertexAttribPointerARB(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    CheckGLError(_buffer->verb, "Error setting vertex attributes");
+    glVertexAttribPointerARB(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(Vertex::XYZW));
+    CheckGLError(_buffer->verb, "Error setting color attributes");
+
+    glEnableVertexAttribArrayARB(0);
+    glEnableVertexAttribArrayARB(1);
+    CheckGLError(_buffer->verb, "Error enabling vertices");
+
+    glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, elementBufferAddress );
+    CheckGLError(_buffer->verb, "Attempted to bind face buffer");
+    glDrawElements( elementType, elementSize, GL_UNSIGNED_SHORT, 0);
+    CheckGLError(_buffer->verb, "Attempted to draw element");
 }
 
 void GraphicsBuffer::_makeBuffer(verbosity::verbosity_level_t report_level)
@@ -444,108 +457,7 @@ void GraphicsBuffer::Cleanup()
 
 void GraphicsBuffer::CreateVBO()
 {
-//    GLfloat Vertices[] = {
-//        -0.8f, -0.8f, 0.0f, 1.0f,
-//         0.0f,  0.8f, 0.0f, 1.0f,
-//         0.8f, -0.8f, 0.0f, 1.0f
-//    };
-    
-//    CheapVertex Vertices[] =
-//    {
-//        { {  0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
-        
-//        { { -0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-//        { {  0.2f, 0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-//        { {  0.0f, 0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
-//        { {  0.0f, 1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        
-//        { { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-//        { {  0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-//        { {  0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
-//        { {  0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        
-//        { { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-//        { { -0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-//        { { -0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
-//        { { -1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        
-//        { { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-//        { { 0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-//        { { 0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
-//        { { 1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }
-//    };
-    
-//    GLubyte Indices[] =
-//    {
-//        0, 1, 3,
-//        0, 3, 2,
-//        3, 1, 4,
-//        3, 4, 2,
-        
-//        0, 5, 7,
-//        0, 7, 6,
-//        7, 5, 8,
-//        7, 8, 6,
-        
-//        0, 9, 11,
-//        0, 11, 10,
-//        11, 9, 12,
-//        11, 12, 10,
-        
-//        0, 13, 15,
-//        0, 15, 14,
-//        15, 13, 16,
-//        15, 16, 14
-//    };
-    
-//    GLubyte AlternateIndices[] =
-//    {
-//        3, 4, 16,
-//        3, 15, 16,
-//        15, 16, 8,
-//        15, 7, 8,
-//        7, 8, 12,
-//        7, 11, 12,
-//        11, 12, 4,
-//        11, 3, 4,
-        
-//        0, 11, 3,
-//        0, 3, 15,
-//        0, 15, 7,
-//        0, 7, 11
-//    };
 
-//    GLenum ErrorCheckValue = glGetError();
-//    const size_t BufferSize = sizeof(Vertices);
-//    const size_t VertexSize = sizeof(Vertices[0]);
-//    const size_t RgbaOffset = sizeof(Vertices[0].XYZW);
-
-//    glGenBuffers(1, &(_buffer->_VboId));
-    
-//    glGenVertexArrays(1, &(_buffer->_VaoId));
-//    glBindVertexArray(_buffer->_VaoId);
-    
-//    glBindBuffer(GL_ARRAY_BUFFER, _buffer->_VboId);
-//    glBufferData(GL_ARRAY_BUFFER, BufferSize, Vertices, GL_STATIC_DRAW);
-    
-//    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, VertexSize, 0);
-//    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, VertexSize, (GLvoid*)RgbaOffset);
-    
-//    glEnableVertexAttribArray(0);
-//    glEnableVertexAttribArray(1);
-    
-//    glGenBuffers(2, _buffer->_IndexBufferId);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[0]);
-//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
-    
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[1]);
-//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(AlternateIndices), AlternateIndices, GL_STATIC_DRAW);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer->_IndexBufferId[0]);
-
-//    ErrorCheckValue = glGetError();
-//    _buffer->verb.Assert(ErrorCheckValue == GL_NO_ERROR, verbosity::ASSERT_CRITICAL,
-//                "Error while trying to initialize the buffers",
-//                ": "+std::string((char*)gluErrorString(ErrorCheckValue)));
 }
 
 void GraphicsBuffer::DestroyVBO()

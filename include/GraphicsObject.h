@@ -157,6 +157,8 @@ public:
     float RGBA[4];
 };
 
+typedef std::vector<Vertex> VertexArray;
+
 typedef struct
 {
     GLushort index[3];
@@ -171,13 +173,19 @@ inline Face createFace(GLushort v1, GLushort v2, GLushort v3)
     return newFace;
 }
 
-typedef std::vector<Vertex> VertexArray;
 typedef std::vector<Face> FaceArray;
 
 inline GLuint numFaceElements(const FaceArray& array)
 {
     return array.size()*3;
 }
+
+typedef struct
+{
+    GLushort index[2];
+} LineElem;
+
+typedef std::vector<LineElem> LineElemArray;
 
 class GraphicsObject : public KinObject
 {
@@ -198,6 +206,14 @@ public:
 
     ~GraphicsObject();
 
+    inline void showFilled(bool show) { _showFilled = show; }
+    bool showingFilled() { return _showFilled; }
+
+    void showOutline(bool show) { _showOutline = show; }
+    bool showingOutline() { return _showOutline; }
+    void lineWidth(GLfloat width) { _lineWidth = width; }
+    GLfloat lineWidth() { return _lineWidth; }
+
     uint addVertex(const Vertex& new_vertex);
     bool removeVertex(uint index);
     uint addFace(const Face& new_face);
@@ -209,13 +225,23 @@ public:
 
 protected:
 
+    bool _showFilled;
+    bool _showOutline;
+    GLfloat _lineWidth;
+
     GLuint _vertexBufferAddress;
     GLuint _vertexArrayAddress;
     GLuint _faceBufferAddress;
-    GLuint _elementSize;
+    GLuint _faceElementSize;
+
+    GLuint _outlineVertexBufferAddress;
+    GLuint _outlineVertexArrayAddress;
+    GLuint _outlineIndexBufferAddress;
+    GLuint _outlineElementSize;
 
     VertexArray _vertices;
     FaceArray _faces;
+    LineElemArray _outline;
 
     VertexArray _respectToWorld;
     VertexArray _respectToCamera;

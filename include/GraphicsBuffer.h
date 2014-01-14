@@ -202,6 +202,8 @@ public:
 
 protected:
     
+    static void _drawElement(GLuint vertexBufferAddress, GLuint elementBufferAddress, GLuint elementSize, GLuint elementType);
+
     GLuint _testVertexBufferAddress;
     GLuint _testVertexArrayAddress;
     GLuint _testFaceAddress;
