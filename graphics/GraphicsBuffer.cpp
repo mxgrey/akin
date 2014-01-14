@@ -170,6 +170,7 @@ GraphicsBuffer::GraphicsBuffer(bool create, verbosity::verbosity_level_t report_
     _emptyGraphic(Frame::World(), "empty_graphic"),
     _nextStorageIndex(0)
 {
+    std::cout << _ProjectionMatrix << std::endl << _ViewMatrix << std::endl << _ModelMatrix << std::endl;
     verb.level = report_level;
 }
 
@@ -183,15 +184,19 @@ void GraphicsBuffer::drawElements()
     CheckGLError(_buffer->verb, "Attempted to use shading program");
 
 //    _buffer->_ViewMatrix = FloatIdentity(); // TODO: Remove later
+//    _buffer->_ViewMatrix.m[14] = -2;
     glUniformMatrix4fvARB(_buffer->_ViewMatrixId, 1, GL_FALSE, _buffer->_ViewMatrix.m);
+//    std::cout << _buffer->_ViewMatrix << std::endl;
 //    _buffer->_ProjectionMatrix = FloatIdentity(); // TODO: Remove later
     glUniformMatrix4fvARB(_buffer->_ProjectionMatrixId, 1, GL_FALSE, _buffer->_ProjectionMatrix.m);
+//    std::cout << _buffer->_ProjectionMatrix << std::endl;
     CheckGLError(_buffer->verb, "Attempted to set view matrices");
     
     /////////////////// TEST OBJECT /////////////////////
     
 //    _buffer->_ModelMatrix = FloatIdentity(); // TODO: Remove later
     glUniformMatrix4fvARB(_buffer->_ModelMatrixId, 1, GL_FALSE, _buffer->_ModelMatrix.m);
+//    std::cout << _buffer->_ModelMatrix << std::endl;
     CheckGLError(_buffer->verb, "Attempted to set model matrix");
     
     glBindBufferARB( GL_ARRAY_BUFFER_ARB, _buffer->_testVertexBufferAddress);
@@ -266,58 +271,76 @@ void GraphicsBuffer::_makeBuffer(verbosity::verbosity_level_t report_level)
 void GraphicsBuffer::_createTestObject()
 {
     TestVertex derp[] =
+            // BEGIN STAR
 //    {
-//        { { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f } },
-//        { { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f } },
-//        { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f } }
+//        { {  0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, //  0
+
+//        { { -0.2f, 0.8f, -1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, //  1
+//        { {  0.2f, 0.8f, -1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, //  2
+//        { {  0.0f, 0.8f, -1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, //  3
+//        { {  0.0f, 1.0f, -1.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }, //  4
+
+//        { { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },//  5
+//        { {  0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },//  6
+//        { {  0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },//  7
+//        { {  0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },//  8
+
+//        { { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },//  9
+//        { { -0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },// 10
+//        { { -0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },// 11
+//        { { -1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },// 12
+
+//        { { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // 13
+//        { { 0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // 14
+//        { { 0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, // 15
+//        { { 1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }  // 16
 //    };
+            // END STAR
     {
-        { {  0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, //  0
-
-        { { -0.2f, 0.8f, -1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, //  1
-        { {  0.2f, 0.8f, -1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, //  2
-        { {  0.0f, 0.8f, -1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, //  3
-        { {  0.0f, 1.0f, -1.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }, //  4
-
-        { { -0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },//  5
-        { {  0.2f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },//  6
-        { {  0.0f, -0.8f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },//  7
-        { {  0.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },//  8
-
-        { { -0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },//  9
-        { { -0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },// 10
-        { { -0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },// 11
-        { { -1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },// 12
-
-        { { 0.8f, -0.2f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }, // 13
-        { { 0.8f,  0.2f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, // 14
-        { { 0.8f,  0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, // 15
-        { { 1.0f,  0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } }  // 16
+        { { -.5f, -.5f,  .5f, 1 }, { 0, 0, 1, 1 } },
+        { { -.5f,  .5f,  .5f, 1 }, { 1, 0, 0, 1 } },
+        { {  .5f,  .5f,  .5f, 1 }, { 0, 1, 0, 1 } },
+        { {  .5f, -.5f,  .5f, 1 }, { 1, 1, 0, 1 } },
+        { { -.5f, -.5f, -.5f, 1 }, { 1, 1, 1, 1 } },
+        { { -.5f,  .5f, -.5f, 1 }, { 1, 0, 0, 1 } },
+        { {  .5f,  .5f, -.5f, 1 }, { 1, 0, 1, 1 } },
+        { {  .5f, -.5f, -.5f, 1 }, { 0, 0, 1, 1 } }
     };
+            
     
     Face herp[] =
-//    { 0, 1, 2 };
+            // BEGIN STAR
+//    {
+//        { 0, 1, 3 },
+//        { 0, 3, 2 },
+//        { 3, 1, 4 },
+//        { 3, 4, 2 },
+
+//        { 0, 5, 7 },
+//        { 0, 7, 6 },
+//        { 7, 5, 8 },
+//        { 7, 8, 6 },
+
+//        { 0, 9, 11 },
+//        { 0, 11, 10 },
+//        { 11, 9, 12 },
+//        { 11, 12, 10 },
+
+//        { 0, 13, 15 },
+//        { 0, 15, 14 },
+//        { 15, 13, 16 },
+//        { 15, 16, 14 }
+//    };
+            // END STAR
     {
-        { 0, 1, 3 },
-        { 0, 3, 2 },
-        { 3, 1, 4 },
-        { 3, 4, 2 },
-
-        { 0, 5, 7 },
-        { 0, 7, 6 },
-        { 7, 5, 8 },
-        { 7, 8, 6 },
-
-        { 0, 9, 11 },
-        { 0, 11, 10 },
-        { 11, 9, 12 },
-        { 11, 12, 10 },
-
-        { 0, 13, 15 },
-        { 0, 15, 14 },
-        { 15, 13, 16 },
-        { 15, 16, 14 }
+        {0,2,1},  {0,3,2},
+        {4,3,0},  {4,7,3},
+        {4,1,5},  {4,0,1},
+        {3,6,2},  {3,7,6},
+        {1,6,5},  {1,2,6},
+        {7,5,6},  {7,4,5}
     };
+            
 
     _buffer->_testSize = sizeof(herp)/sizeof(Face::index[0]);
     

@@ -10,12 +10,12 @@ namespace akin {
 
 class GraphicsWindow; // Forward declaration for convenience
 
-typedef struct
+typedef struct struct_FloatMatrix
 {
     float m[16];
 } FloatMatrix;
 
-typedef struct
+typedef struct struct_FloatVec
 {
     float v[4];
 } FloatVec;
@@ -33,7 +33,7 @@ inline FloatMatrix convertToFloat(const Eigen::Isometry3d& other)
 inline FloatMatrix FloatZeros()
 {
     FloatMatrix M;
-    memset(M.m, sizeof(M.m), 0);
+    memset(M.m, 0, sizeof(M.m));
     return M;
 }
 
@@ -49,6 +49,7 @@ inline FloatVec convertToFloat(const Eigen::Vector3d& other)
     for(int i=0; i<3; i++)
         vec.v[i] = other[i];
     vec.v[3] = 1;
+    return vec;
 }
 
 inline FloatVec operator*(const FloatMatrix& mat, const FloatVec& vec)
@@ -66,6 +67,27 @@ inline FloatMatrix FloatRotation(const FloatMatrix& mat)
     result.m[12] = 0;
     result.m[13] = 0;
     result.m[14] = 0;
+    return result;
+}
+
+inline std::ostream& operator<<(std::ostream& oStrStream, const FloatMatrix& M)
+{
+    for(size_t i=0; i<4; ++i)
+    {
+        for(size_t j=0; j<4; ++j)
+        {
+            oStrStream << M.m[i+4*j] << " ";
+        }
+        oStrStream << "\n";
+    }
+    return oStrStream;
+}
+
+inline std::ostream& operator<<(std::ostream& oStrStream, const FloatVec& v)
+{
+    for(size_t i=0; i<4; ++i)
+        oStrStream << v.v[i] << " ";
+    return oStrStream;
 }
 
 typedef std::vector<GLuint> IdArray;

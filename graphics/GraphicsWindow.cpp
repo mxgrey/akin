@@ -19,13 +19,13 @@ void GraphicsWindow::_keyboard(unsigned char key, int x, int y)
     case 'w':
     case 'W':
     {
-        simple_move_camera(0, 0, 0.1);
+        simple_move_camera(0, 0, -0.1);
         break;
     }
     case 's':
     case 'S':
     {
-        simple_move_camera(0, 0, -0.1);
+        simple_move_camera(0, 0, 0.1);
         break;
     }
     case 'a':
@@ -40,21 +40,33 @@ void GraphicsWindow::_keyboard(unsigned char key, int x, int y)
         simple_move_camera(0.1, 0, 0);
         break;
     }
+    case 'f':
+    case 'F':
+    {
+        simple_move_camera(0, 0.1, 0);
+        break;
+    }
+    case 'v':
+    case 'V':
+    {
+        simple_move_camera(0, -0.1, 0);
+    }
     }
 }
 
 void GraphicsWindow::simple_move_camera(float dx, float dy, float dz)
 {
+    // THIS CODE IS GARBAGE
+    
     // 0  4  8 12
     // 1  5  9 13
     // 2  6 10 14
     // 3  7 11 15
-    FloatVec dr; dr.v[0] = -dx; dr.v[1] = -dy; dr.v[2] = -dz;
-    FloatVec rdr = FloatRotation(GraphicsBuffer::_buffer->_ViewMatrix) * dr;
-
-    GraphicsBuffer::_buffer->_ViewMatrix.m[12]  += rdr.v[0];
-    GraphicsBuffer::_buffer->_ViewMatrix.m[13]  += rdr.v[1];
-    GraphicsBuffer::_buffer->_ViewMatrix.m[14]  += rdr.v[2];
+    
+    GraphicsBuffer::_buffer->_ViewMatrix.m[12]  -= dx;
+    GraphicsBuffer::_buffer->_ViewMatrix.m[13]  -= dy;
+    GraphicsBuffer::_buffer->_ViewMatrix.m[14]  -= dz;
+//    std::cout << "After addition:\n" << GraphicsBuffer::_buffer->_ViewMatrix << std::endl;
 }
 
 void GraphicsWindow::static_keyboard(unsigned char key, int x, int y)
@@ -72,7 +84,7 @@ void GraphicsWindow::Resize(int new_width, int new_height)
     CheckGLError(_window->verb, "Set the viewport");
 
     GraphicsBuffer::setProjectionMatrix(60, (float)(new_width)/(float)(new_height), 1.0f, 100.0f,
-                                        false);
+                                        true);
     CheckGLError(_window->verb, "Set the projection matrix");
 }
 
