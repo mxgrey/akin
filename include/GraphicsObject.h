@@ -185,7 +185,23 @@ typedef struct
     GLushort index[2];
 } LineElem;
 
+inline LineElem createLineElem(GLushort v1, GLushort v2)
+{
+    LineElem newElem;
+    newElem.index[0] = v1;
+    newElem.index[1] = v2;
+    return newElem;
+}
+
 typedef std::vector<LineElem> LineElemArray;
+
+
+class Camera
+{
+    Frame cameraFrame;
+};
+
+
 
 class GraphicsObject : public KinObject
 {
@@ -241,7 +257,8 @@ protected:
 
     VertexArray _vertices;
     FaceArray _faces;
-    LineElemArray _outline;
+    VertexArray _outline;
+    LineElemArray _outlineElements;
 
     VertexArray _respectToWorld;
     VertexArray _respectToCamera;
@@ -295,9 +312,14 @@ public:
 //                     const ColorSpec& rgba);
 
 protected:
+
+    void _initializeData();
+
     float _width;
     float _height;
     float _length;
+
+    ColorSpec _outlineColor;
 };
 
 inline akin::Vertex operator*(const akin::Transform& tf, const akin::Vertex& vertex)

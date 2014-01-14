@@ -16,7 +16,10 @@ int main(int argc, char* argv[])
     dummyBox.color(1, 0, 0, 1);
     dummyBox.sideColor(Box::TOP, 0, 1, 0);
     dummyBox.sideColor(Box::LEFT, 0.7, 0, 0.7);
-    GraphicsBuffer::storeGraphic(dummyBox);
+    dummyBox.showOutline(true);
+    dummyBox.lineWidth(1);
+//    dummyBox.showFilled(false);
+    GraphicsBuffer::displayGraphic(dummyBox);
 
     CheckGLError(wmgr.verb, "About to start running");
     wmgr.run();

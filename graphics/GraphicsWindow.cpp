@@ -202,7 +202,10 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glFrontFace(GL_CCW);
     CheckGLError(verb, "Could not set OpenGL culling options");
 
-    glEnable(GL_LINE_SMOOTH);
+//    glEnable(GL_LINE_SMOOTH);
+
+
+//    verb.debug() << "Line width range: "
 
     verb.log() << "INFO: OpenGL Version: "+std::string((char*)glGetString(GL_VERSION)); verb.end();
 }

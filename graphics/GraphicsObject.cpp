@@ -27,6 +27,8 @@ GraphicsObject::GraphicsObject(const VertexArray &graphicVertexArray, const Face
 
 void GraphicsObject::_kinitialize(const GraphicsObject &copy)
 {
+    _showFilled = copy._showFilled;
+    _showOutline = copy._showOutline;
     _vertices = copy._vertices;
     _faces = copy._faces;
     _lineWidth = copy._lineWidth;
@@ -69,19 +71,25 @@ void GraphicsObject::_updateCamera(Frame &cameraFrame)
 Box::Box(Frame &referenceFrame, std::string boxName, verbosity::verbosity_level_t report_level) :
     GraphicsObject(referenceFrame, boxName, report_level)
 {
-    _vertices.resize(24);
-    _faces.resize(24);
-    _type = "Box";
+    _initializeData();
     dimensions();
 }
 
 Box::Box(float width, float length, float height, Frame &referenceFrame, std::string boxName, verbosity::verbosity_level_t report_level) :
     GraphicsObject(referenceFrame, boxName, report_level)
 {
+    _initializeData();
+    dimensions(width, length, height);
+}
+
+void Box::_initializeData()
+{
     _vertices.resize(24);
     _faces.resize(24);
+    _outline.resize(8);
+    _outlineElements.resize(12);
+    _outlineColor = ColorSpec::black();
     _type = "Box";
-    dimensions(width, length, height);
 }
 
 void Box::color(float red, float green, float blue, float alpha)
@@ -124,6 +132,8 @@ void Box::dimensions(float new_width, float new_length, float new_height)
     _width = new_width;
     _length = new_length;
     _height = new_height;
+
+    ///// FILL VERTICES
                             //     x           y           z
     _vertices[0] = Translation( -_width/2, -_length/2,  _height/2); // Top front left
     _vertices[1] = Translation(  _width/2, -_length/2,  _height/2); // Top front right
@@ -185,6 +195,28 @@ void Box::dimensions(float new_width, float new_length, float new_height)
     _faces[22] = createFace(21, 22, 23);
     _faces[23] = createFace(21, 23, 22);
     // Bottom face done
+
+    ///// OUTLINE VERTICES
+    for(size_t i=0; i<8; ++i)
+    {
+        _outline[i] = _vertices[i];
+        _outline[i].setColor(_outlineColor);
+    }
+
+    _outlineElements[0] = createLineElem(0, 1);
+    _outlineElements[1] = createLineElem(1, 3);
+    _outlineElements[2] = createLineElem(3, 2);
+    _outlineElements[3] = createLineElem(2, 0);
+
+    _outlineElements[4] = createLineElem(0, 4);
+    _outlineElements[5] = createLineElem(1, 5);
+    _outlineElements[6] = createLineElem(2, 6);
+    _outlineElements[7] = createLineElem(3, 7);
+
+    _outlineElements[8] = createLineElem(4, 5);
+    _outlineElements[9] = createLineElem(5, 7);
+    _outlineElements[10]= createLineElem(7, 6);
+    _outlineElements[11]= createLineElem(6, 4);
 }
 
 

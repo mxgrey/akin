@@ -45,9 +45,11 @@ void GraphicsBuffer::displayGraphic(GraphicsObject &object)
         }
     }
 
+    ///// FILL BUFFER GENERATION
+
     _buffer->verb.debug() << "Generating vertex buffer for GraphicsObject '" << object.name() << "'"; _buffer->verb.end();
     glGenBuffersARB( 1, &(object._vertexBufferAddress) );
-    _buffer->verb.debug() << "Generated vertex buffer"; _buffer->verb.end();
+//    _buffer->verb.debug() << "Generated vertex buffer"; _buffer->verb.end();
     CheckGLError(_buffer->verb, "Attempted to generate vertex buffer");
     
     _buffer->verb.debug() << "Generating vertex array for '" << object.name() << "'"; _buffer->verb.end();
@@ -66,14 +68,14 @@ void GraphicsBuffer::displayGraphic(GraphicsObject &object)
     CheckGLError(_buffer->verb, "Error passing vertex data to graphics memory");
     _buffer->verb.debug() << "Loaded vertex buffer data for '" << object.name() << "'"; _buffer->verb.end();
     
-    glVertexAttribPointerARB(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-    CheckGLError(_buffer->verb, "Error setting vertex attributes");
-    glVertexAttribPointerARB(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(Vertex::XYZW));
-    CheckGLError(_buffer->verb, "Error settings color attributes");
+//    glVertexAttribPointerARB(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+//    CheckGLError(_buffer->verb, "Error setting vertex attributes");
+//    glVertexAttribPointerARB(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(Vertex::XYZW));
+//    CheckGLError(_buffer->verb, "Error settings color attributes");
     
-    glEnableVertexAttribArrayARB(0);
-    glEnableVertexAttribArrayARB(1);
-    CheckGLError(_buffer->verb, "Error enable vertex attributes");
+//    glEnableVertexAttribArrayARB(0);
+//    glEnableVertexAttribArrayARB(1);
+//    CheckGLError(_buffer->verb, "Error enable vertex attributes");
 
     _buffer->verb.debug() << "Generating index buffer for '" << object.name() << "'"; _buffer->verb.end();
     glGenBuffersARB( 1, &(object._faceBufferAddress) );
@@ -81,15 +83,36 @@ void GraphicsBuffer::displayGraphic(GraphicsObject &object)
     glBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, object._faces.size()*sizeof(Face),
                      &(object._faces[0]), GL_STATIC_DRAW_ARB );
     CheckGLError(_buffer->verb, "Error passing face data to graphics memory");
-    
+
     object._faceElementSize = 3*object._faces.size();
+
+    glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
+    glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, 0 );
+
+    ////// OUTLINE BUFFER GENERATION
+
+    _buffer->verb.debug() << "Generating vertex buffer for outline of '" << object.name() << "'"; _buffer->verb.end();
+    glGenBuffersARB( 1, &(object._outlineVertexBufferAddress) );
+    CheckGLError(_buffer->verb, "Attempted to generate outline vertex buffer");
+
+    glGenVertexArrays( 1, &(object._outlineVertexArrayAddress) );
+    CheckGLError(_buffer->verb, "Attempted to generate outline vertex array");
+    glBindVertexArray(object._outlineVertexArrayAddress);
+    CheckGLError(_buffer->verb, "Attempted to bind outline vertex array");
+
+    glBindBufferARB( GL_ARRAY_BUFFER_ARB, object._outlineVertexBufferAddress);
+    glBufferDataARB( GL_ARRAY_BUFFER_ARB, object._outline.size()*sizeof(Vertex),
+                     &(object._outline[0]), GL_STATIC_DRAW_ARB);
+    CheckGLError(_buffer->verb, "Error passing outline vertex buffer data");
 
     _buffer->verb.debug() << "Generating outline buffer for '" << object.name() << "'"; _buffer->verb.end();
     glGenBuffersARB( 1, &(object._outlineIndexBufferAddress) );
     glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, object._outlineIndexBufferAddress );
-    glBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, object._outline.size()*sizeof(LineElem),
-                     &(object._outline[0]), GL_STATIC_DRAW_ARB );
+    glBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, object._outlineElements.size()*sizeof(LineElem),
+                     &(object._outlineElements[0]), GL_STATIC_DRAW_ARB );
     CheckGLError(_buffer->verb, "Error passing outline data to graphics memory");
+
+    object._outlineElementSize = 2*object._outlineElements.size();
 
     glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
     glBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, 0 );
@@ -275,9 +298,10 @@ void GraphicsBuffer::drawElements()
         if(graphic.showingOutline())
         {
             glLineWidth(graphic._lineWidth);
+            CheckGLError(_buffer->verb, "Attempted to change line width");
 
-            _drawElement(graphic._vertexBufferAddress, graphic._faceBufferAddress,
-                         graphic._faceElementSize, GL_LINES);
+            _drawElement(graphic._outlineVertexBufferAddress, graphic._outlineIndexBufferAddress,
+                         graphic._outlineElementSize, GL_LINES);
         }
     }
 
@@ -492,21 +516,13 @@ void GraphicsBuffer::CreateShaders()
 
     _buffer->verb.debug() << "Loading fragment shader"; _buffer->verb.end();
     _buffer->_fragmentShader.load("../shaders/SimpleShader.fragment.glsl", GL_FRAGMENT_SHADER);
-//    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(fragShader, 1, (const GLchar**)&_FragmentShader, NULL);
-//    glCompileShader(fragShader);
 
     _buffer->verb.debug() << "Loading vertex shader"; _buffer->verb.end();
     _buffer->_vertexShader.load("../shaders/SimpleShader.vertex.glsl", GL_VERTEX_SHADER);
-//    GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-//    glShaderSource(vertShader, 1, (const GLchar**)&_VertexShader, NULL);
-//    glCompileShader(vertShader);
 
     _buffer->verb.debug() << "Attaching shaders to the shading program"; _buffer->verb.end();
     glAttachShader(_buffer->_shaderProgramId, _buffer->_fragmentShader.id());
     glAttachShader(_buffer->_shaderProgramId, _buffer->_vertexShader.id());
-//    glAttachShader(_buffer->_shaderProgramId, fragShader);
-//    glAttachShader(_buffer->_shaderProgramId, vertShader);
 
     glLinkProgram(_buffer->_shaderProgramId);
     CheckGLError(_buffer->verb, "Could not link the shader program");
