@@ -105,6 +105,7 @@ void line_test()
     lineGeode->setUserData(lineVerts);
     lineGeom->setDataVariance(osg::Object::DYNAMIC);
 
+
     osg::Vec4Array* color = new osg::Vec4Array;
     color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
     lineGeom->setColorArray(color);

@@ -41,6 +41,9 @@ public:
             (*lineVerts)[1].x() = r * cos(time);
             (*lineVerts)[1].z() = r * sin(time);
         }
+
+
+
         traverse(node, nv);
     }
 
