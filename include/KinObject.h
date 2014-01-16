@@ -80,7 +80,7 @@ namespace akin {
                               {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y ); \
                                   ( X & )(*this) = ( X & )( copy ## Y ); \
                                   _kinitialize( copy ## Y ); return *this; } \
-                              void _kinitialize( const Y & copy );
+                              virtual void _kinitialize( const Y & copy );
 
 /*!
   * \def KinCustomMacro
@@ -95,7 +95,7 @@ namespace akin {
                           inline Y & operator=( const Y & copy ## Y ) \
                             {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y ); \
                                 _kinitialize( copy ## Y ); } \
-                          void _kinitialize( const Y & copy );
+                          virtual void _kinitialize( const Y & copy );
 
 
 class Frame; // Declaring Frame here so I can have a pointer to it in KinObject
