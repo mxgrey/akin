@@ -9,6 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/osgAkin)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
@@ -25,12 +26,15 @@ add_library(${PROJECT_NAME} SHARED ${lib_source})
 
 find_package(OpenSceneGraph)
 
-file(GLOB osg_source "osg/*.cpp")
+file(GLOB osg_source "osg/*.cpp" "osgAkin/*.h")
 LIST(SORT osg_source)
+add_library(osgAkin SHARED ${osg_source})
+
 
 include_directories(${OpenSceneGraph_INCLUDE_DIRS})
 add_definitions(${OpenSourceGraph_DEFINITIONS})
 link_libraries(osg osgViewer)
+
 
 
 

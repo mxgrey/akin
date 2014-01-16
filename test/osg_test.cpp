@@ -4,6 +4,9 @@
 #include <osg/PositionAttitudeTransform>
 #include <osg/LineSegment>
 #include <osgViewer/Viewer>
+#include <osg/LineWidth>
+
+#include "AkinCallback.h"
 
 
 void pyramid_test()
@@ -85,19 +88,69 @@ void pyramid_test()
 }
 
 
-void transform_test()
+void line_test()
 {
-    osg::Group* root = new osg::Group();
-    osg::LineSegment line;
+    osg::Group* root = new osg::Group;
+    osg::Geode* lineGeode = new osg::Geode;
+    root->addChild(lineGeode);
+
+    osg::Geometry* lineGeom = new osg::Geometry;
+    lineGeode->addDrawable(lineGeom);
+
+    osg::Vec3Array* lineVerts = new osg::Vec3Array;
+    lineVerts->push_back(osg::Vec3(0,0,0));
+    lineVerts->push_back(osg::Vec3(1,0,2));
+    lineGeom->setVertexArray(lineVerts);
+
+    lineGeode->setUserData(lineVerts);
+    lineGeom->setDataVariance(osg::Object::DYNAMIC);
+
+    osg::Vec4Array* color = new osg::Vec4Array;
+    color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    lineGeom->setColorArray(color);
+    lineGeom->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+    osg::DrawElementsUShort* lineElem = new osg::DrawElementsUShort(osg::PrimitiveSet::LINES,0);
+    lineElem->push_back(0);
+    lineElem->push_back(1);
+    lineGeom->addPrimitiveSet(lineElem);
+
+    osg::Geometry* greenGeom = new osg::Geometry;
+    lineGeode->addDrawable(greenGeom);
+
+    osg::Vec3Array* greenVerts = new osg::Vec3Array;
+    greenVerts->push_back(osg::Vec3(0, 0, 0));
+    greenVerts->push_back(osg::Vec3(0.5, 0, 0));
+    greenGeom->setVertexArray(greenVerts);
+
+    greenGeom->addPrimitiveSet(lineElem);
+
+    osg::Vec4Array* green = new osg::Vec4Array;
+    green->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+    greenGeom->setColorArray(green);
+    greenGeom->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+
+    osg::LineWidth* linewidth = new osg::LineWidth;
+    linewidth->setWidth(5.0f);
+    lineGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth);
+    lineGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+
+
+    lineGeode->setUpdateCallback(new osgAkin::SpinCallback);
     
-    
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root);
+    viewer.run();
 }
 
 
 
 int main(int argc, char* argv[])
 {
-    transform_test();
+    line_test();
+//    pyramid_test();
     
     return 0;
 }
