@@ -183,4 +183,13 @@ protected:
 
 } // namespace akin
 
+inline std::ostream& operator<<(std::ostream& oStrStream, akin::KinTranslation& mTranslation)
+{
+    oStrStream << (akin::KinObject&)mTranslation << " has relative translation:\n"
+               << "<" << mTranslation.transpose() << ">\n"
+               << "And global translation:\n"
+               << "<" << mTranslation.respectToWorld().transpose() << ">" << std::endl;
+    return oStrStream;
+}
+
 #endif // TRANSLATION_H

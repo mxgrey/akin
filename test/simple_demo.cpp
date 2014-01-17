@@ -59,6 +59,13 @@ void run_demo()
     cout << "\n\nA -> A_prime:\n" << A_prime.withRespectTo(frame_A) << endl;
     cout << "B -> B_prime:\n" << B_prime.withRespectTo(frame_B) << endl;
     cout << "C -> C_prime:\n" << C_prime.withRespectTo(frame_C) << endl;
+    
+    KinTranslation C_origin(Translation(0,0,0), frame_C, "C_origin");
+    
+    cout << C_origin << endl;
+    cout << "The origin of C wrt A: " << C_origin.withRespectTo(frame_A).transpose() << endl;
+    cout << "The origin of C wrt B: " << C_origin.withRespectTo(frame_B).transpose() << endl;
+    cout << "The origin of C wrt C: " << C_origin.withRespectTo(frame_C).transpose() << endl;
 }
 
 
