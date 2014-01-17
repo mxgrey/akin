@@ -11,16 +11,24 @@ namespace osgAkin {
 class AkinCallback : public osg::NodeCallback
 {
 public:
+
+    AkinCallback() : time(0) { }
+
     virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
     {
         osg::ref_ptr<AkinData> incomingData =
                 dynamic_cast<AkinData*>(node->getUserData());
         if(incomingData)
         {
-
+            for(size_t i=0; i<incomingData->geomArray.size(); ++i)
+            {
+                incomingData->geomArray[i]->updateFrames();
+            }
         }
         traverse(node, nv);
     }
+protected:
+    float time;
 };
 
 class SpinCallback : public osg::NodeCallback

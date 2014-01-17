@@ -217,6 +217,9 @@ private:
     bool _isWorld;
 };
 
+typedef std::vector<akin::Frame> FrameArray;
+typedef std::vector<akin::Frame*> FramePtrArray;
+
 } // namespace akin
 
 inline std::ostream& operator<<(std::ostream& oStrStream, akin::Frame& mFrame)

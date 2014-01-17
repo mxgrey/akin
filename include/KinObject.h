@@ -242,6 +242,9 @@ private:
 
 };
 
+typedef std::vector<KinObject> KinObjectArray;
+typedef std::vector<KinObject*> KinObjectPtrArray;
+
 } // namespace akin
 
 std::ostream& operator<<(std::ostream& oStrStream, const akin::KinObject& mObject);

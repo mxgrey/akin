@@ -102,7 +102,10 @@ void line_test()
     lineVerts->push_back(osg::Vec3(1,0,2));
     lineGeom->setVertexArray(lineVerts);
 
-    lineGeode->setUserData(lineVerts);
+    osgAkin::AkinData* data = new osgAkin::AkinData;
+//    data->lineVerts = lineVerts;
+//    data->lineGeom = lineGeom;
+    lineGeode->setUserData(data);
     lineGeom->setDataVariance(osg::Object::DYNAMIC);
 
 
@@ -139,7 +142,7 @@ void line_test()
     lineGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
 
-    lineGeode->setUpdateCallback(new osgAkin::SpinCallback);
+    lineGeode->setUpdateCallback(new osgAkin::AkinCallback);
     
     osgViewer::Viewer viewer;
     viewer.setSceneData(root);
