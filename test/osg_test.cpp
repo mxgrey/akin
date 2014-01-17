@@ -129,6 +129,7 @@ void line_test()
 
     greenGeom->addPrimitiveSet(lineElem);
 
+
     osg::Vec4Array* green = new osg::Vec4Array;
     green->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
 

@@ -4,19 +4,6 @@
 using namespace akin;
 using namespace std;
 
-//KinTransform::KinTransform(Frame &referenceFrame, string tfName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, tfName, report_level, "Transform"),
-//    Transform()
-//{
-    
-//}
-
-//KinTransform::KinTransform(const Transform &relativeTf, Frame &referenceFrame, string tfName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, tfName, report_level, "Transform"),
-//    Transform(relativeTf)
-//{
-    
-//}
 
 const Transform& KinTransform::respectToWorld()
 {
@@ -40,5 +27,4 @@ void KinTransform::_update()
     _needsUpdate = false;
 }
 
-//std::ostream& operator<<(std::ostream& oStrStream, const KinTransform& mTransform)
 

@@ -15,6 +15,7 @@ void run_demo()
     frame_A.respectToRef( Transform( Translation(0, 1, 0) ) );
     frame_B.respectToRef( Transform( Translation(0,-1, 0),
                                      Rotation(90.0*M_PI/180.0, Axis(1, 0, 0)) ) );
+
     
     frame_C.respectToRef( Transform( Translation(3, 0, 0) ) );
 
