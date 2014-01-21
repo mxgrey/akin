@@ -6,17 +6,24 @@
 
 namespace osgAkin {
 
-class AkinLineGraph : protected osg::Geometry
+class AkinLineTree : protected osg::Geometry
 {
 public:
+    
+    inline AkinLineTree(const akin::Translation& first_vertex = (akin::Translation)akin::Translation::Zero())
+    {
+        _verts->push_back(osg::Vec3(first_vertex.x(),
+                                    first_vertex.y(),
+                                    first_vertex.z()));
+    }
 
-    ushort addVertex(const akin::Translation& new_vertex, ushort parent_index)
+    inline ushort addVertex(const akin::Translation& new_vertex, ushort parent_index)
     {
         if(parent_index >= _verts->size())
         {
             std::cout << "You requested to hook a new line vertex onto a non-existent parent index: "
                       << parent_index << std::endl;
-            return;
+            return -1;
         }
 
         _verts->push_back(osg::Vec3(new_vertex.x(),
@@ -29,12 +36,17 @@ public:
         return _verts->size()-1;
     }
 
-    void removeVertex(ushort vertex_index)
+    inline void removeVertex(ushort vertex_index)
     {
         // TODO: What is a meaningful way to make this happen?
     }
+    
+    inline void clear()
+    {
+        _verts->resize(0);
+    }
 
-    void moveVertex(ushort vertex_index, const akin::Translation& new_location)
+    inline void moveVertex(ushort vertex_index, const akin::Translation& new_location)
     {
         if(vertex_index >= _verts->size())
         {
@@ -44,17 +56,24 @@ public:
         }
     }
 
-    void updateVertices()
+    inline void updateVertices()
     {
         setVertexArray(_verts);
     }
 
-    void setColor(const osg::Vec4& color)
+    inline void setColor(const osg::Vec4& color)
     {
-        (osg::Vec4Array*)& carray = getColorArray();
-        (*carray)[0] = color;
-        setColorArray(carray);
-        setColorBinding(osg::Geometry::BIND_OVERALL);
+        osg::ref_ptr<osg::Vec4Array> carray = dynamic_cast<osg::Vec4Array*>(getColorArray());
+        if(carray)
+        {
+            (*carray)[0] = color;
+            setColorArray(carray);
+            setColorBinding(osg::Geometry::BIND_OVERALL);
+        }
+        else
+        {
+            std::cout << "Your line graph color was not set up with a Vec4Array. Something weird is going on" << std::endl;
+        }
     }
 
 protected:
@@ -62,6 +81,8 @@ protected:
     osg::Vec3Array* _verts;
 
 };
+
+typedef std::vector<AkinLineTree*> AkinLineTreePtrArray;
 
 } // namespace osgAkin
 

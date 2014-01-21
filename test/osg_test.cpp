@@ -102,11 +102,13 @@ void line_test()
     lineVerts->push_back(osg::Vec3(1,0,2));
     lineGeom->setVertexArray(lineVerts);
 
-    osgAkin::AkinData* data = new osgAkin::AkinData;
-//    data->lineVerts = lineVerts;
-//    data->lineGeom = lineGeom;
-    lineGeode->setUserData(data);
     lineGeom->setDataVariance(osg::Object::DYNAMIC);
+    
+    osgAkin::SpinData* spinData = new osgAkin::SpinData;
+    spinData->lineVerts = lineVerts;
+    spinData->geom = lineGeom;
+    lineGeode->setUserData(spinData);
+    lineGeode->setUpdateCallback(new osgAkin::SpinCallback);
 
 
     osg::Vec4Array* color = new osg::Vec4Array;
@@ -138,16 +140,28 @@ void line_test()
 
 
     osg::LineWidth* linewidth = new osg::LineWidth;
-    linewidth->setWidth(5.0f);
+    linewidth->setWidth(2.0f);
     lineGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth);
     lineGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-
-
-    lineGeode->setUpdateCallback(new osgAkin::AkinCallback);
     
     osgViewer::Viewer viewer;
     viewer.setSceneData(root);
     viewer.run();
+}
+
+
+void akin_test()
+{
+    osg::Group* root = new osg::Group;
+    osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
+    root->addChild(akinNode);
+    
+    akinNode->setUpdateCallback(new osgAkin::AkinCallback);
+    
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root);
+    viewer.run();
+    
 }
 
 
@@ -156,6 +170,7 @@ int main(int argc, char* argv[])
 {
     line_test();
 //    pyramid_test();
+//    akin_test();
     
     return 0;
 }

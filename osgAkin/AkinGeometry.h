@@ -6,18 +6,18 @@
 
 namespace osgAkin {
 
-class AkinGeometry : public osg::Geometry
-{
-public:
+//class AkinGeometry : public osg::Geometry
+//{
+//public:
 
-    virtual void updateFrames();
+//    virtual void updateFrames();
 
-protected:
+//protected:
 
 
-};
+//};
 
-typedef std::vector<osgAkin::AkinGeometry*> AkinGeometryPtrArray;
+//typedef std::vector<osgAkin::AkinGeometry*> AkinGeometryPtrArray;
 
 } // namespace osgAkin
 

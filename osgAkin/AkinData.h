@@ -11,7 +11,7 @@ class AkinData : public osg::Referenced
 {
 public:
 
-    AkinGeometryPtrArray geomArray;
+//    AkinGeometryPtrArray geomArray;
 
 protected:
 
