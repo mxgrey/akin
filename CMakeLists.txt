@@ -33,7 +33,7 @@ add_library(osgAkin SHARED ${osg_source})
 
 include_directories(${OpenSceneGraph_INCLUDE_DIRS})
 add_definitions(${OpenSourceGraph_DEFINITIONS})
-link_libraries(osg osgViewer)
+link_libraries(osg osgViewer osgAkin)
 
 
 

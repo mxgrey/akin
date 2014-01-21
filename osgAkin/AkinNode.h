@@ -3,8 +3,7 @@
 
 #include "AkinIncludes.h"
 #include "IncludeOSG.h"
-//#include "AkinGeometry.h"
-#include "AkinLineGraph.h"
+#include "LineTree.h"
 
 namespace osgAkin {
 
@@ -13,74 +12,28 @@ typedef std::map<akin::Frame*,ushort> FrameIndexMap;
 class AkinNode : public osg::Geode
 {
 public:
-    
-    inline AkinNode() : _initialized(false)
-    {
-//        addDrawable(_lineTrees[0]);
-    }
 
-    inline void addRootFrame(akin::Frame& new_root_frame)
-    {
-        for(size_t i=0; i<_frames.size(); ++i)
-            if(&new_root_frame == _frames[i])
-                return;
+    AkinNode();
 
-        _frames.push_back(&new_root_frame);
-        
-        _initialized = false;
-    }
+    void addRootFrame(akin::Frame& new_root_frame);
 
-    inline void removeRootFrame(akin::Frame& existing_frame)
-    {
-        for(size_t i=0; i<_frames.size(); ++i)
-        {
-            if(&existing_frame == _frames[i])
-            {
-                _frames.erase(_frames.begin()+i);
-                break;
-            }
-        }
-        
-        _initialized = false;
-    }
+    void removeRootFrame(akin::Frame& existing_frame);
     
-    inline virtual void update()
-    {
-        if(!_initialized)
-        {
-            initialize();
-            return;
-        }
-        
-        
-    }
-    
-    inline virtual void initialize()
-    {
-//        _lineTrees[0]->clear();
-        
-        
-        
-        
-        
-        _initialized = true;
-    }
+    virtual void update();
+
+    virtual void initialize(size_t tree_num);
 
 protected:
     
-    void _recursiveFrameInit(akin::Frame& nextFrame)
-    {
-        
-    }
-    
-    bool _initialized;
+    void _recursiveFrameInitialize(akin::Frame& next_frame, ushort parent_num, ushort tree_num);
+    void _recursiveUpdate(akin::Frame& next_frame, ushort tree_num);
 
     akin::FramePtrArray _frames;
-    akin::KinObjectPtrArray _kobjects;
+    std::vector<FrameIndexMap> _indices;
+    std::vector<bool> _initialized;
+    LineTreePtrArray _lineTrees;
 
-    FrameIndexMap _index;
-
-    AkinLineTreePtrArray _lineTrees;
+    osg::LineWidth* _linewidth;
     
 };
 

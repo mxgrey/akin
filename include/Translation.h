@@ -31,6 +31,18 @@ public:
     {
 
     }
+
+    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false, true>& vec) :
+        Eigen::Vector3d(vec)
+    {
+
+    }
+
+    inline Translation(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec) :
+        Eigen::Vector3d(vec)
+    {
+
+    }
     
     inline Translation& operator=(const Eigen::Vector3d& vec)
     {

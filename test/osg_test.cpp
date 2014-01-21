@@ -8,6 +8,8 @@
 
 #include "AkinCallback.h"
 
+using namespace std;
+using namespace akin;
 
 void pyramid_test()
 {
@@ -155,8 +157,16 @@ void akin_test()
     osg::Group* root = new osg::Group;
     osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
     root->addChild(akinNode);
-    
-    akinNode->setUpdateCallback(new osgAkin::AkinCallback);
+
+    Frame rootFrame(Transform::Identity(), akin::Frame::World(), "testFrame");
+    Frame secondFrame(Transform(Translation(1,0,1)), rootFrame, "secondFrame");
+    Frame thirdFrame(Transform(Translation(0,0,1)), secondFrame, "thirdFrame");
+    Frame fourthFrame(Transform(Translation(0, 1, 0.5)), thirdFrame, "thirdFrame");
+
+    Frame newBranch(Transform(Translation(-1,0,0)), secondFrame, "newBranch");
+    Frame more(Transform(Translation(0.1, 0.5, -0.3)), newBranch, "more");
+
+    akinNode->addRootFrame(rootFrame);
     
     osgViewer::Viewer viewer;
     viewer.setSceneData(root);
@@ -168,9 +178,9 @@ void akin_test()
 
 int main(int argc, char* argv[])
 {
-    line_test();
+//    line_test();
 //    pyramid_test();
-//    akin_test();
+    akin_test();
     
     return 0;
 }
