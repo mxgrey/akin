@@ -158,15 +158,22 @@ void akin_test()
     osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
     root->addChild(akinNode);
 
-    Frame rootFrame(Transform::Identity(), akin::Frame::World(), "testFrame");
+//    Frame rootFrame(Transform::Identity(), akin::Frame::World(), "testFrame");
+    Frame rootFrame(Transform(Translation(1,0,0)), akin::Frame::World(), "testFrame");
     Frame secondFrame(Transform(Translation(1,0,1)), rootFrame, "secondFrame");
     Frame thirdFrame(Transform(Translation(0,0,1)), secondFrame, "thirdFrame");
     Frame fourthFrame(Transform(Translation(0, 1, 0.5)), thirdFrame, "thirdFrame");
 
     Frame newBranch(Transform(Translation(-1,0,0)), secondFrame, "newBranch");
     Frame more(Transform(Translation(0.1, 0.5, -0.3)), newBranch, "more");
+    
+    Frame otherRoot(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
+    Frame otherSecond(Transform(Translation(0,1,1)), otherRoot, "otherSecond");
+    Frame otherThird(Transform(Translation(-1,0,0)), otherSecond, "otherThird");
+    
 
     akinNode->addRootFrame(rootFrame);
+    akinNode->addRootFrame(otherRoot);
     
     osgViewer::Viewer viewer;
     viewer.setSceneData(root);

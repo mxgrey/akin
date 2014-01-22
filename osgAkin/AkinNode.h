@@ -3,11 +3,10 @@
 
 #include "AkinIncludes.h"
 #include "IncludeOSG.h"
-#include "LineTree.h"
+#include "KinBranches.h"
 
 namespace osgAkin {
 
-typedef std::map<akin::Frame*,ushort> FrameIndexMap;
 
 class AkinNode : public osg::Geode
 {
@@ -25,16 +24,10 @@ public:
 
 protected:
     
-    void _recursiveFrameInitialize(akin::Frame& next_frame, ushort parent_num, ushort tree_num);
-    void _recursiveUpdate(akin::Frame& next_frame, ushort tree_num);
-
-    akin::FramePtrArray _frames;
-    std::vector<FrameIndexMap> _indices;
-    std::vector<bool> _initialized;
-    LineTreePtrArray _lineTrees;
-
-    osg::LineWidth* _linewidth;
+    KinBranchesPtrArray _kinTrees;
     
+    osg::LineWidth* _linewidth;
+    bool _initialized;
 };
 
 } // osgAkin

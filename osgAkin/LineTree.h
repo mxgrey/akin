@@ -74,6 +74,11 @@ public:
                       << vertex_index << std::endl;
             return;
         }
+        
+        osg::Vec3& vert = (*_verts)[vertex_index];
+        vert.x() = new_location.x();
+        vert.y() = new_location.y();
+        vert.z() = new_location.z();
     }
 
     inline akin::Translation getVertex(ushort vertex_index)
