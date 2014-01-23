@@ -62,7 +62,8 @@ public:
         osg::ref_ptr<AkinNode> currentNode =
                 dynamic_cast<AkinNode*>(node);
         
-        currentNode->update();
+        if(currentNode)
+            currentNode->update();
 
         traverse(node, nv);
     }
