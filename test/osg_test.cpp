@@ -7,6 +7,7 @@
 #include <osg/LineWidth>
 
 #include "AkinCallback.h"
+#include "Axes.h"
 
 using namespace std;
 using namespace akin;
@@ -175,7 +176,11 @@ void akin_test()
     akinNode->addRootFrame(rootFrame);
     akinNode->addRootFrame(otherRoot);
     
+    akinNode->addDrawable(new osgAkin::Axes(0.1));
+    
+    
     osgViewer::Viewer viewer;
+    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
     viewer.setSceneData(root);
     viewer.run();
     

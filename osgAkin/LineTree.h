@@ -51,10 +51,10 @@ public:
         return _verts->size()-1;
     }
 
-    inline void removeVertex(ushort vertex_index)
-    {
-        // TODO: What is a meaningful way to make this happen?
-    }
+//    inline void removeVertex(ushort vertex_index)
+//    {
+//         //TODO: What is a meaningful way to make this happen?
+//    }
 
     inline ushort vertexCount()
     {
