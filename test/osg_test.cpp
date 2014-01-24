@@ -48,9 +48,11 @@
 #include <osg/LineSegment>
 #include <osgViewer/Viewer>
 #include <osg/LineWidth>
+#include <osg/MatrixTransform>
 
 #include "AkinCallback.h"
 #include "Axes.h"
+#include "KinTree.h"
 
 using namespace std;
 using namespace akin;
@@ -204,11 +206,13 @@ void akin_test()
 
 //    Frame rootFrame(Transform::Identity(), akin::Frame::World(), "testFrame");
     Frame rootFrame(Transform(Translation(1,0,0)), akin::Frame::World(), "testFrame");
-    Frame secondFrame(Transform(Translation(1,0,1)), rootFrame, "secondFrame");
+    Frame secondFrame(Transform(Translation(1,0,1),
+                                Rotation(90*M_PI/180, Axis(0,0,1))), rootFrame, "secondFrame");
     Frame thirdFrame(Transform(Translation(0,0,1)), secondFrame, "thirdFrame");
     Frame fourthFrame(Transform(Translation(0, 1, 0.5)), thirdFrame, "thirdFrame");
 
-    Frame newBranch(Transform(Translation(-1,0,0)), secondFrame, "newBranch");
+    Frame newBranch(Transform(Translation(-1,0,0),
+                              Rotation(45*M_PI/180, Axis(0,1,0))), secondFrame, "newBranch");
     Frame more(Transform(Translation(0.1, 0.5, -0.3)), newBranch, "more");
     
     Frame otherRoot(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
@@ -216,11 +220,26 @@ void akin_test()
     Frame otherThird(Transform(Translation(-1,0,0)), otherSecond, "otherThird");
     
 
-    akinNode->addRootFrame(rootFrame);
+    akinNode->addRootFrame(thirdFrame);
     akinNode->addRootFrame(otherRoot);
     
     akinNode->addDrawable(new osgAkin::Axes(0.1));
     
+    
+    
+//    osg::MatrixTransform* mtf = new osg::MatrixTransform;
+//    root->addChild(mtf);
+//    mtf->setMatrix(cosg(rootFrame.respectToWorld()));
+    
+//    osg::Geode* axesGeode = new osg::Geode;
+//    mtf->addChild(axesGeode);
+//    axesGeode->addDrawable(new osgAkin::Axes);
+//    axesGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+//    axesGeode->getOrCreateStateSet()->setAttributeAndModes(new osg::LineWidth(2.0f));
+    osgAkin::KinTree* kintree = new osgAkin::KinTree;
+    root->addChild(kintree);
+    kintree->setRootFrame(rootFrame);
+    kintree->initialize();
     
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
@@ -228,7 +247,6 @@ void akin_test()
     viewer.run();
     
 }
-
 
 
 int main(int argc, char* argv[])

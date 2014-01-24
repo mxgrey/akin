@@ -107,7 +107,7 @@ public:
     
     inline void clear()
     {
-        _verts->resize(1);
+        _verts->resize(0);
     }
 
     inline void moveVertex(ushort vertex_index, const akin::Translation& new_location)

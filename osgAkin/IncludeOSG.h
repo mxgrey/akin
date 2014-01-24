@@ -49,5 +49,18 @@
 #include <osg/PositionAttitudeTransform>
 #include <osgViewer/Viewer>
 #include <osg/LineWidth>
+#include <osg/Matrix>
+#include <osg/MatrixTransform>
+
+#include "AkinIncludes.h"
+
+inline osg::Matrix cosg(const akin::Transform& tf)
+{
+    osg::Matrix output;
+    for(ushort i=0; i<4; ++i)
+        for(ushort j=0; j<4; ++j)
+            output(i,j) = tf(j,i);
+    return output;
+}
 
 #endif // INCLUDEOSG_H
