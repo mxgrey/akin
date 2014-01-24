@@ -55,7 +55,7 @@ void KinTree::setRootFrame(Frame &root_frame)
     _initialized = false;
 }
 
-const akin::Frame *KinTree::getRootFrame()
+Frame *KinTree::getRootFrame()
 {
     _findTrueRoot();
     return _root;

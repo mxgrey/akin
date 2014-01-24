@@ -75,6 +75,15 @@ protected:
     bool _initialized;
 };
 
+
+class SpinNode : public AkinNode
+{
+public:
+
+    virtual void update();
+};
+
+
 } // osgAkin
 
 #endif // AKINNODE_H

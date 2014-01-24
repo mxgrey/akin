@@ -201,7 +201,7 @@ void line_test()
 void akin_test()
 {
     osg::Group* root = new osg::Group;
-    osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
+    osgAkin::SpinNode* akinNode = new osgAkin::SpinNode;
     root->addChild(akinNode);
 
     Frame rootFrame(Transform(Translation(1,0,0)), akin::Frame::World(), "rootFrame");

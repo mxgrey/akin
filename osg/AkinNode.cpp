@@ -100,3 +100,19 @@ void AkinNode::initialize(size_t tree_num)
     
 }
 
+
+void SpinNode::update()
+{
+    Frame* spin_frame = _kinTrees[0]->getRootFrame();
+    akin::Transform tf = spin_frame->childFrame(0).respectToRef();
+    tf.rotate(Rotation(3*M_PI/180, Axis(1,1,1)));
+    spin_frame->childFrame(0).respectToRef(tf);
+
+    Frame* other_frame = _kinTrees[1]->getRootFrame();
+    tf = other_frame->childFrame(0).respectToRef();
+    tf.rotate(Rotation(5*M_PI/180, Axis(0,0,1)));
+    other_frame->childFrame(0).respectToRef(tf);
+
+    AkinNode::update();
+}
+

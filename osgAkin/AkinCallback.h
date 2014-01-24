@@ -69,6 +69,30 @@ public:
     }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class SpinData : public osg::Referenced
 {
 public:

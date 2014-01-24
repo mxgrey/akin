@@ -20,7 +20,7 @@ public:
     KinTree(akin::Frame& root_frame, float line_width=3.0f, float axis_length=0.2f);
     
     void setRootFrame(akin::Frame& root_frame);
-    const akin::Frame* getRootFrame();
+    akin::Frame* getRootFrame();
     
     void update();
     void initialize();
