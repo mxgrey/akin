@@ -34,8 +34,6 @@ protected:
     bool _initialized;
 };
 
-typedef std::vector<KinBranches*> KinBranchesPtrArray;
-
 } // namespace osgAkin
 
 #endif // KINBRANCHES_H

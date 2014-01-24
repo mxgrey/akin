@@ -47,12 +47,12 @@
 
 #include "AkinIncludes.h"
 #include "IncludeOSG.h"
-#include "KinBranches.h"
+#include "KinTree.h"
 
 namespace osgAkin {
 
 
-class AkinNode : public osg::Geode
+class AkinNode : public osg::Group
 {
 public:
 
@@ -67,10 +67,11 @@ public:
     virtual void initialize(size_t tree_num);
 
 protected:
+
+    akin::Frame* _findTrueRoot(akin::Frame& some_frame);
     
-    KinBranchesPtrArray _kinTrees;
-    
-    osg::LineWidth* _linewidth;
+    KinTreePtrArray _kinTrees;
+
     bool _initialized;
 };
 

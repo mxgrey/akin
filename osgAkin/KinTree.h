@@ -27,8 +27,9 @@ public:
     
 protected:
     
-    osg::LineWidth* _lineWidth;
+    osg::LineWidth* _axisWidth;
     float _axisLength;
+    osg::LineWidth* _branchWidth;
 
     osg::CullFace* _cull;
     
@@ -51,6 +52,8 @@ protected:
     bool _initialized;
     
 };
+
+typedef std::vector<KinTree*> KinTreePtrArray;
 
 } // namespace osgAkin
 

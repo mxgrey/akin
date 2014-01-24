@@ -51,33 +51,37 @@ using namespace std;
 AkinNode::AkinNode()
 {
     setUpdateCallback(new osgAkin::AkinCallback);
+}
 
-    getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-
-    _linewidth = new osg::LineWidth;
-    _linewidth->setWidth(2.0f);
-    getOrCreateStateSet()->setAttributeAndModes(_linewidth);
+akin::Frame* AkinNode::_findTrueRoot(Frame &some_frame)
+{
+    Frame* true_root = &some_frame;
+    while(!true_root->refFrame().isWorld())
+        true_root = &true_root->refFrame();
+    return true_root;
 }
 
 void AkinNode::addRootFrame(akin::Frame &new_root_frame)
 {
+    Frame* true_root = _findTrueRoot(new_root_frame);
     for(size_t i=0; i<_kinTrees.size(); ++i)
-        if(_kinTrees[i]->getRootFrame() == &new_root_frame)
+        if(_kinTrees[i]->getRootFrame() == true_root)
             return;
     
-    KinBranches* new_tree = new KinBranches(new_root_frame);
+    KinTree* new_tree = new KinTree(*true_root);
     _kinTrees.push_back(new_tree);
     
-    addDrawable(new_tree);
+    addChild(new_tree);
 }
 
 void AkinNode::removeRootFrame(akin::Frame &existing_frame)
 {
+    Frame* true_root = _findTrueRoot(existing_frame);
     for(size_t i=0; i<_kinTrees.size(); ++i)
     {
-        if(&existing_frame == _kinTrees[i]->getRootFrame())
+        if(true_root == _kinTrees[i]->getRootFrame())
         {
-            removeDrawable(_kinTrees[i]);
+            removeChild(_kinTrees[i]);
             _kinTrees.erase(_kinTrees.begin()+i);
         }
     }

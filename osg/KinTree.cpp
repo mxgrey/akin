@@ -7,8 +7,9 @@ using namespace akin;
 KinTree::KinTree(float line_width, float axis_length) :
     _initialized(false),
     _root(NULL),
-    _lineWidth(new osg::LineWidth(line_width)),
-    _axisLength(axis_length)
+    _axisWidth(new osg::LineWidth(line_width)),
+    _axisLength(axis_length),
+    _branchWidth(new osg::LineWidth(1.0f))
 {
     _reserveMemory();
     _branchGeode->addDrawable(_branches);
@@ -17,8 +18,9 @@ KinTree::KinTree(float line_width, float axis_length) :
 KinTree::KinTree(Frame &root_frame, float line_width, float axis_length) :
     _initialized(false),
     _root(NULL),
-    _lineWidth(new osg::LineWidth(line_width)),
-    _axisLength(axis_length)
+    _axisWidth(new osg::LineWidth(line_width)),
+    _axisLength(axis_length),
+    _branchWidth(new osg::LineWidth(1.0f))
 {
     _reserveMemory();
     setRootFrame(root_frame);
@@ -28,7 +30,12 @@ void KinTree::_reserveMemory()
 {
     _cull = new osg::CullFace;
     _cull->setMode(osg::CullFace::BACK);
+
     _branchGeode = new osg::Geode;
+    addChild(_branchGeode);
+    _branchGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    _branchGeode->getOrCreateStateSet()->setAttributeAndModes(_branchWidth);
+
     _branches = new KinBranches;
     _branchGeode->addDrawable(_branches);
 }
@@ -108,8 +115,6 @@ void KinTree::_recursiveInitialize(Frame &next_frame)
     _frameMap[&next_frame]->addChild(_makeAxisGeode());
     _frameMap[&next_frame]->setMatrix(cosg(next_frame.respectToWorld()));
     
-    std::cout << "Initialized " << next_frame.name() << std::endl;
-    
     for(size_t i=0; i<next_frame.numChildFrames(); ++i)
     {
         _recursiveUpdate(next_frame.childFrame(i));
@@ -126,7 +131,7 @@ osg::Geode* KinTree::_makeAxisGeode()
     
     axisGeode->addDrawable(axes);
     axisGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-    axisGeode->getOrCreateStateSet()->setAttributeAndModes(_lineWidth);
+    axisGeode->getOrCreateStateSet()->setAttributeAndModes(_axisWidth);
     axisGeode->getOrCreateStateSet()->setAttributeAndModes(_cull, osg::StateAttribute::ON);
     axisGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
     axisGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
