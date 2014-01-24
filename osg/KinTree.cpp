@@ -26,6 +26,8 @@ KinTree::KinTree(Frame &root_frame, float line_width, float axis_length) :
 
 void KinTree::_reserveMemory()
 {
+    _cull = new osg::CullFace;
+    _cull->setMode(osg::CullFace::BACK);
     _branchGeode = new osg::Geode;
     _branches = new KinBranches;
     _branchGeode->addDrawable(_branches);
@@ -125,6 +127,9 @@ osg::Geode* KinTree::_makeAxisGeode()
     axisGeode->addDrawable(axes);
     axisGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     axisGeode->getOrCreateStateSet()->setAttributeAndModes(_lineWidth);
+    axisGeode->getOrCreateStateSet()->setAttributeAndModes(_cull, osg::StateAttribute::ON);
+    axisGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+    axisGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
     
     return axisGeode;
 }

@@ -8,7 +8,7 @@ KinBranches::KinBranches() :
     _initialized(false),
     _root(NULL)
 {
-    
+
 }
 
 KinBranches::KinBranches(akin::Frame &root_frame) :
