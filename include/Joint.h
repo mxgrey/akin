@@ -1,26 +1,31 @@
 #ifndef JOINT_H
 #define JOINT_H
 
-#include "Link.h"
+#include "Frame.h"
 
 namespace akin {
+
+class Link;
+class Robot;
 
 class Joint
 {
 public:
 
     friend class Link;
+    friend class Robot;
 
     typedef enum {
-        ROOT = 0,
+        DUMMY = 0,
         REVOLUTE,
         PRISMATIC,
+        CUSTOM,
 
         JOINT_TYPE_SIZE
     } Type;
 
     Joint(size_t jointID=0, const std::string& jointName="joint",
-          Link* parentLink=NULL, Link* childLink=NULL,
+          Link* mParentLink=NULL,
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
           double mininumValue=-M_PI, double maximumValue=M_PI);
@@ -135,8 +140,9 @@ public:
     virtual void parentLink(Link& new_parent_link);
     Link& parentLink();
 
-    virtual void childLink(Link& new_child_link);
     Link& childLink();
+
+    bool isDummy();
 
 protected:
 

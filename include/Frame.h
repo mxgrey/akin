@@ -62,9 +62,9 @@ namespace akin {
 
 class Frame : public KinObject
 {
-    friend class KinObject;
-
 public:
+
+    friend class KinObject;
 
     KinCustomMacro( Frame )
 
