@@ -24,8 +24,8 @@ public:
         JOINT_TYPE_SIZE
     } Type;
 
-    Joint(size_t jointID=0, const std::string& jointName="joint",
-          Link* mParentLink=NULL,
+    Joint(Robot* mRobot, size_t jointID=0, const std::string& jointName="joint",
+          Link* mParentLink=NULL, Link* mChildLink=NULL,
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
           double mininumValue=-M_PI, double maximumValue=M_PI);
@@ -142,7 +142,11 @@ public:
 
     Link& childLink();
 
+    bool belongsTo(const Robot& someRobot) const;
+
     bool isDummy();
+
+    bool hasRobot();
 
 protected:
 
@@ -165,6 +169,10 @@ protected:
     double _max;
 
     Type _myType;
+
+    Robot* _myRobot;
+    void _loseRobot();
+    void _loseLink(Link* lostLink);
 };
 
 } // namespace akin

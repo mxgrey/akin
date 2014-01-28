@@ -15,6 +15,7 @@ public:
 
     KinCustomMacro( Link )
 
+    Link(Robot* mRobot, Frame& referenceFrame, std::string linkName, bool root=false);
 
     /*!
      * \fn isAnchor()
@@ -25,7 +26,7 @@ public:
      * robot represents the frame which does not move when joint angles are changed.
      * Any link can be set as the robot's anchor.
      */
-    bool isAnchor();
+    inline bool isAnchor() { return _isAnchor; }
 
     /*!
      * \fn setAsAnchor()
@@ -38,7 +39,7 @@ public:
      * \brief Returns true iff this link is the root link of the robot
      * \return
      */
-    bool isRoot();
+    inline bool isRoot() { return _isRoot; }
 
     /*!
      * \fn parentLink()
@@ -70,7 +71,16 @@ public:
      */
     Joint& childJoint(size_t num);
 
-    bool isDummy();
+
+    Joint& upstreamJoint();
+    Link& upstreamLink();
+
+    Joint& downstreamJoint(size_t num);
+    Link& downstreamLink(size_t num);
+
+    bool belongsTo(const Robot& someRobot) const;
+
+    inline bool isDummy() { return _isDummy; }
 
 protected:
 
@@ -79,7 +89,14 @@ protected:
     bool _isDummy;
 
     Joint* _parentJoint;
-    std::vector<Joint*> _childJoints;
+    JointPtrArray _childJoints;
+
+    Joint* _upstreamJoint;
+    JointPtrArray _downstreamJoints;
+
+    Robot* _myRobot;
+    void _loseRobot();
+    void _loseJoint(Joint* lostJoint);
 
 };
 

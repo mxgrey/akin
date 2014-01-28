@@ -19,7 +19,12 @@ public:
     friend class Joint;
     friend class Link;
 
+    Robot();
 
+    void name(std::string newName);
+    std::string name() const;
+
+    bool createRootLink(std::string rootLinkName);
 
     bool createJointLinkPair(Link& parentLink,
                              std::string newLinkName,
@@ -36,9 +41,17 @@ public:
     Link& link(size_t linkNum) const;
     Link& link(const std::string& linkName) const;
 
+    bool belongsTo(const Link& someLink) const;
+    bool belongsTo(const Joint& someJoint) const;
 
+    verbosity verb;
 
 protected:
+
+    void _insertLink(Link* newLink);
+    void _insertJoint(Joint* newJoint);
+
+    std::string _name;
 
     Link* _anchor;
     Link* _root;
@@ -51,6 +64,10 @@ protected:
 
     StringMap _linkNameToIndex;
     StringMap _jointNameToIndex;
+
+    Robot* _myRobot;
+    void _loseJoint(Joint* lostJoint);
+    void _loseLink(Link* lostLink);
 
 };
 
