@@ -85,6 +85,12 @@ public:
     {
 
     }
+    
+    inline Rotation(double w, double x, double y, double z) :
+        Eigen::Quaterniond(w, x, y, z)
+    {
+        
+    }
 
     inline Rotation(const Eigen::RotationBase<Eigen::Quaternion<double>,3>::RotationMatrixType someMatrix) :
         Eigen::Quaterniond(someMatrix)

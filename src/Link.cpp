@@ -91,7 +91,7 @@ Joint& Link::parentJoint()
 
 Link& Link::childLink(size_t num)
 {
-    if( !verb.Assert( num >= _childJoints.size(),
+    if( !verb.Assert( num < _childJoints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a child link index which is out of bounds "
                       "for link '"+name()+"' in the robot '"+_myRobot->name()+"'!"))
@@ -102,7 +102,7 @@ Link& Link::childLink(size_t num)
 
 Joint& Link::childJoint(size_t num)
 {
-    if( !verb.Assert( num >= _childJoints.size(),
+    if( !verb.Assert( num < _childJoints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a child joint index which is out of bounds "
                       "for link '"+name()+"' in robot '"+_myRobot->name()+"'!"))
@@ -133,7 +133,7 @@ Joint& Link::upstreamJoint()
 
 Link& Link::downstreamLink(size_t num)
 {
-    if( !verb.Assert( num >= _childJoints.size(),
+    if( !verb.Assert( num < _childJoints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a downstream link index which is out of bounds "
                       "for link '"+name()+"' in robot '"+_myRobot->name()+"'!"))
@@ -144,7 +144,7 @@ Link& Link::downstreamLink(size_t num)
 
 Joint& Link::downstreamJoint(size_t num)
 {
-    if( !verb.Assert( num >= _childJoints.size(),
+    if( !verb.Assert( num < _childJoints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a downstream joint index which is out of bounds "
                       "for link '"+name()+"' in robot '"+_myRobot->name()+"'!"))

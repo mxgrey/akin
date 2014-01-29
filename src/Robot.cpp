@@ -1,21 +1,50 @@
 
 #include "Link.h"
+#include "urdfParsing.h"
 
 using namespace akin;
 using namespace std;
 
-Robot::Robot(verbosity::verbosity_level_t report_level) :
-    _enforceJointLimits(true)
+Robot::Robot(construction_t method, string construction_info,
+             Frame &rootReferenceFrame,
+             verbosity::verbosity_level_t report_level) :
+    _enforceJointLimits(true),
+    _name("some_robot")
 {
     verb.level = report_level;
     
     _dummyLink = new Link(this, Frame::World(), "dummy", 0, false);
     _dummyLink->_isDummy = true;
 
-    _dummyJoint = new Joint(this);
+    _dummyJoint = new Joint(this, -1, "dummy", _dummyLink, _dummyLink);
     _dummyJoint->_myType = Joint::DUMMY;
     _dummyJoint->_changeParentLink(_dummyLink);
     _dummyJoint->_childLink = _dummyLink;
+    
+    if(URDF_FILE == method)
+    {
+#ifdef HAVE_URDFPARSING
+        akinUtils::loadURDF(*this, construction_info, rootReferenceFrame);
+#else  // HAVE_URDF_PARSING
+        cout << "I cannot parse the URDF file '" << construction_info
+             << "' because urdfdom and/or urdfdom_headers were not installed "
+             << "when akin was compiled on your computer!" << endl;
+#endif // HAVE URDF_PARSING
+    }
+    else if(URDF_STRING == method)
+    {
+#ifdef HAVE_URDFPARSING
+        akinUtils::loadURDFstring(*this, construction_info, rootReferenceFrame);
+#else  // HAVE_URDFPARSING
+        cout << "I cannot parse the URDF string for this robot, because "
+             << "urdfdom and/or urdfom_headers were not installed "
+             << "when akin was compiled on your computer!" << endl;
+#endif // HAVE_URDFPARSING
+    }
+    else
+    {
+        createRootLink(construction_info, rootReferenceFrame);
+    }
 }
 
 Robot::~Robot()
@@ -51,38 +80,56 @@ bool Robot::createRootLink(string rootLinkName, Frame& referenceFrame)
 }
 
 
-bool Robot::createJointLinkPair(Link &parentLink,
-                           string newLinkName, string newJointName,
-                           const Transform &baseTransform, const Axis &jointAxis,
-                           Joint::Type jointType, double minJointValue, double maxJointValue)
+int Robot::createJointLinkPair(Link &parentLink,
+                               const string &newLinkName, const string &newJointName,
+                               const Transform &baseTransform, const Axis &jointAxis,
+                               Joint::Type jointType, double minJointValue, double maxJointValue)
 {
+    if(!verb.Assert(!parentLink.isDummy(), verbosity::ASSERT_CRITICAL,
+                    "Error: You wanted to make '"+newLinkName+"' a child of a dummy link in robot '"+name()+"'!"))
+        return -1;
+    
     if(!verb.Assert(parentLink.belongsTo(*this), verbosity::ASSERT_CRITICAL,
-                "You wanted to make '"+newLinkName+"' a child of '"+parentLink.name()+
-                "', but '"+parentLink.name()+"' does not belong to the robot '"+name()+"'"))
-        return false;
+                "Error: You wanted to make '"+newLinkName+"' a child of '"+parentLink.name()+
+                "', but '"+parentLink.name()+"' does not belong to the robot '"+name()+"'!"))
+        return -2;
     
     if(!verb.Assert(!checkForLinkName(newLinkName), verbosity::ASSERT_CRITICAL,
-                    "You wanted to create a new link named '"+newLinkName+
+                    "Error: You wanted to create a new link named '"+newLinkName+
                     "' but a link by that name already exists in the robot named '"
-                    +name()+"'"))
-        return false;
+                    +name()+"'!"))
+        return -3;
     
     if(!verb.Assert(!checkForJointName(newJointName), verbosity::ASSERT_CRITICAL,
-                    "You wanted to create a new joint named '"+newJointName+
+                    "Error: You wanted to create a new joint named '"+newJointName+
                     "' but a joint by that name already exists in the robot named '"
-                    +name()+"'"))
-        return false;
+                    +name()+"'!"))
+        return -4;
 
     Link* newLink = new Link(this, parentLink, newLinkName, _links.size(), false);
     _insertLink(newLink);
 
-    Joint* newJoint = new Joint(this, _joints.size(), newJointName, &parentLink, newLink,
+    Joint* newJoint = new Joint(this, _joints.size(), newJointName,
+                                &parentLink, newLink,
                                 baseTransform, jointAxis, jointType,
                                 minJointValue, maxJointValue);
     _insertJoint(newJoint);
     
     parentLink._addChildJoint(newJoint);
     newLink->_setParentJoint(newJoint);
+    
+    return _links.size()-1;
+}
+
+int Robot::createJointLinkPair(size_t parentLinkID,
+                               const string &newLinkName, const string &newJointName,
+                               const Transform &baseTransform, const Axis &jointAxis,
+                               Joint::Type jointType, double minJointValue, double maxJointValue)
+{
+    return createJointLinkPair(link(parentLinkID),
+                               newLinkName, newJointName,
+                               baseTransform, jointAxis,
+                               jointType, minJointValue, maxJointValue);
 }
 
 void Robot::removeConnection(string &jointName, bool fillInGap)
@@ -187,7 +234,7 @@ Joint& Robot::joint(const string &jointName)
 
 Joint& Robot::joint(size_t jointNum)
 {
-    if( !verb.Assert( jointNum >= _joints.size(),
+    if( !verb.Assert( jointNum < _joints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a joint index which is out of bounds "
                       "on the robot named '"+name()+"'") )
@@ -210,7 +257,7 @@ Link& Robot::link(const string &linkName)
 
 Link& Robot::link(size_t linkNum)
 {
-    if( !verb.Assert( linkNum >= _links.size(),
+    if( !verb.Assert( linkNum < _links.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a link index which is out of bounds "
                       "on the robot named '"+name()+"'") )
@@ -272,7 +319,7 @@ void Robot::anchorLink(Link &newAnchor)
     // TODO
 }
 
-void Robot::anchorLink(size_t num)
+void Robot::anchorLink(size_t linkNum)
 {
     // TODO
 }

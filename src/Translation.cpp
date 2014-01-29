@@ -48,20 +48,6 @@
 using namespace std;
 using namespace akin;
 
-//KinTranslation::KinTranslation(Frame &referenceFrame, string translationName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, translationName, report_level, "Translation"),
-//    Translation()
-//{
-
-//}
-
-//KinTranslation::KinTranslation(const Translation &relativeTranslation, Frame &referenceFrame, string translationName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, translationName, report_level, "Translation"),
-//    Translation(relativeTranslation)
-//{
-
-//}
-
 const Translation& KinTranslation::respectToWorld()
 {
     if(_needsUpdate)
@@ -83,20 +69,6 @@ void KinTranslation::_update()
 
     _needsUpdate = false;
 }
-
-//KinFreeVector::KinFreeVector(Frame &referenceFrame, string freeVectorName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, freeVectorName, report_level, "FreeVector"),
-//    FreeVector()
-//{
-
-//}
-
-//KinFreeVector::KinFreeVector(const FreeVector &relativeFreeVector, Frame &referenceFrame, string freeVectorName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, freeVectorName, report_level, "FreeVector"),
-//    FreeVector(relativeFreeVector)
-//{
-
-//}
 
 const FreeVector& KinFreeVector::respectToWorld()
 {
@@ -120,21 +92,6 @@ void KinFreeVector::_update()
 
     _needsUpdate = false;
 }
-
-//KinAxis::KinAxis(Frame &referenceFrame, string axisName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, axisName, report_level, "Axis"),
-//    Axis()
-//{
-
-//}
-
-//KinAxis::KinAxis(const Axis &relativeAxis, Frame &referenceFrame, string axisName, verbosity::verbosity_level_t report_level) :
-//    KinObject(referenceFrame, axisName, report_level, "Axis"),
-//    Axis(relativeAxis)
-//{
-
-//}
-
 
 const Axis& KinAxis::respectToWorld()
 {

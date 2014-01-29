@@ -44,12 +44,16 @@ void Joint::_computeRefTransform()
     }
     
     // Handle if the kinematic direction is reversed
-    if(!_reversed)
+    if(_reversed)
     {
+//        cout << "(reversed) Setting respectToRef of " << _downstreamLink->name() << " to\n"
+//             << respectToRef.inverse().matrix() << endl;
         _downstreamLink->respectToRef(respectToRef.inverse());
     }
     else
     {
+//        cout << "Setting respectToRef of " << _downstreamLink->name() << " to\n"
+//             << respectToRef.matrix() << endl;
         _downstreamLink->respectToRef(respectToRef);
     }
 }
@@ -65,14 +69,17 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
     _name(jointName),
     _parentLink(mParentLink),
     _childLink(mChildLink),
+    _upstreamLink(mParentLink),
+    _downstreamLink(mChildLink),
     _baseTransform(mBaseTransform),
     _axis(mJointAxis),
     _min(mininumValue),
     _max(maximumValue),
     _myType(mType),
-    _reversed(false)
+    _reversed(false),
+    _value(0)
 {
-    value(0);
+    _computeRefTransform();
     verb.level = report_level;
 }
 

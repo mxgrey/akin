@@ -35,7 +35,38 @@ include_directories(${OpenSceneGraph_INCLUDE_DIRS})
 add_definitions(${OpenSourceGraph_DEFINITIONS})
 link_libraries(osg osgViewer osgAkin)
 
+option(URDF_PARSING "include urdf parsing" ON)
 
+if(URDF_PARSING)
+
+  find_package(urdfdom QUIET)
+  if(urdfdom_FOUND)
+    find_package( urdfdom_headers QUIET )
+    if(urdfdom_headers_FOUND)
+      include_directories( ${urdfdom_headers_INCLUDE_DIRS} )
+      include_directories( ${urdfdom_INCLUDE_DIRS} )
+
+      MESSAGE(STATUS "Found urdfdom -- We will compile a URDF parser")
+      include_directories(${PROJECT_SOURCE_DIR}/akinUtils)
+      file(GLOB urdf_source "urdf/*.cpp" "akinUtils/*.h")
+      list(SORT urdf_source)
+
+      link_libraries(${urdfdom_LIBRARIES})
+
+      add_library(akinUtils SHARED ${urdf_source})
+      link_libraries(akinUtils)
+      target_link_libraries(${PROJECT_NAME} akinUtils)
+
+      set_property(TARGET ${PROJECT_NAME} PROPERTY COMPILE_DEFINITIONS "HAVE_URDFPARSING")
+
+    else(urdfdom_headers_FOUND)
+      MESSAGE(STATUS "Could NOT find urdfdom *headers* -- We will NOT compile a URDF parser")
+    endif(urdfdom_headers_FOUND)
+  else( urdfdom_FOUND)
+    MESSAGE(STATUS "Could NOT find urdfdom -- We will NOT compile a URDF parser")
+  endif(urdfdom_FOUND)
+
+endif(URDF_PARSING)
 
 
 enable_testing()
@@ -46,8 +77,10 @@ foreach(utest_src_file ${unit_tests_source})
     get_filename_component(test_base ${utest_src_file} NAME_WE)
     message(STATUS "Adding test ${test_base}")
     add_executable(${test_base} ${utest_src_file})
-    target_link_libraries(${test_base} ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES})
+    target_link_libraries(${test_base} akinUtils ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES})
     add_test(${test_base} ${EXECUTABLE_OUTPUT_PATH}/${test_base})
     add_custom_target(${test_base}.run ${test_base} ${ARGN})
     add_dependencies(check ${test_base})
 endforeach(utest_src_file)
+
+

@@ -111,5 +111,49 @@ protected:
 
 } // namespace akin
 
+inline std::ostream& operator<<(std::ostream& oStrStream, akin::Link& someLink)
+{
+    oStrStream << "Link named '" << someLink.name() << "' ";
+    if(someLink.isRoot())
+    {
+        oStrStream << "is the root link ";
+    }
+    if(someLink.isAnchor())
+    {
+        if(someLink.isRoot())
+            oStrStream << "and ";
+        oStrStream << "is the anchor link ";
+    }
+    
+    if(!someLink.isRoot())
+    {
+        if(someLink.isAnchor())
+            oStrStream << "with ";
+        else
+            oStrStream << " has ";
+        oStrStream << "parent joint " << someLink.parentJoint().name();
+    }
+    
+    oStrStream << "\n";
+    
+    if(someLink.numChildJoints() == 0)
+    {
+        oStrStream << "This link has no child joints";
+    }
+    else
+    {
+        oStrStream << "Child joints are: ";
+        for(size_t i=0; i<someLink.numChildJoints(); ++i)
+        {
+            oStrStream << someLink.childJoint(i).name();
+            if(i+1 < someLink.numChildJoints())
+                oStrStream << ", ";
+        }
+    }
+    
+    oStrStream << "\n" << (akin::Frame&)someLink << std::endl;
+    
+    return oStrStream;
+}
 
 #endif // LINK_H

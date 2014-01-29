@@ -222,6 +222,16 @@ public:
     {
         (Eigen::Vector3d&)(*this) = vec.normalized();
     }
+    
+    inline Axis(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec)
+    {
+        (Eigen::Vector3d&)(*this) = vec.normalized();
+    }
+    
+    inline Axis& operator=(const Eigen::Vector3d& vec)
+    {
+        (Eigen::Vector3d&)(*this) = vec.normalized();
+    }
 
 };
 
