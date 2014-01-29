@@ -69,6 +69,12 @@ public:
     {
 
     }
+    
+    inline Translation(const Eigen::Vector3d::ScalarMultipleReturnType& vec) :
+        Eigen::Vector3d(vec)
+    {
+        
+    }
 
     inline Translation(const Eigen::Vector3d& vec) :
         Eigen::Vector3d(vec)

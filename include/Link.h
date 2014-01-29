@@ -13,10 +13,6 @@ public:
     friend class Joint;
     friend class Robot;
 
-    KinCustomMacro( Link )
-
-    Link(Robot* mRobot, Frame& referenceFrame, std::string linkName, bool root=false);
-
     /*!
      * \fn isAnchor()
      * \brief Returns true iff this link is the robot's anchor to the outside world
@@ -71,18 +67,31 @@ public:
      */
     Joint& childJoint(size_t num);
 
+    inline size_t numChildJoints() { return _childJoints.size(); }
+    inline size_t numChildLinks() { return _childJoints.size(); }
 
     Joint& upstreamJoint();
     Link& upstreamLink();
 
     Joint& downstreamJoint(size_t num);
     Link& downstreamLink(size_t num);
+    
+    inline size_t numDownstreamJoints() { return _downstreamJoints.size(); }
+    inline size_t numDownstreamLinks() { return _downstreamJoints.size(); }
 
     bool belongsTo(const Robot& someRobot) const;
 
     inline bool isDummy() { return _isDummy; }
 
 protected:
+    
+    Link(Robot* mRobot, Frame& referenceFrame, std::string linkName, size_t mID, bool root=false);
+    
+    size_t _id;
+    
+    void _addChildJoint(Joint* newChild);
+    void _removeChildJoint(Joint* oldChild);
+    void _setParentJoint(Joint* newParent);
 
     bool _isAnchor;
     bool _isRoot;
@@ -95,8 +104,8 @@ protected:
     JointPtrArray _downstreamJoints;
 
     Robot* _myRobot;
-    void _loseRobot();
-    void _loseJoint(Joint* lostJoint);
+    
+    ~Link();
 
 };
 
