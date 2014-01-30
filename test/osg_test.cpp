@@ -197,29 +197,40 @@ void line_test()
     viewer.run();
 }
 
+FramePtrArray createTrees()
+{
+    Frame* rootFrame = new Frame(Transform(Translation(1,0,0)), akin::Frame::World(), "rootFrame");
+    Frame* secondFrame = new Frame(Transform(Translation(1,0,1),
+                                Rotation(90*M_PI/180, Axis(0,0,1))), *rootFrame, "secondFrame");
+    Frame* thirdFrame = new Frame(Transform(Translation(0,0,1)), *secondFrame, "thirdFrame");
+    Frame* fourthFrame = new Frame(Transform(Translation(0, 1, 0.5)), *thirdFrame, "thirdFrame");
 
-void akin_test()
+    Frame* newBranch = new Frame(Transform(Translation(-1,0,0),
+                              Rotation(45*M_PI/180, Axis(0,1,0))), *secondFrame, "newBranch");
+    Frame* more = new Frame(Transform(Translation(0.1, 0.5, -0.3)), *newBranch, "more");
+
+    Frame* otherRoot = new Frame(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
+    Frame* otherSecond = new Frame(Transform(Translation(0,1,1)), *otherRoot, "otherSecond");
+    Frame* otherThird = new Frame(Transform(Translation(-1,0,0)), *otherSecond, "otherThird");
+
+    FramePtrArray trees;
+    trees.push_back(rootFrame);
+    trees.push_back(otherRoot);
+
+    return trees;
+}
+
+
+void spin_test(FramePtrArray trees)
 {
     osg::Group* root = new osg::Group;
     osgAkin::SpinNode* akinNode = new osgAkin::SpinNode;
     root->addChild(akinNode);
 
-    Frame rootFrame(Transform(Translation(1,0,0)), akin::Frame::World(), "rootFrame");
-    Frame secondFrame(Transform(Translation(1,0,1),
-                                Rotation(90*M_PI/180, Axis(0,0,1))), rootFrame, "secondFrame");
-    Frame thirdFrame(Transform(Translation(0,0,1)), secondFrame, "thirdFrame");
-    Frame fourthFrame(Transform(Translation(0, 1, 0.5)), thirdFrame, "thirdFrame");
-
-    Frame newBranch(Transform(Translation(-1,0,0),
-                              Rotation(45*M_PI/180, Axis(0,1,0))), secondFrame, "newBranch");
-    Frame more(Transform(Translation(0.1, 0.5, -0.3)), newBranch, "more");
-    
-    Frame otherRoot(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
-    Frame otherSecond(Transform(Translation(0,1,1)), otherRoot, "otherSecond");
-    Frame otherThird(Transform(Translation(-1,0,0)), otherSecond, "otherThird");
-    
-    akinNode->addRootFrame(thirdFrame);
-    akinNode->addRootFrame(otherRoot);
+    for(size_t i=0; i<trees.size(); ++i)
+    {
+        akinNode->addRootFrame(*(trees[i]));
+    }
     
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
@@ -227,12 +238,27 @@ void akin_test()
     viewer.run();
 }
 
+void akin_test(FramePtrArray trees)
+{
+    osg::Group* root = new osg::Group;
+    osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
+    root->addChild(akinNode);
+
+    for(size_t i=0; i<trees.size(); ++i)
+    {
+        akinNode->addRootFrame(*(trees[i]));
+    }
+
+    osgViewer::Viewer viewer;
+    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
+    viewer.setSceneData(root);
+    viewer.run();
+}
 
 int main(int argc, char* argv[])
 {
-//    line_test();
-//    pyramid_test();
-    akin_test();
-    
+//    akin_test(createTrees());
+    spin_test(createTrees());
+
     return 0;
 }
