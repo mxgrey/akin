@@ -55,7 +55,7 @@ Robot& build_manual_robot()
 
 Robot& build_urdf_robot()
 {
-    Robot* rb_ptr = new Robot(Robot::URDF_FILE, "../models/drchubo_v2.urdf",
+    Robot* rb_ptr = new Robot(Robot::URDF_FILE, "../models/huboplus.urdf",
                               Frame::World(), verbosity::DEBUG);
     Robot& robot = *rb_ptr;
     

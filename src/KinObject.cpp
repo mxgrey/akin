@@ -81,7 +81,7 @@ KinObject::KinObject(const KinObject &other)
 KinObject& KinObject::operator =(const KinObject& other)
 {
     verb.level = other.verb.level;
-    verb.debug() << "Assigning object '" << name() << "' to have the values of '" << other.name() << "'";
+    verb.debug() << "Assigning object '" << name() << "' to have the values of '" << other.name() << "'"; verb.end();
 
     _copyValues(other);
 }

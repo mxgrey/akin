@@ -370,7 +370,7 @@ public:
       * \brief Similar to peekVisuals() but resets the visualsChanged() flag
       *
       * Note: Meant only for internal use. Using this function inappropriately
-      * could negatively impact visualization. If you are using a custom visualization
+      * could negatively impact visualization. If you are implementing a custom visualization
       * interface then using this function might be appropriate.
       */
     const GeometryArray& grabVisualsAndReset();
@@ -380,7 +380,7 @@ public:
       * \brief Similar to peekColliders() but resets the collidersChanged() flag
       *
       * Note: Meant only for internal use. Using this function inappropriately
-      * could negatively impact collision checking. If you are using a custom
+      * could negatively impact collision checking. If you are implementing a custom
       * collision checker then using this function might be appropriate.
       */
     const GeometryArray& grabCollidersAndReset();
