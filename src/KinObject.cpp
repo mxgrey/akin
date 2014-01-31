@@ -157,3 +157,98 @@ void KinObject::_loseParent()
 {
     _referenceFrame = &Frame::World();
 }
+
+
+size_t KinObject::addVisual(const Geometry &visual_geometry)
+{
+    _visualsUpdate = true;
+    _visuals.push_back(visual_geometry);
+    return _visuals.size()-1;
+}
+
+bool KinObject::removeVisual(size_t num)
+{
+    if(num >= _visuals.size())
+        return false;
+    
+    _visualsUpdate = true;
+    _visuals.erase(_visuals.begin()+num);
+    return true;
+}
+
+void KinObject::clearVisuals()
+{
+    _visualsUpdate = true;
+    _visuals.clear();
+}
+
+const Geometry& KinObject::peekVisual(size_t num) const
+{
+    if( num >= _visuals.size() )
+        return _visuals[_visuals.size()-1];
+    
+    return _visuals[num];
+}
+
+const GeometryArray& KinObject::peekVisuals() const
+{
+    return _visuals;
+}
+
+size_t KinObject::addCollider(const Geometry &colliding_geometry)
+{
+    _collidersUpdate = true;
+    _colliders.push_back(colliding_geometry);
+    return _colliders.size()-1;
+}
+
+bool KinObject::removeCollider(size_t num)
+{
+    if(num >= _colliders.size())
+        return false;
+    
+    _collidersUpdate = true;
+    _colliders.erase(_colliders.begin()+num);
+    return true;
+}
+
+void KinObject::clearColliders()
+{
+    _collidersUpdate = true;
+    _colliders.clear();
+}
+
+const Geometry& KinObject::peekCollider(size_t num) const
+{
+    if(num >= _colliders.size())
+        return _colliders[_colliders.size()-1];
+    
+    return _colliders[num];
+}
+
+const GeometryArray& KinObject::peekColliders() const
+{
+    return _colliders;
+}
+
+bool KinObject::visualsChanged() const
+{
+    return _visualsUpdate;
+}
+
+bool KinObject::collidersChanged() const
+{
+    return _collidersUpdate;
+}
+
+const GeometryArray& KinObject::grabVisualsAndReset()
+{
+    _visualsUpdate = false;
+    return _visuals;
+}
+
+const GeometryArray& KinObject::grabCollidersAndReset()
+{
+    _collidersUpdate = false;
+    return _colliders;
+}

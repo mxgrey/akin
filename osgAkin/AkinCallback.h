@@ -46,7 +46,6 @@
 #define AKINCALLBACK_H
 
 #include "AkinIncludes.h"
-#include "AkinData.h"
 #include "AkinNode.h"
 #include "osg/NodeCallback"
 #include "osg/NodeVisitor"

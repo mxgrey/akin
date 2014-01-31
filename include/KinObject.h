@@ -51,6 +51,8 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+#include "Geometry.h"
+
 namespace akin {
 
 /*!
@@ -237,6 +239,8 @@ public:
       * \brief Returns true if and only if this KinObject is kinematically downstream from someFrame
       */
     bool descendsFrom(const Frame& someFrame);
+    
+    
 
     
     verbosity verb;
@@ -256,13 +260,139 @@ public:
       * \brief Returns true if this object needs to update itself
       */
     bool needsUpdate();
-
-//    virtual const BaseType& respectToWorld();
-//    virtual BaseType& withRespectTo(Frame& someFrame);
+    
+    /*!
+      * \fn addVisual(const Geometry& visual_geometry)
+      * \brief Add a geometry to visualize this KinObject
+      * 
+      * Visuals are geometries that are intended to be rendered for visualization.
+      * These are usually of higher resolution than colliders because they are
+      * meant to be visually appealing and their data does not need to be handled
+      * regularly.
+      *
+      * To add geometries that are intended for collision-checking, see addCollider().
+      */
+    size_t addVisual(const Geometry& visual_geometry);
+    
+    /*!
+      * \fn removeVisual(size_t num)
+      * \brief Removes a stored visual
+      *
+      * Important note: Using this function will reduce the index values of
+      * all visuals which follow it in the array by one.
+      *
+      * Returns false iff num is out of bounds
+      */
+    bool removeVisual(size_t num);
+    
+    /*!
+      * \fn clearVisuals()
+      * \brief Removes all visuals that are being kept
+      */
+    void clearVisuals();
+    
+    /*!
+      * \fn peekVisual(size_t num)
+      * \brief Check a visual geometry object without touching the 'updated' flag
+      *
+      * To make data handling as efficient and easy as possible, KinObjects do internal
+      * updating management. This depends on flags being set and unset at the
+      * appropriate times. As the end user, you should use this function or the
+      * peekVisuals() function if you find it necessary to inspect this KinObject's
+      * visual array members.
+      *
+      * Returns the last visual in the array if num is out of bounds.
+      */
+    const Geometry& peekVisual(size_t num) const;
+    /*!
+      * \fn peekVisuals()
+      * \brief Similar to peekVisual() but returns the full array by reference
+      */
+    const GeometryArray& peekVisuals() const;
+    
+    /*!
+      * \fn addCollider(size_t num)
+      * \brief Add a geometry intended for collision checking
+      *
+      * Colliders are geometries that are intended to be collision checked.
+      * Ideally these are convex primitives, but sometimes simple meshes may
+      * be needed.
+      */
+    size_t addCollider(const Geometry& colliding_geometry);
+    
+    /*!
+      * \fn removeCollider(size_t num)
+      * \brief Removes a stored collider
+      *
+      * Important note: Using this function will reduce the index values of
+      * all visuals which follow it in the array by one.
+      */
+    bool removeCollider(size_t num);
+    
+    /*!
+      * \fn clearColliders()
+      * \brief Removes all stored colliders
+      */
+    void clearColliders();
+    
+    /*!
+      * \fn peekCollider(size_t num)
+      * \brief Check a collision geometry object without touching the 'updated' flag
+      *
+      * To make data handling as efficient and easy as possible, KinObjects do internal
+      * updating management. This depends on flags being set and unset at the appropriate
+      * times. As the end user, you should use this function or the peekColliders() 
+      * function if you find it necessary to inspect this KinObject's collision array
+      * members.
+      */
+    const Geometry& peekCollider(size_t num) const;
+    
+    /*!
+      * \fn peekColliders()
+      * \brief Similar to peekCollider() but returns the full array by reference
+      */
+    const GeometryArray& peekColliders() const;
+    
+    /*!
+      * \fn visualsChanged()
+      * \brief true iff something has changed with the visuals since the last call to grabVisualsAndReset()
+      */
+    bool visualsChanged() const;
+    
+    /*!
+      * \fn collidersChanged()
+      * \brief true iff something has changed with the colliders since the last call to grabCollidersAndReset()
+      */
+    bool collidersChanged() const;
+    
+    /*!
+      * \fn grabVisualsAndReset()
+      * \brief Similar to peekVisuals() but resets the visualsChanged() flag
+      *
+      * Note: Meant only for internal use. Using this function inappropriately
+      * could negatively impact visualization. If you are using a custom visualization
+      * interface then using this function might be appropriate.
+      */
+    const GeometryArray& grabVisualsAndReset();
+    
+    /*!
+      * \fn grabCollidersAndReset()
+      * \brief Similar to peekColliders() but resets the collidersChanged() flag
+      *
+      * Note: Meant only for internal use. Using this function inappropriately
+      * could negatively impact collision checking. If you are using a custom
+      * collision checker then using this function might be appropriate.
+      */
+    const GeometryArray& grabCollidersAndReset();
     
 protected:
 
     void _copyValues(const KinObject& other);
+    
+    GeometryArray _colliders;
+    bool _collidersUpdate;
+    GeometryArray _visuals;
+    bool _visualsUpdate;
 
     /*!
      * \fn _loseParent();

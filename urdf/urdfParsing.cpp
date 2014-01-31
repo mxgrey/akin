@@ -51,8 +51,8 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
     
     model = urdf::parseURDF( urdf_string );
     
-    std::vector< boost::shared_ptr<urdf::Link> > links;
-    model->getLinks( links );
+//    std::vector< boost::shared_ptr<urdf::Link> > links;
+//    model->getLinks( links );
     
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
     if(!robot.createRootLink(rootLink->name, referenceFrame))
@@ -61,6 +61,28 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
                   << "'. Cannot load the URDF into this robot!" << std::endl;
         return false;
     }
+    
+    if(model->root_link_->visual)
+    {
+        if(model->root_link_->visual->geometry->type == urdf::Geometry::MESH)
+            std::cout << "Root link has a mesh geometry" << std::endl;
+        
+        urdf::Mesh* mesh =
+                dynamic_cast<urdf::Mesh*>(model->root_link_->visual->geometry.get());
+        
+        if(mesh)
+        {
+            std::cout << "Dynamic cast worked!" << std::endl;
+        }
+        
+//        std::cout << "Root link visual:" << std::endl;
+//        std::cout << model->root_link_->visual->geometry << std::endl;
+    }
+    else
+    {
+        std::cout << "No visual for root_link_" << std::endl;
+    }
+    
     
     robot.name(model->getName());
     
