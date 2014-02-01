@@ -37,6 +37,7 @@ link_libraries(osg osgViewer osgAkin)
 
 option(URDF_PARSING "include urdf parsing" ON)
 
+include_directories(${PROJECT_SOURCE_DIR}/akinUtils)
 if(URDF_PARSING)
 
   find_package(urdfdom QUIET)
@@ -47,7 +48,6 @@ if(URDF_PARSING)
       include_directories( ${urdfdom_INCLUDE_DIRS} )
 
       MESSAGE(STATUS "Found urdfdom -- We will compile a URDF parser")
-      include_directories(${PROJECT_SOURCE_DIR}/akinUtils)
       file(GLOB urdf_source "urdf/*.cpp" "akinUtils/*.h")
       list(SORT urdf_source)
 
