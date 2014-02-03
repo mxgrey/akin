@@ -1,5 +1,6 @@
 
 #include "KinTree.h"
+#include "osgDB/ReadFile"
 
 using namespace osgAkin;
 using namespace akin;
@@ -50,7 +51,7 @@ void KinTree::setRootFrame(Frame &root_frame)
     
     _branches->setRootFrame(*_root);
     
-    _frameMap.erase(_frameMap.begin(),_frameMap.end());
+    _frameMtfMap.erase(_frameMtfMap.begin(),_frameMtfMap.end());
 
     _initialized = false;
 }
@@ -76,7 +77,7 @@ void KinTree::update()
 
 void KinTree::initialize()
 {
-    _frameMap.erase(_frameMap.begin(),_frameMap.end());
+    _frameMtfMap.erase(_frameMtfMap.begin(),_frameMtfMap.end());
     _findTrueRoot();
     _recursiveInitialize(*_root);
     _branches->initialize();
@@ -91,10 +92,11 @@ void KinTree::_findTrueRoot()
 
 void KinTree::_recursiveUpdate(Frame &next_frame)
 {
-    FrameMtfMap::const_iterator m = _frameMap.find(&next_frame);
-    if( m != _frameMap.end() )
+    FrameMtfMap::const_iterator m = _frameMtfMap.find(&next_frame);
+    if( m != _frameMtfMap.end() )
     {
-        _frameMap[&next_frame]->setMatrix(cosg(next_frame.respectToWorld()));
+        _frameMtfMap[&next_frame]->setMatrix(cosg(next_frame.respectToWorld()));
+        _renderChildObjects(next_frame);
         
         for(size_t i=0; i<next_frame.numChildFrames(); ++i)
         {
@@ -110,10 +112,10 @@ void KinTree::_recursiveUpdate(Frame &next_frame)
 
 void KinTree::_recursiveInitialize(Frame &next_frame)
 {
-    _frameMap[&next_frame] = new osg::MatrixTransform;
-    addChild(_frameMap[&next_frame]);
-    _frameMap[&next_frame]->addChild(_makeAxisGeode());
-    _frameMap[&next_frame]->setMatrix(cosg(next_frame.respectToWorld()));
+    _frameMtfMap[&next_frame] = new osg::MatrixTransform;
+    addChild(_frameMtfMap[&next_frame]);
+    _frameMtfMap[&next_frame]->addChild(_makeFrameGeode(next_frame));
+    _frameMtfMap[&next_frame]->setMatrix(cosg(next_frame.respectToWorld()));
     
     for(size_t i=0; i<next_frame.numChildFrames(); ++i)
     {
@@ -121,25 +123,92 @@ void KinTree::_recursiveInitialize(Frame &next_frame)
     }
 }
 
-osg::Geode* KinTree::_makeAxisGeode()
+void KinTree::_renderChildObjects(Frame &frame)
 {
-    osg::Geode* axisGeode = new osg::Geode;
-    _axisGeodes.push_back(axisGeode);
+    if(frame.visualsChanged())
+    {
+        _loadVisualArray(frame.grabVisualsAndReset(),
+                         _frameMtfMap[&frame]);
+    }
+
+    for(size_t i=0; i<frame.numChildObjects(); ++i)
+    {
+        if(!frame.childObject(i).isFrame())
+        {
+            ObjectMtfMap::const_iterator m = _objectMtfMap.find(&frame.childObject(i));
+            if( m != _objectMtfMap.end() )
+            {
+                if(frame.childObject(i).visualsChanged())
+                {
+                    _loadVisualArray(frame.childObject(i).grabVisualsAndReset(),
+                                     _frameMtfMap[&frame]);
+                }
+            }
+            else
+            {
+                _objectInitialize(frame, frame.childObject(i));
+            }
+        }
+    }
+}
+
+void KinTree::_objectInitialize(Frame &frame, KinObject &new_object)
+{
+    _frameMtfMap[&frame]->addChild(_makeObjectMtf(new_object));
+    _loadVisualArray(new_object.grabVisualsAndReset(),_objectMtfMap[&new_object]);
+}
+
+void KinTree::_loadVisualArray(const GeometryArray &visuals, osg::MatrixTransform *mtf)
+{
+    mtf->removeChildren(0, mtf->getNumChildren());
+
+    for(size_t i=0; i<visuals.size(); ++i)
+    {
+        const Geometry& visual = visuals[i];
+
+        if(visual.type == Geometry::MESH_FILE)
+        {
+            osg::ref_ptr<Node> file_node = osgDB::readNodeFile(visual.mesh_filename);
+            if(!file_node)
+            {
+                std::cerr << "Could not load file named '"
+                          << visual.mesh_filename << "'" << std::endl;
+            }
+            else
+            {
+                mtf->addChild(file_node);
+            }
+        }
+    }
+}
+
+osg::Geode* KinTree::_makeFrameGeode(Frame &frame)
+{
+    osg::Geode* frameGeode = new osg::Geode;
+    _axisGeodes.push_back(frameGeode);
     
     Axes* axes = new Axes(_axisLength);
     _axes.push_back(axes);
     
-    axisGeode->addDrawable(axes);
-    axisGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-    axisGeode->getOrCreateStateSet()->setAttributeAndModes(_axisWidth);
-    axisGeode->getOrCreateStateSet()->setAttributeAndModes(_cull, osg::StateAttribute::ON);
-    axisGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-    axisGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+    frameGeode->addDrawable(axes);
+    frameGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    frameGeode->getOrCreateStateSet()->setAttributeAndModes(_axisWidth);
+    frameGeode->getOrCreateStateSet()->setAttributeAndModes(_cull, osg::StateAttribute::ON);
+    frameGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+    frameGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
     
-    return axisGeode;
+    _frameGeodeMap[&frame] = frameGeode;
+
+    return frameGeode;
 }
 
-
+osg::MatrixTransform* KinTree::_makeObjectMtf(KinObject &object)
+{
+    osg::MatrixTransform* objectMtf = new osg::MatrixTransform;
+    _objectMtfMap[&object] = objectMtf;
+    objectMtf->setMatrix(cosg(Transform::Identity()));
+    return objectMtf;
+}
 
 
 

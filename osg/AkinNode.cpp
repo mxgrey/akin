@@ -51,6 +51,10 @@ using namespace std;
 AkinNode::AkinNode()
 {
     setUpdateCallback(new osgAkin::AkinCallback);
+    _dummyFrame = new Frame(Transform::Identity());
+    _dummyFrame->name("dummy");
+    _dummyRobot = new Robot;
+    _dummyRobot->name("dummy");
 }
 
 akin::Frame* AkinNode::_findTrueRoot(Frame &some_frame)
@@ -61,17 +65,32 @@ akin::Frame* AkinNode::_findTrueRoot(Frame &some_frame)
     return true_root;
 }
 
-void AkinNode::addRootFrame(akin::Frame &new_root_frame)
+size_t AkinNode::addRootFrame(akin::Frame &new_root_frame)
 {
     Frame* true_root = _findTrueRoot(new_root_frame);
     for(size_t i=0; i<_kinTrees.size(); ++i)
         if(_kinTrees[i]->getRootFrame() == true_root)
-            return;
+            return i;
     
     KinTree* new_tree = new KinTree(*true_root);
     _kinTrees.push_back(new_tree);
     
     addChild(new_tree);
+
+    _frames.push_back(&new_root_frame);
+    return _frames.size()-1;
+}
+
+size_t AkinNode::addRobot(Robot &new_robot)
+{
+    addRootFrame(new_robot.link(0));
+
+    for(size_t i=0; i<_robots.size(); ++i)
+        if(_robots[i] == &new_robot)
+            return i;
+
+    _robots.push_back(&new_robot);
+    return _robots.size()-1;
 }
 
 void AkinNode::removeRootFrame(akin::Frame &existing_frame)
@@ -95,9 +114,30 @@ void AkinNode::update()
     }
 }
 
-void AkinNode::initialize(size_t tree_num)
+akin::Frame& AkinNode::getFrame(size_t num)
 {
-    
+    if(num >= _frames.size())
+    {
+        std::cout << "Requesting an out-of-bounds frame from the AkinNode!"
+                  << " -- Requested frame:" << num << ", Total frames:" << _frames.size()-1
+                    << std::endl;
+        return *_dummyFrame;
+    }
+
+    return *_frames[num];
+}
+
+akin::Robot& AkinNode::getRobot(size_t num)
+{
+    if(num >= _robots.size())
+    {
+        std::cout << "Requesting an out-of-bounds robot from the AkinNode!"
+                  << " -- Requested robot:" << num << ", Total robots:" << _robots.size()-1
+                     << std::endl;
+        return *_dummyRobot;
+    }
+
+    return *_robots[num];
 }
 
 
@@ -115,4 +155,22 @@ void SpinNode::update()
 
     AkinNode::update();
 }
+
+
+void KneeNode::update()
+{
+    time += 0.01;
+
+    Robot& robot = getRobot(0);
+    robot.joint("LKP").value( 90*M_PI/180 * sin(time) );
+
+    AkinNode::update();
+}
+
+
+
+
+
+
+
 

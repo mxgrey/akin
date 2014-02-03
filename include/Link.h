@@ -80,6 +80,7 @@ public:
     inline size_t numDownstreamLinks() { return _downstreamJoints.size(); }
 
     bool belongsTo(const Robot& someRobot) const;
+    Robot& robot();
 
     inline bool isDummy() { return _isDummy; }
 

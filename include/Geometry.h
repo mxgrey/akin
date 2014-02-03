@@ -44,6 +44,7 @@ public:
     inline Geometry() { clear(); }
     
     geometry_t type;
+    render_hint_t hint;
     
     Eigen::Vector3d scale;
     Eigen::Isometry3d relative_pose;
@@ -52,10 +53,16 @@ public:
     std::vector<ushort> element_indices;
     
     std::string mesh_filename;
+
+    static inline const Geometry& Empty()
+    {
+        static Geometry emptyGeometry;
+        return emptyGeometry;
+    }
     
     inline void clear()
     {
-        type = POINT;
+        type = NONE;
         scale = Eigen::Vector3d::Ones();
         relative_pose = Eigen::Isometry3d::Identity();
         vertices.clear();
@@ -65,6 +72,8 @@ public:
 };
 
 typedef std::vector<Geometry> GeometryArray;
+
+// TODO: Make a stream operator for geometries
 
 } // namespace akin
 

@@ -152,3 +152,8 @@ Joint& Link::downstreamJoint(size_t num)
     
     return *_downstreamJoints[num];
 }
+
+Robot& Link::robot()
+{
+    return *_myRobot;
+}

@@ -66,6 +66,8 @@ KinObject::KinObject(Frame& referenceFrame,
     name(myName);
     _type = myType;
 
+    _isFrame = false;
+
     referenceFrame._gainChildObject(this);
     _referenceFrame = &referenceFrame;
     notifyUpdate();
@@ -94,6 +96,9 @@ void KinObject::_copyValues(const KinObject &other)
 
     other.refFrame()._gainChildObject(this);
     _referenceFrame = &(other.refFrame());
+
+    _isFrame = other.isFrame();
+
     notifyUpdate();
 }
 
@@ -185,7 +190,7 @@ void KinObject::clearVisuals()
 const Geometry& KinObject::peekVisual(size_t num) const
 {
     if( num >= _visuals.size() )
-        return _visuals[_visuals.size()-1];
+        return Geometry::Empty();
     
     return _visuals[num];
 }
@@ -221,7 +226,7 @@ void KinObject::clearColliders()
 const Geometry& KinObject::peekCollider(size_t num) const
 {
     if(num >= _colliders.size())
-        return _colliders[_colliders.size()-1];
+        return Geometry::Empty();
     
     return _colliders[num];
 }

@@ -15,10 +15,13 @@ bool exploreLink(akin::Robot& robot, boost::shared_ptr<urdf::ModelInterface> mod
                  boost::shared_ptr<urdf::Link> link, akin::Link& parentLink);
 
 
+bool linkProperties(akin::Link& link, boost::shared_ptr<urdf::Link> ulink);
+
 
 } // namespace akinUtils
 
 bool akinUtils::loadURDF(akin::Robot &robot, const std::string &filename,
+                         const std::string& package_directory,
                          akin::Frame& referenceFrame)
 {
     std::string xml_model_string;
@@ -39,6 +42,9 @@ bool akinUtils::loadURDF(akin::Robot &robot, const std::string &filename,
     }
     
     xml_file.close();
+
+//    size_t dir = filename.find_last_of("/\\");
+    robot.robotPackageDirectory = package_directory;
     
     return akinUtils::loadURDFstring(robot, xml_model_string, referenceFrame);
 }
@@ -61,28 +67,9 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
                   << "'. Cannot load the URDF into this robot!" << std::endl;
         return false;
     }
-    
-    if(model->root_link_->visual)
-    {
-        if(model->root_link_->visual->geometry->type == urdf::Geometry::MESH)
-            std::cout << "Root link has a mesh geometry" << std::endl;
-        
-        urdf::Mesh* mesh =
-                dynamic_cast<urdf::Mesh*>(model->root_link_->visual->geometry.get());
-        
-        if(mesh)
-        {
-            std::cout << "Dynamic cast worked!" << std::endl;
-        }
-        
-//        std::cout << "Root link visual:" << std::endl;
-//        std::cout << model->root_link_->visual->geometry << std::endl;
-    }
-    else
-    {
-        std::cout << "No visual for root_link_" << std::endl;
-    }
-    
+
+
+    linkProperties(robot.link(0), model->root_link_);
     
     robot.name(model->getName());
     
@@ -141,6 +128,8 @@ bool akinUtils::exploreLink(akin::Robot &robot,
                       << "' and link '" << ulink->name << "'. Error Code: " << newID;
             return false;
         }
+
+        success = success && linkProperties(robot.link(newID), ulink);
         
         success = success && exploreLink(robot, model, ulink, robot.link(newID));
         if(!success)
@@ -150,5 +139,46 @@ bool akinUtils::exploreLink(akin::Robot &robot,
     return success;
 }
 
+bool akinUtils::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> ulink)
+{
+    if(ulink->visual)
+    {
+        akin::Geometry visual;
+        visual.hint = akin::Geometry::STATIC;
+        if(ulink->visual->geometry->type == urdf::Geometry::MESH)
+        {
 
+            urdf::Mesh* mesh =
+                    dynamic_cast<urdf::Mesh*>(ulink->visual->geometry.get());
+            if(mesh)
+            {
+                visual.type = akin::Geometry::MESH_FILE;
+                std::string mesh_filename = mesh->filename;
+                size_t num = mesh_filename.find("package://");
+                if(num < std::string::npos)
+                    mesh_filename.erase(num, num+9);
+
+                mesh_filename = link.robot().robotPackageDirectory + mesh_filename;
+
+                visual.mesh_filename = mesh_filename;
+            }
+            else
+            {
+                std::cout << "The URDF for link named '" << link.name() << "' claims to be a mesh, but "
+                          << "cannot be dynamically cast as one!" << std::endl;
+                visual.type = akin::Geometry::NONE;
+            }
+        }
+//        else if(ulink->visual->geometry->type == urdf::Geometry::BOX)
+        // TODO: Other geometry types
+
+        link.addVisual(visual);
+    }
+    else
+    {
+        std::cout << "No visual for the link named '" << link.name() << "'" << std::endl;
+    }
+
+    return true;
+}
 

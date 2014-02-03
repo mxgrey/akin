@@ -11,6 +11,7 @@ class Link;
 typedef std::map<std::string,size_t> StringMap;
 typedef std::vector<Joint*> JointPtrArray;
 typedef std::vector<Link*> LinkPtrArray;
+typedef std::vector<std::string> StringArray;
 
 class Robot
 {
@@ -59,6 +60,11 @@ public:
     Robot(construction_t method = MANUAL,
           std::string construction_info = "root_link",
           Frame& rootReferenceFrame = Frame::World(),
+          verbosity::verbosity_level_t report_level = verbosity::LOG);
+
+    Robot(construction_t method,
+          StringArray construction_info,
+          Frame &rootReferenceFrame = Frame::World(),
           verbosity::verbosity_level_t report_level = verbosity::LOG);
     
     ~Robot();
@@ -109,10 +115,17 @@ public:
     
     void enforceJointLimits(bool enforce);
     inline bool enforcingJointLimits() { return _enforceJointLimits; }
+
+    std::string robotPackageDirectory;
     
     verbosity verb;
 
 protected:
+
+    void _initializeRobot(construction_t method,
+                          StringArray construction_info,
+                          Frame& rootReferenceFrame,
+                          verbosity::verbosity_level_t report_level);
     
     bool _enforceJointLimits;
 
@@ -129,6 +142,7 @@ protected:
 
     Link* _dummyLink;
     Joint* _dummyJoint;
+    Geometry _dummyGeometry;
 
     JointPtrArray _joints;
     LinkPtrArray _links;
@@ -139,6 +153,8 @@ protected:
     Robot* _myRobot;
 
 };
+
+typedef std::vector<Robot*> RobotPtrArray;
 
 } // namespace akin
 

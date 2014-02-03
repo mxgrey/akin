@@ -384,6 +384,8 @@ public:
       * collision checker then using this function might be appropriate.
       */
     const GeometryArray& grabCollidersAndReset();
+
+    inline bool isFrame() const { return _isFrame; }
     
 protected:
 
@@ -393,6 +395,8 @@ protected:
     bool _collidersUpdate;
     GeometryArray _visuals;
     bool _visualsUpdate;
+
+    bool _isFrame;
 
     /*!
      * \fn _loseParent();

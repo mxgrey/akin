@@ -51,6 +51,7 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _isWorld(false)
 {
+    _isFrame = true;
     referenceFrame._gainChildFrame(this);
 }
 
@@ -59,6 +60,7 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
     _isWorld(false),
     _respectToRef(relativeTf)
 {
+    _isFrame = true;
     referenceFrame._gainChildFrame(this);
 }
 
@@ -67,12 +69,13 @@ Frame::Frame(bool createWorld) :
     _isWorld(true),
     KinObject(*this, "World", verbosity::LOG, "World Frame", true)
 {
-
+    _isFrame = true;
 }
 
 void Frame::_kinitialize(const Frame &other)
 {
     _isWorld = false;
+    _isFrame = true;
     _respectToRef = other.respectToRef();
     other.refFrame()._gainChildFrame(this);
     notifyUpdate();

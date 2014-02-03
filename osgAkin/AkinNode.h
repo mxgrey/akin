@@ -58,15 +58,25 @@ public:
 
     AkinNode();
 
-    void addRootFrame(akin::Frame& new_root_frame);
+    size_t addRootFrame(akin::Frame& new_root_frame);
+
+    size_t addRobot(akin::Robot& new_robot);
 
     void removeRootFrame(akin::Frame& existing_frame);
     
     virtual void update();
 
-    virtual void initialize(size_t tree_num);
+    akin::Frame& getFrame(size_t num);
+    akin::Robot& getRobot(size_t num);
+
 
 protected:
+
+    akin::FramePtrArray _frames;
+    akin::RobotPtrArray _robots;
+
+    akin::Frame* _dummyFrame;
+    akin::Robot* _dummyRobot;
 
     akin::Frame* _findTrueRoot(akin::Frame& some_frame);
     
@@ -83,6 +93,17 @@ public:
     virtual void update();
 };
 
+class KneeNode : public AkinNode
+{
+public:
+
+    inline KneeNode() : time(0) { }
+
+    virtual void update();
+
+protected:
+    double time;
+};
 
 } // osgAkin
 

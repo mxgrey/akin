@@ -7,12 +7,26 @@ using namespace std;
 
 Robot::Robot(construction_t method, string construction_info,
              Frame &rootReferenceFrame,
-             verbosity::verbosity_level_t report_level) :
-    _enforceJointLimits(true),
-    _name("some_robot")
+             verbosity::verbosity_level_t report_level)
+{
+    StringArray construction_array;
+    construction_array.push_back(construction_info);
+    _initializeRobot(method, construction_array, rootReferenceFrame, report_level);
+}
+
+Robot::Robot(construction_t method, StringArray construction_info,
+             Frame &rootReferenceFrame,
+             verbosity::verbosity_level_t report_level)
+{
+    _initializeRobot(method, construction_info, rootReferenceFrame, report_level);
+}
+
+void Robot::_initializeRobot(construction_t method, StringArray construction_info, Frame &rootReferenceFrame, verbosity::verbosity_level_t report_level)
 {
     verb.level = report_level;
-    
+    _enforceJointLimits = true;
+    _name = "some_robot";
+
     _dummyLink = new Link(this, Frame::World(), "dummy", 0, false);
     _dummyLink->_isDummy = true;
 
@@ -20,11 +34,18 @@ Robot::Robot(construction_t method, string construction_info,
     _dummyJoint->_myType = Joint::DUMMY;
     _dummyJoint->_changeParentLink(_dummyLink);
     _dummyJoint->_childLink = _dummyLink;
-    
+
     if(URDF_FILE == method)
     {
 #ifdef HAVE_URDFPARSING
-        akinUtils::loadURDF(*this, construction_info, rootReferenceFrame);
+        if(construction_info.size() < 2)
+        {
+            cout << "To parse a URDF_FILE, construction_info requires two entries:\n"
+                    << "(1) URDF Filename\n"
+                    << "(2) URDF Base Package Directory" << endl;
+            return;
+        }
+        akinUtils::loadURDF(*this, construction_info[0], construction_info[1], rootReferenceFrame);
 #else  // HAVE_URDF_PARSING
         cout << "I cannot parse the URDF file '" << construction_info
              << "' because urdfdom and/or urdfdom_headers were not installed "
@@ -34,7 +55,15 @@ Robot::Robot(construction_t method, string construction_info,
     else if(URDF_STRING == method)
     {
 #ifdef HAVE_URDFPARSING
-        akinUtils::loadURDFstring(*this, construction_info, rootReferenceFrame);
+        if(construction_info.size() < 2)
+        {
+            cout << "To parse a URDF_STRING, construction_info requires two entries:\n"
+                    << "(1) URDF Text String\n"
+                    << "(2) URDF Base Package Directory" << endl;
+            return;
+        }
+        robotPackageDirectory = construction_info[1];
+        akinUtils::loadURDFstring(*this, construction_info[0], rootReferenceFrame);
 #else  // HAVE_URDFPARSING
         cout << "I cannot parse the URDF string for this robot, because "
              << "urdfdom and/or urdfom_headers were not installed "
@@ -43,7 +72,10 @@ Robot::Robot(construction_t method, string construction_info,
     }
     else
     {
-        createRootLink(construction_info, rootReferenceFrame);
+        if(construction_info.size() > 0)
+            createRootLink(construction_info[0], rootReferenceFrame);
+        else
+            createRootLink("root_link", rootReferenceFrame);
     }
 }
 

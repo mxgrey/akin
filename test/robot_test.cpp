@@ -55,9 +55,19 @@ Robot& build_manual_robot()
 
 Robot& build_urdf_robot()
 {
-    Robot* rb_ptr = new Robot(Robot::URDF_FILE, "../models/huboplus.urdf",
+    StringArray con_info;
+    con_info.push_back("../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf");
+    con_info.push_back("../../../resources/drchubo");
+//    con_info.push_back("../../../resources/hubo-models/huboplus.urdf");
+//    con_info.push_back("../../../resources/hubo-models");
+    Robot* rb_ptr = new Robot(Robot::URDF_FILE, con_info,
                               Frame::World(), verbosity::DEBUG);
     Robot& robot = *rb_ptr;
+
+    for(size_t i=0; i<robot.numLinks(); ++i)
+        if(robot.link(i).peekVisual(0).type == Geometry::MESH_FILE)
+            std::cout << "Mesh file for Link '" << robot.link(i).name()
+                  << "': " << robot.link(i).peekVisual(0).mesh_filename << std::endl;
     
     return robot;
 }
@@ -65,10 +75,11 @@ Robot& build_urdf_robot()
 void display_robot(Robot& displaying_robot)
 {
     osg::Group* root = new osg::Group;
-    osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
+    osgAkin::KneeNode* akinNode = new osgAkin::KneeNode;
     root->addChild(akinNode);
     
-    akinNode->addRootFrame(displaying_robot.link(0));
+//    akinNode->addRootFrame(displaying_robot.link(0));
+    akinNode->addRobot(displaying_robot);
     
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
