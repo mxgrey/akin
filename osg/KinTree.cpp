@@ -1,6 +1,7 @@
 
 #include "KinTree.h"
 #include "osgDB/ReadFile"
+#include "osg/ShapeDrawable"
 
 using namespace osgAkin;
 using namespace akin;
@@ -141,7 +142,7 @@ void KinTree::_renderChildObjects(Frame &frame)
                 if(frame.childObject(i).visualsChanged())
                 {
                     _loadVisualArray(frame.childObject(i).grabVisualsAndReset(),
-                                     _frameMtfMap[&frame]);
+                                     _objectMtfMap[&frame]);
                 }
             }
             else
@@ -178,6 +179,34 @@ void KinTree::_loadVisualArray(const GeometryArray &visuals, osg::MatrixTransfor
             {
                 mtf->addChild(file_node);
             }
+        }
+        else if(visual.type == Geometry::SPHERE)
+        {
+            osg::Sphere* sphere = new osg::Sphere(osg::Vec3(visual.relative_pose.translation()[0],
+                                                            visual.relative_pose.translation()[1],
+                                                            visual.relative_pose.translation()[2]),
+                                                    visual.scale[0]);
+            osg::ShapeDrawable* sphereDrawable = new osg::ShapeDrawable(sphere);
+            sphereDrawable->setColor(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
+
+            osg::ref_ptr<osg::Geode> sphere_node = new osg::Geode;
+            mtf->addChild(sphere_node);
+            sphere_node->addDrawable(sphereDrawable);
+            std::cout << "We have a sphere!" << std::endl;
+        }
+        else if(visual.type == Geometry::BOX)
+        {
+            osg::Box* box = new osg::Box(osg::Vec3(visual.relative_pose.translation()[0],
+                                                   visual.relative_pose.translation()[1],
+                                                   visual.relative_pose.translation()[2]),
+                    visual.scale[0], visual.scale[1], visual.scale[2]);
+            osg::ShapeDrawable* boxDrawable = new osg::ShapeDrawable(box);
+            boxDrawable->setColor(osg::Vec4(0.0f,0.0f,1.0f,1.0f));
+
+            osg::ref_ptr<osg::Geode> box_node = new osg::Geode;
+            mtf->addChild(box_node);
+            box_node->addDrawable(boxDrawable);
+            std::cout << "We have a box!" << std::endl;
         }
     }
 }
