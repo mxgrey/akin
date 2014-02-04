@@ -77,23 +77,22 @@ void display_robot(Robot& displaying_robot)
     osg::Group* root = new osg::Group;
     osgAkin::KneeNode* akinNode = new osgAkin::KneeNode;
     root->addChild(akinNode);
-    
-//    akinNode->addRootFrame(displaying_robot.link(0));
+
     akinNode->addRobot(displaying_robot);
 
-//    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
-//                     "sphere",false);
-//    akin::Geometry sGeom;
-//    sGeom.type = Geometry::SPHERE;
-//    sGeom.scale[0] = 0.1;
-//    sphere.addVisual(sGeom);
+    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
+                     "sphere",false);
+    akin::Geometry sGeom;
+    sGeom.type = Geometry::SPHERE;
+    sGeom.scale[0] = 0.1;
+    sphere.addVisual(sGeom);
 
-//    KinObject box(displaying_robot.joint("LWR").childLink(),"box",verbosity::INHERIT,
-//                  "box",false);
-//    akin::Geometry bGeom;
-//    bGeom.type = Geometry::BOX;
-//    bGeom.scale = Eigen::Vector3d::Ones()*0.1;
-//    box.addVisual(bGeom);
+    KinObject box(displaying_robot.joint("LWR").childLink(),"box",verbosity::INHERIT,
+                  "box",false);
+    akin::Geometry bGeom;
+    bGeom.type = Geometry::BOX;
+    bGeom.scale = Eigen::Vector3d::Ones()*0.1;
+    box.addVisual(bGeom);
     
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));

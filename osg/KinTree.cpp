@@ -2,6 +2,7 @@
 #include "KinTree.h"
 #include "osgDB/ReadFile"
 #include "osg/ShapeDrawable"
+#include "AkinVisual.h"
 
 using namespace osgAkin;
 using namespace akin;
@@ -136,13 +137,13 @@ void KinTree::_renderChildObjects(Frame &frame)
     {
         if(!frame.childObject(i).isFrame())
         {
-            ObjectMtfMap::const_iterator m = _objectMtfMap.find(&frame.childObject(i));
-            if( m != _objectMtfMap.end() )
+            ObjectGroupMap::const_iterator m = _objectGroupMap.find(&frame.childObject(i));
+            if( m != _objectGroupMap.end() )
             {
                 if(frame.childObject(i).visualsChanged())
                 {
                     _loadVisualArray(frame.childObject(i).grabVisualsAndReset(),
-                                     _objectMtfMap[&frame]);
+                                     _objectGroupMap[&frame]);
                 }
             }
             else
@@ -155,59 +156,17 @@ void KinTree::_renderChildObjects(Frame &frame)
 
 void KinTree::_objectInitialize(Frame &frame, KinObject &new_object)
 {
-    _frameMtfMap[&frame]->addChild(_makeObjectMtf(new_object));
-    _loadVisualArray(new_object.grabVisualsAndReset(),_objectMtfMap[&new_object]);
+    _frameMtfMap[&frame]->addChild(_makeObjectGroup(new_object));
+    _loadVisualArray(new_object.grabVisualsAndReset(),_objectGroupMap[&new_object]);
 }
 
-void KinTree::_loadVisualArray(const GeometryArray &visuals, osg::MatrixTransform *mtf)
+void KinTree::_loadVisualArray(const GeometryArray &visuals, osg::Group *group)
 {
-    mtf->removeChildren(0, mtf->getNumChildren());
+    group->removeChildren(0, group->getNumChildren());
 
     for(size_t i=0; i<visuals.size(); ++i)
     {
-        const Geometry& visual = visuals[i];
-
-        if(visual.type == Geometry::MESH_FILE)
-        {
-            osg::ref_ptr<Node> file_node = osgDB::readNodeFile(visual.mesh_filename);
-            if(!file_node)
-            {
-                std::cerr << "Could not load file named '"
-                          << visual.mesh_filename << "'" << std::endl;
-            }
-            else
-            {
-                mtf->addChild(file_node);
-            }
-        }
-        else if(visual.type == Geometry::SPHERE)
-        {
-            osg::Sphere* sphere = new osg::Sphere(osg::Vec3(visual.relative_pose.translation()[0],
-                                                            visual.relative_pose.translation()[1],
-                                                            visual.relative_pose.translation()[2]),
-                                                    visual.scale[0]);
-            osg::ShapeDrawable* sphereDrawable = new osg::ShapeDrawable(sphere);
-            sphereDrawable->setColor(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
-
-            osg::ref_ptr<osg::Geode> sphere_node = new osg::Geode;
-            mtf->addChild(sphere_node);
-            sphere_node->addDrawable(sphereDrawable);
-            std::cout << "We have a sphere!" << std::endl;
-        }
-        else if(visual.type == Geometry::BOX)
-        {
-            osg::Box* box = new osg::Box(osg::Vec3(visual.relative_pose.translation()[0],
-                                                   visual.relative_pose.translation()[1],
-                                                   visual.relative_pose.translation()[2]),
-                    visual.scale[0], visual.scale[1], visual.scale[2]);
-            osg::ShapeDrawable* boxDrawable = new osg::ShapeDrawable(box);
-            boxDrawable->setColor(osg::Vec4(0.0f,0.0f,1.0f,1.0f));
-
-            osg::ref_ptr<osg::Geode> box_node = new osg::Geode;
-            mtf->addChild(box_node);
-            box_node->addDrawable(boxDrawable);
-            std::cout << "We have a box!" << std::endl;
-        }
+        group->addChild(new AkinVisual(visuals[i]));
     }
 }
 
@@ -231,12 +190,12 @@ osg::Geode* KinTree::_makeFrameGeode(Frame &frame)
     return frameGeode;
 }
 
-osg::MatrixTransform* KinTree::_makeObjectMtf(KinObject &object)
+osg::Group* KinTree::_makeObjectGroup(KinObject &object)
 {
-    osg::MatrixTransform* objectMtf = new osg::MatrixTransform;
-    _objectMtfMap[&object] = objectMtf;
-    objectMtf->setMatrix(cosg(Transform::Identity()));
-    return objectMtf;
+    osg::Group* objectGroup = new osg::Group;
+    _objectGroupMap[&object] = objectGroup;
+//    objectMtf->setMatrix(cosg(Transform::Identity()));
+    return objectGroup;
 }
 
 
