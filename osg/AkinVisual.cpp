@@ -90,7 +90,7 @@ osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
                 new osg::DrawElementsUShort(osg::PrimitiveSet::QUADS, 0);
         for(int j=0; j<4; ++j)
         {
-            boxFace->push_back();
+//            boxFace->push_back();
         }
         boxGeom->addPrimitiveSet(boxFace);
     }
