@@ -7,6 +7,59 @@
 
 namespace akin {
 
+class ColorSpec
+{
+public:
+    
+    inline ColorSpec(float red=1.0f, float green=1.0f, float blue=1.0f, float alpha=1.0f)
+    {
+        array[0] = red;
+        array[1] = green;
+        array[2] = blue;
+        array[3] = alpha;
+    }
+    
+    Eigen::Vector4f array;
+    
+    static inline ColorSpec Red()
+    {
+        ColorSpec red(1.0f, 0.0f, 0.0f);
+        return red;
+    }
+    
+    static inline ColorSpec Green()
+    {
+        ColorSpec green(0.0f, 1.0f, 0.0f);
+        return green;
+    }
+    
+    static inline ColorSpec Blue()
+    {
+        ColorSpec blue(0.0f, 0.0f, 1.0f);
+        return blue;
+    }
+    
+    static inline ColorSpec Black()
+    {
+        ColorSpec black(0.0f, 0.0f, 0.0f);
+        return black;
+    }
+    
+    static inline ColorSpec White()
+    {
+        ColorSpec white(1.0f, 1.0f, 1.0f);
+        return white;
+    }
+    
+    static inline ColorSpec Gray()
+    {
+        ColorSpec gray(0.6f, 0.6f, 0.6f);
+        return gray;
+    }
+};
+
+typedef std::vector<ColorSpec> ColorArray;
+
 class Geometry
 {
 public:
@@ -48,6 +101,8 @@ public:
     
     Eigen::Vector3d scale;
     Eigen::Isometry3d relative_pose;
+    
+    ColorArray colors;
     
     std::vector<Eigen::Vector3d> vertices;
     std::vector<ushort> element_indices;

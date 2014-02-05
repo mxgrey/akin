@@ -4,6 +4,15 @@
 #include "IncludeOSG.h"
 #include "Geometry.h"
 
+inline osg::Vec4 cosg(const akin::ColorSpec& color)
+{
+    osg::Vec4 osgColor;
+    osgColor.r() = color.array[0];
+    osgColor.g() = color.array[1];
+    osgColor.b() = color.array[2];
+    osgColor.a() = color.array[3];
+    return osgColor;
+}
 
 namespace osgAkin {
 
@@ -19,6 +28,8 @@ protected:
 
     osg::Geode* _makeSphere(const akin::Geometry& visual);
     osg::Geode* _makeBox(const akin::Geometry& visual);
+    
+    osg::Vec4Array* _colors;
 
 };
 
