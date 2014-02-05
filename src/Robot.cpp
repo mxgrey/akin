@@ -37,7 +37,6 @@ void Robot::_initializeRobot(construction_t method, StringArray construction_inf
 
     if(URDF_FILE == method)
     {
-#ifdef HAVE_URDFPARSING
         if(construction_info.size() < 2)
         {
             cout << "To parse a URDF_FILE, construction_info requires two entries:\n"
@@ -45,16 +44,16 @@ void Robot::_initializeRobot(construction_t method, StringArray construction_inf
                     << "(2) URDF Base Package Directory" << endl;
             return;
         }
+#ifdef HAVE_URDFPARSING
         akinUtils::loadURDF(*this, construction_info[0], construction_info[1], rootReferenceFrame);
 #else  // HAVE_URDF_PARSING
-        cout << "I cannot parse the URDF file '" << construction_info
+        cout << "I cannot parse the URDF file '" << construction_info[1]
              << "' because urdfdom and/or urdfdom_headers were not installed "
              << "when akin was compiled on your computer!" << endl;
 #endif // HAVE URDF_PARSING
     }
     else if(URDF_STRING == method)
     {
-#ifdef HAVE_URDFPARSING
         if(construction_info.size() < 2)
         {
             cout << "To parse a URDF_STRING, construction_info requires two entries:\n"
@@ -62,6 +61,7 @@ void Robot::_initializeRobot(construction_t method, StringArray construction_inf
                     << "(2) URDF Base Package Directory" << endl;
             return;
         }
+#ifdef HAVE_URDFPARSING
         robotPackageDirectory = construction_info[1];
         akinUtils::loadURDFstring(*this, construction_info[0], rootReferenceFrame);
 #else  // HAVE_URDFPARSING

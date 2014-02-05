@@ -61,30 +61,45 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
 //    return sphere_node;
 //}
 
-//osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
-//{
-    // TODO: Come up with a decent way of rendering a primitive box
+osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
+{
+    osg::ref_ptr<osg::Geometry> boxGeom = new osg::Geometry;
+
+    osg::ref_ptr<osg::Vec3Array> boxVerts = new osg::Vec3Array;
+
+    double v[2] = { -0.5, 0.5 };
+    for(int i=0; i<2; ++i)
+    {
+        double x = v[i]*visual.scale[0];
+        for(int j=0; j<2; ++j)
+        {
+            double y = v[i]*visual.scale[1];
+            for(int k=0; k<2; ++k)
+            {
+                double z = v[i]*visual.scale[2];
+                boxVerts->push_back(osg::Vec3(x,y,z));
+            }
+        }
+    }
+
+    boxGeom->setVertexArray(boxVerts);
+
+    for(int i=0; i<6; ++i)
+    {
+        osg::ref_ptr<osg::DrawElementsUShort> boxFace =
+                new osg::DrawElementsUShort(osg::PrimitiveSet::QUADS, 0);
+        for(int j=0; j<4; ++j)
+        {
+            boxFace->push_back();
+        }
+        boxGeom->addPrimitiveSet(boxFace);
+    }
+
+
+    osg::ref_ptr<osg::Geode> box_node = new osg::Geode;
+
     
-//    osg::Box* box = new osg::Box(osg::Vec3(visual.relative_pose.translation()[0],
-//                                           visual.relative_pose.translation()[1],
-//                                           visual.relative_pose.translation()[2]),
-//            visual.scale[0], visual.scale[1], visual.scale[2]);
-//    osg::ShapeDrawable* boxDrawable = new osg::ShapeDrawable(box);
+    addChild(box_node);
     
-    
-////    cout << "Pushing back color" << endl;
-//    if(visual.colors.size() > 0)
-//        _colors->push_back(cosg(visual.colors[0]));
-//    else
-//        _colors->push_back(cosg(akin::ColorSpec::Gray()));
-        
-////    boxDrawable->setUseVertexBufferObjects(true);
-//    boxDrawable->setColor((*_colors)[0]);
-    
-//    osg::ref_ptr<osg::Geode> box_node = new osg::Geode;
-//    box_node->addDrawable(boxDrawable);
-    
-//    addChild(box_node);
-    
-//    return box_node;
-//}
+    return box_node;
+}
