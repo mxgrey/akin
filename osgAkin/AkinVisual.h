@@ -3,6 +3,7 @@
 
 #include "IncludeOSG.h"
 #include "Geometry.h"
+#include <osg/CullFace>
 
 inline osg::Vec4 cosg(const akin::ColorSpec& color)
 {
@@ -28,9 +29,12 @@ protected:
 
     osg::Geode* _makeSphere(const akin::Geometry& visual);
     osg::Geode* _makeBox(const akin::Geometry& visual);
+
+    void _setGeodeModes(osg::Geode* geode);
     
     osg::Vec4Array* _colors;
-
+    osg::LineWidth* _lineWidth;
+    osg::CullFace* _cull;
 };
 
 

@@ -12,6 +12,8 @@ using namespace std;
 AkinVisual::AkinVisual(const Geometry &visual)
 {
     _colors = new osg::Vec4Array;
+    _lineWidth = new osg::LineWidth(2.0f);
+    _cull = new osg::CullFace(osg::CullFace::BACK);
     _initializeVisual(visual);
 }
 
@@ -21,7 +23,7 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
     setMatrix(cosg(visual.relative_pose));
     _colors->clear();
 
-    if(visual.type == Geometry::MESH_FILE)
+    if(Geometry::MESH_FILE == visual.type)
     {
         osg::ref_ptr<Node> file_node = osgDB::readNodeFile(visual.mesh_filename);
         if(!file_node)
@@ -33,6 +35,10 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
         {
             addChild(file_node);
         }
+    }
+    else if(Geometry::BOX == visual.type)
+    {
+        _makeBox(visual);
     }
 }
 
@@ -73,10 +79,10 @@ osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
         double x = v[i]*visual.scale[0];
         for(int j=0; j<2; ++j)
         {
-            double y = v[i]*visual.scale[1];
+            double y = v[j]*visual.scale[1];
             for(int k=0; k<2; ++k)
             {
-                double z = v[i]*visual.scale[2];
+                double z = v[k]*visual.scale[2];
                 boxVerts->push_back(osg::Vec3(x,y,z));
             }
         }
@@ -84,22 +90,53 @@ osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
 
     boxGeom->setVertexArray(boxVerts);
 
-    for(int i=0; i<6; ++i)
-    {
-        osg::ref_ptr<osg::DrawElementsUShort> boxFace =
-                new osg::DrawElementsUShort(osg::PrimitiveSet::QUADS, 0);
-        for(int j=0; j<4; ++j)
-        {
-//            boxFace->push_back();
-        }
-        boxGeom->addPrimitiveSet(boxFace);
-    }
+    osg::ref_ptr<osg::DrawElementsUShort> faces = new osg::DrawElementsUShort(osg::PrimitiveSet::QUADS, 0);
+    faces->push_back(0); faces->push_back(1); faces->push_back(3); faces->push_back(2); // back
+    faces->push_back(4); faces->push_back(6); faces->push_back(7); faces->push_back(5); // front
+    faces->push_back(1); faces->push_back(5); faces->push_back(7); faces->push_back(3); // top
+    faces->push_back(0); faces->push_back(2); faces->push_back(6); faces->push_back(4); // bottom
+    faces->push_back(1); faces->push_back(0); faces->push_back(4); faces->push_back(5); // left
+    faces->push_back(3); faces->push_back(7); faces->push_back(6); faces->push_back(2); // right
 
+    osg::ref_ptr<osg::DrawElementsUShort> lines = new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 0);
+    for(size_t i=0; i<faces->size(); ++i)
+        lines->push_back((*faces)[i]);
+//    lines->push_back(2); lines->push_back(0);
+//    lines->push_back(5); lines->push_back(4);
+//    lines->push_back(3); lines->push_back(1);
+//    lines->push_back(4); lines->push_back(0);
+
+
+    boxGeom->addPrimitiveSet(faces);
+    boxGeom->addPrimitiveSet(lines);
+
+    if(visual.colors.size()>0)
+        _colors->push_back(cosg(visual.colors[0]));
+    else
+        _colors->push_back(cosg(akin::ColorSpec::Gray()));
+
+    if(visual.colors.size()>1)
+        _colors->push_back(cosg(visual.colors[1]));
+    else
+        _colors->push_back(cosg(akin::ColorSpec::Black()));
+
+    boxGeom->setColorArray(_colors);
+    boxGeom->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
 
     osg::ref_ptr<osg::Geode> box_node = new osg::Geode;
+    _setGeodeModes(box_node);
+    box_node->addDrawable(boxGeom);
 
-    
     addChild(box_node);
     
     return box_node;
+}
+
+void AkinVisual::_setGeodeModes(osg::Geode *geode)
+{
+    geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    geode->getOrCreateStateSet()->setAttributeAndModes(_lineWidth);
+    geode->getOrCreateStateSet()->setAttributeAndModes(_cull, osg::StateAttribute::ON);
+    geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+    geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 }
