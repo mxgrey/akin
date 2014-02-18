@@ -1,8 +1,9 @@
 
-#include "AkinVisual.h"
+#include "osgAkin/AkinVisual.h"
 #include <osgDB/ReadFile>
 #include <osg/ShapeDrawable>
 #include <osg/Geometry>
+#include "osgAkin/Axes.h"
 
 using namespace akin;
 using namespace osgAkin;
@@ -40,6 +41,10 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
     {
         _makeBox(visual);
     }
+    else if(Geometry::AXES == visual.type)
+    {
+        _makeAxes(visual);
+    }
 }
 
 
@@ -66,6 +71,19 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
     
 //    return sphere_node;
 //}
+
+osg::Geode* AkinVisual::_makeAxes(const Geometry &visual)
+{
+    osg::ref_ptr<osg::Geometry> axesGeom = new osgAkin::Axes(visual.scale[0]);
+
+    osg::ref_ptr<osg::Geode> axes_node = new osg::Geode;
+    _setGeodeModes(axes_node);
+    axes_node->addDrawable(axesGeom);
+
+    addChild(axes_node);
+
+    return axes_node;
+}
 
 osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
 {

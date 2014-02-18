@@ -52,7 +52,7 @@
 #include <osg/Matrix>
 #include <osg/MatrixTransform>
 
-#include "AkinIncludes.h"
+#include "akin/AkinIncludes.h"
 
 inline osg::Matrix cosg(const akin::Transform& tf)
 {

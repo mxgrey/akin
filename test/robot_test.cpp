@@ -6,10 +6,10 @@
 #include <osg/LineWidth>
 #include <osg/MatrixTransform>
 
-#include "AkinCallback.h"
-#include "Axes.h"
+#include "osgAkin/AkinCallback.h"
+#include "osgAkin/Axes.h"
 
-#include "Link.h"
+#include "akin/Link.h"
 
 using namespace akin;
 using namespace std;
@@ -58,8 +58,7 @@ Robot& build_urdf_robot()
     StringArray con_info;
     con_info.push_back("../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf");
     con_info.push_back("../../../resources/drchubo");
-//    con_info.push_back("../../../resources/hubo-models/huboplus.urdf");
-//    con_info.push_back("../../../resources/hubo-models");
+
     Robot* rb_ptr = new Robot(Robot::URDF_FILE, con_info,
                               Frame::World(), verbosity::DEBUG);
     Robot& robot = *rb_ptr;
@@ -108,6 +107,12 @@ int main(int argc, char* argv[])
 //    Robot& built_robot = build_manual_robot();
     
     Robot& built_robot = build_urdf_robot();
+
+    Frame* camera_frame = new Frame(akin::Transform(Translation(0,0,0),
+                                                    Rotation(90*M_PI/180, akin::Axis(0, 1, 0))),
+                                                    built_robot.joint("NK2").childLink(),
+                                    "camera_frame");
+
     
     display_robot(built_robot);
 }

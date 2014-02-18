@@ -2,9 +2,9 @@
 #define KINBRANCHES_H
 
 
-#include "AkinIncludes.h"
-#include "IncludeOSG.h"
-#include "LineTree.h"
+#include "akin/AkinIncludes.h"
+#include "osgAkin/IncludeOSG.h"
+#include "osgAkin/LineTree.h"
 
 namespace osgAkin {
 

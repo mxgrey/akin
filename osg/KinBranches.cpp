@@ -1,5 +1,5 @@
 
-#include "KinBranches.h"
+#include "osgAkin/KinBranches.h"
 
 using namespace osgAkin;
 using namespace akin;

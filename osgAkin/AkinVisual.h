@@ -1,8 +1,8 @@
 #ifndef AKINVISUAL_H
 #define AKINVISUAL_H
 
-#include "IncludeOSG.h"
-#include "Geometry.h"
+#include "osgAkin/IncludeOSG.h"
+#include "akin/Geometry.h"
 #include <osg/CullFace>
 
 inline osg::Vec4 cosg(const akin::ColorSpec& color)
@@ -27,8 +27,9 @@ protected:
 
     void _initializeVisual(const akin::Geometry& visual);
 
-    osg::Geode* _makeSphere(const akin::Geometry& visual);
+//    osg::Geode* _makeSphere(const akin::Geometry& visual);
     osg::Geode* _makeBox(const akin::Geometry& visual);
+    osg::Geode* _makeAxes(const akin::Geometry& visual);
 
     void _setGeodeModes(osg::Geode* geode);
     

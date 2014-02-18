@@ -42,7 +42,7 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "AkinIncludes.h"
+#include "akin/AkinIncludes.h"
 
 using namespace akin;
 
@@ -67,6 +67,7 @@ KinObject::KinObject(Frame& referenceFrame,
     _type = myType;
 
     _isFrame = false;
+    _visualsUpdate = false;
 
     referenceFrame._gainChildObject(this);
     _referenceFrame = &referenceFrame;
@@ -176,6 +177,7 @@ bool KinObject::removeVisual(size_t num)
     if(num >= _visuals.size())
         return false;
     
+
     _visualsUpdate = true;
     _visuals.erase(_visuals.begin()+num);
     return true;

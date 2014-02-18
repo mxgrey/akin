@@ -114,6 +114,14 @@ public:
         static Geometry emptyGeometry;
         return emptyGeometry;
     }
+
+    static inline const Geometry& Axes()
+    {
+        static Geometry axesGeometry;
+        axesGeometry.type = AXES;
+        axesGeometry.scale = Eigen::Vector3d::Ones()*0.2;
+        return axesGeometry;
+    }
     
     inline void clear()
     {

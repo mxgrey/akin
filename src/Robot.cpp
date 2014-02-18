@@ -1,6 +1,6 @@
 
-#include "Link.h"
-#include "urdfParsing.h"
+#include "akin/Link.h"
+#include "akinUtils/urdfParsing.h"
 
 using namespace akin;
 using namespace std;

@@ -1,11 +1,11 @@
 #ifndef KINTREE_H
 #define KINTREE_H
 
-#include "AkinIncludes.h"
-#include "IncludeOSG.h"
-#include "LineTree.h"
-#include "KinBranches.h"
-#include "Axes.h"
+#include "akin/AkinIncludes.h"
+#include "osgAkin/IncludeOSG.h"
+#include "osgAkin/LineTree.h"
+#include "osgAkin/KinBranches.h"
+#include "osgAkin/Axes.h"
 
 #include <osg/CullFace>
 

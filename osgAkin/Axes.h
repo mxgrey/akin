@@ -1,8 +1,8 @@
 #ifndef AXES_H
 #define AXES_H
 
-#include "AkinIncludes.h"
-#include "IncludeOSG.h"
+#include "akin/AkinIncludes.h"
+#include "osgAkin/IncludeOSG.h"
 
 namespace osgAkin {
 

@@ -45,10 +45,10 @@
 #ifndef AKINCALLBACK_H
 #define AKINCALLBACK_H
 
-#include "AkinIncludes.h"
-#include "AkinNode.h"
-#include "osg/NodeCallback"
-#include "osg/NodeVisitor"
+#include "akin/AkinIncludes.h"
+#include "osgAkin/AkinNode.h"
+#include <osg/NodeCallback>
+#include <osg/NodeVisitor>
 
 namespace osgAkin {
 

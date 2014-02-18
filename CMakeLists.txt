@@ -8,14 +8,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/osgAkin)
+include_directories(${PROJECT_SOURCE_DIR})
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 ## TODO: Seperate the graphics out into their own library
-file(GLOB lib_source "src/*.cpp" "include/*.h")
+file(GLOB lib_source "src/*.cpp" "akin/*.h")
 list(SORT lib_source)
 
 file(GLOB unit_tests_source "test/*.cpp")
@@ -37,7 +36,6 @@ link_libraries(osg osgViewer osgDB osgAkin)
 
 option(URDF_PARSING "include urdf parsing" ON)
 
-include_directories(${PROJECT_SOURCE_DIR}/akinUtils)
 if(URDF_PARSING)
 
   find_package(urdfdom QUIET)
@@ -58,6 +56,8 @@ if(URDF_PARSING)
       target_link_libraries(${PROJECT_NAME} akinUtils)
 
       set_property(TARGET ${PROJECT_NAME} PROPERTY COMPILE_DEFINITIONS "HAVE_URDFPARSING")
+
+      set( AKINUTILS_VERIFIED "true" )
 
     else(urdfdom_headers_FOUND)
       MESSAGE(STATUS "Could NOT find urdfdom *headers* -- We will NOT compile a URDF parser")
@@ -82,5 +82,28 @@ foreach(utest_src_file ${unit_tests_source})
     add_custom_target(${test_base}.run ${test_base} ${ARGN})
     add_dependencies(check ${test_base})
 endforeach(utest_src_file)
+
+file(GLOB akin_includes "akin/*.h")
+LIST(SORT akin_includes)
+install(FILES ${akin_includes} DESTINATION "${CMAKE_INSTALL_PREFIX}/akin")
+
+file(GLOB akinUtils_includes "akinUtils/*.h")
+LIST(SORT akinUtils_includes)
+install(FILES ${akinUtils_includes} DESTINATION "${CMAKE_INSTALL_PREFIX}/akinUtils")
+
+file(GLOB osgAkin_includes "osgAkin/*.h")
+LIST(SORT osgAkin_includes "osgAkin/*.h")
+install(FILES ${osgAkin_includes} DESTINATION "${CMAKE_INSTALL_PREFIX}/osgAkin")
+
+install(TARGETS ${PROJECT_NAME} osgAkin DESTINATION ${LIBRARY_INSTALL_PATH})
+
+if(AKINUTILS_VERIFIED)
+    install(TARGETS ${akinUtils} DESTINATION ${LIBRARY_INSTALL_PATH})
+endif(AKINUTILS_VERIFIED)
+
+
+
+
+
 
 

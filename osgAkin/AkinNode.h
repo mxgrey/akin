@@ -45,9 +45,9 @@
 #ifndef AKINNODE_H
 #define AKINNODE_H
 
-#include "AkinIncludes.h"
-#include "IncludeOSG.h"
-#include "KinTree.h"
+#include "akin/AkinIncludes.h"
+#include "osgAkin/IncludeOSG.h"
+#include "osgAkin/KinTree.h"
 
 namespace osgAkin {
 

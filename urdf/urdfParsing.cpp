@@ -1,5 +1,5 @@
 
-#include "urdfParsing.h"
+#include "akinUtils/urdfParsing.h"
 
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>
@@ -141,9 +141,9 @@ bool akinUtils::exploreLink(akin::Robot &robot,
 
 bool akinUtils::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> ulink)
 {
+    akin::Geometry visual;
     if(ulink->visual)
     {
-        akin::Geometry visual;
         visual.hint = akin::Geometry::STATIC;
         if(ulink->visual->geometry->type == urdf::Geometry::MESH)
         {
@@ -169,15 +169,12 @@ bool akinUtils::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> u
                 visual.type = akin::Geometry::NONE;
             }
         }
-//        else if(ulink->visual->geometry->type == urdf::Geometry::BOX)
-        // TODO: Other geometry types
-
-        link.addVisual(visual);
     }
     else
     {
         std::cout << "No visual for the link named '" << link.name() << "'" << std::endl;
     }
+    link.addVisual(visual);
 
     return true;
 }

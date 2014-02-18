@@ -50,9 +50,9 @@
 #include <osg/LineWidth>
 #include <osg/MatrixTransform>
 
-#include "AkinCallback.h"
-#include "Axes.h"
-#include "KinTree.h"
+#include "osgAkin/AkinCallback.h"
+#include "osgAkin/Axes.h"
+#include "osgAkin/KinTree.h"
 
 using namespace std;
 using namespace akin;

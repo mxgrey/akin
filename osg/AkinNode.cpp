@@ -42,7 +42,7 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "AkinCallback.h"
+#include "osgAkin/AkinCallback.h"
 
 using namespace osgAkin;
 using namespace akin;
@@ -162,7 +162,7 @@ void KneeNode::update()
     time += 0.01;
 
     Robot& robot = getRobot(0);
-    robot.joint("LKP").value( 90*M_PI/180 * sin(time) );
+    robot.joint("NK2").value( 45*M_PI/180 * sin(time) );
 
     AkinNode::update();
 }

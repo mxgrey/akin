@@ -1,8 +1,8 @@
 
-#include "KinTree.h"
+#include "osgAkin/KinTree.h"
 #include "osgDB/ReadFile"
 #include "osg/ShapeDrawable"
-#include "AkinVisual.h"
+#include "osgAkin/AkinVisual.h"
 
 using namespace osgAkin;
 using namespace akin;
