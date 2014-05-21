@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
 project(akin)
 
-
-include_directories(${OpenSceneGraph_INCLUDE_DIRS})
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(HEADER_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/include)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
@@ -85,15 +83,15 @@ endforeach(utest_src_file)
 
 file(GLOB akin_includes "akin/*.h")
 LIST(SORT akin_includes)
-install(FILES ${akin_includes} DESTINATION "${CMAKE_INSTALL_PREFIX}/akin")
+install(FILES ${akin_includes} DESTINATION "${HEADER_INSTALL_PATH}/akin")
 
 file(GLOB akinUtils_includes "akinUtils/*.h")
 LIST(SORT akinUtils_includes)
-install(FILES ${akinUtils_includes} DESTINATION "${CMAKE_INSTALL_PREFIX}/akinUtils")
+install(FILES ${akinUtils_includes} DESTINATION "${HEADER_INSTALL_PATH}/akinUtils")
 
 file(GLOB osgAkin_includes "osgAkin/*.h")
 LIST(SORT osgAkin_includes "osgAkin/*.h")
-install(FILES ${osgAkin_includes} DESTINATION "${CMAKE_INSTALL_PREFIX}/osgAkin")
+install(FILES ${osgAkin_includes} DESTINATION "${HEADER_INSTALL_PATH}/osgAkin")
 
 install(TARGETS ${PROJECT_NAME} osgAkin DESTINATION ${LIBRARY_INSTALL_PATH})
 

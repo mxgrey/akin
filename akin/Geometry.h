@@ -76,7 +76,7 @@ public:
     typedef enum {
         
         NONE=0,
-        POINT,
+        POINT, // Why not just POINTS? Having POINT seems redundant
         POINTS,
         SPHERE,
         BOX,

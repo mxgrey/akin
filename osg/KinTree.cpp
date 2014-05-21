@@ -194,7 +194,6 @@ osg::Group* KinTree::_makeObjectGroup(KinObject &object)
 {
     osg::Group* objectGroup = new osg::Group;
     _objectGroupMap[&object] = objectGroup;
-//    objectMtf->setMatrix(cosg(Transform::Identity()));
     return objectGroup;
 }
 
