@@ -58,6 +58,7 @@ void test_operators()
     cout << tf1 * tf2 << endl;
 
     Translation vec(0, 0, 0);
+    Translation trans(tf2.translation());
 
     cout << endl << (tf1 * tf2 * vec).transpose() << endl;
 

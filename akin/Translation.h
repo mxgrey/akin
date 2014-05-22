@@ -82,7 +82,7 @@ public:
 
     }
 
-    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false, true>& vec) :
+    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false/*, true*/>& vec) :
         Eigen::Vector3d(vec)
     {
 
