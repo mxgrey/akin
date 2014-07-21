@@ -154,6 +154,8 @@ bool Joint::name(const string &new_name)
     _myRobot->_jointNameToIndex.erase(n);
     _myRobot->_jointNameToIndex[new_name] = index;
     
+    _name = new_name;
+    
     return true;
 }
 

@@ -5,27 +5,16 @@
 using namespace akin;
 using namespace std;
 
-Robot::Robot(construction_t method, string construction_info,
-             Frame &rootReferenceFrame,
-             verbosity::verbosity_level_t report_level)
+Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level)
 {
-    StringArray construction_array;
-    construction_array.push_back(construction_info);
-    _initializeRobot(method, construction_array, rootReferenceFrame, report_level);
+    _initializeRobot(referenceFrame, report_level);
 }
 
-Robot::Robot(construction_t method, StringArray construction_info,
-             Frame &rootReferenceFrame,
-             verbosity::verbosity_level_t report_level)
-{
-    _initializeRobot(method, construction_info, rootReferenceFrame, report_level);
-}
-
-void Robot::_initializeRobot(construction_t method, StringArray construction_info, Frame &rootReferenceFrame, verbosity::verbosity_level_t report_level)
+void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level)
 {
     verb.level = report_level;
     _enforceJointLimits = true;
-    _name = "some_robot";
+    _name = "default_robot";
 
     _dummyLink = new Link(this, Frame::World(), "dummy", 0, false);
     _dummyLink->_isDummy = true;
@@ -34,49 +23,68 @@ void Robot::_initializeRobot(construction_t method, StringArray construction_inf
     _dummyJoint->_myType = Joint::DUMMY;
     _dummyJoint->_changeParentLink(_dummyLink);
     _dummyJoint->_childLink = _dummyLink;
-
-    if(URDF_FILE == method)
-    {
-        if(construction_info.size() < 2)
-        {
-            cout << "To parse a URDF_FILE, construction_info requires two entries:\n"
-                    << "(1) URDF Filename\n"
-                    << "(2) URDF Base Package Directory" << endl;
-            return;
-        }
-#ifdef HAVE_URDFPARSING
-        akinUtils::loadURDF(*this, construction_info[0], construction_info[1], rootReferenceFrame);
-#else  // HAVE_URDF_PARSING
-        cout << "I cannot parse the URDF file '" << construction_info[1]
-             << "' because urdfdom and/or urdfdom_headers were not installed "
-             << "when akin was compiled on your computer!" << endl;
-#endif // HAVE URDF_PARSING
-    }
-    else if(URDF_STRING == method)
-    {
-        if(construction_info.size() < 2)
-        {
-            cout << "To parse a URDF_STRING, construction_info requires two entries:\n"
-                    << "(1) URDF Text String\n"
-                    << "(2) URDF Base Package Directory" << endl;
-            return;
-        }
-#ifdef HAVE_URDFPARSING
-        robotPackageDirectory = construction_info[1];
-        akinUtils::loadURDFstring(*this, construction_info[0], rootReferenceFrame);
-#else  // HAVE_URDFPARSING
-        cout << "I cannot parse the URDF string for this robot, because "
-             << "urdfdom and/or urdfom_headers were not installed "
-             << "when akin was compiled on your computer!" << endl;
-#endif // HAVE_URDFPARSING
-    }
-    else
-    {
-        if(construction_info.size() > 0)
-            createRootLink(construction_info[0], rootReferenceFrame);
-        else
-            createRootLink("root_link", rootReferenceFrame);
-    }
+    
+    // Create the root degrees of freedom
+    Link* pos_x_link = new Link(this, referenceFrame, "DOF_POS_X", DOF_POS_X, true);
+    _root_dummy_links.push_back(pos_x_link);
+    _linkNameToIndex[pos_x_link->name()] = pos_x_link->id();
+    
+    Link* pos_y_link = new Link(this, *pos_x_link, "DOF_POS_Y", DOF_POS_Y, false);
+    _root_dummy_links.push_back(pos_y_link);
+    _linkNameToIndex[pos_y_link->name()] = pos_y_link->id();
+    
+    Joint* pos_x_joint = new Joint(this, DOF_POS_X, "DOF_POS_X", pos_x_link, pos_y_link, 
+                                   Transform::Identity(), Axis(1,0,0), Joint::PRISMATIC);
+    _root_dummy_joints.push_back(pos_x_joint);
+    _jointNameToIndex[pos_x_joint->name()] = DOF_POS_X;
+    
+    //////////
+    
+    Link* pos_z_link = new Link(this, *pos_y_link, "DOF_POS_Z", DOF_POS_Z, false);
+    _root_dummy_links.push_back(pos_z_link);
+    _linkNameToIndex[pos_z_link->name()] = pos_z_link->id();
+    
+    Joint* pos_y_joint = new Joint(this, DOF_POS_Y, "DOF_POS_Y", pos_y_link, pos_z_link,
+                                   Transform::Identity(), Axis(0,1,0), Joint::PRISMATIC);
+    _root_dummy_joints.push_back(pos_y_joint);
+    _jointNameToIndex[pos_y_joint->name()] = DOF_POS_Y;
+    
+    //////////
+    
+    Link* rot_x_link = new Link(this, *pos_z_link, "DOF_ROT_X", DOF_ROT_X, false);
+    _root_dummy_links.push_back(rot_x_link);
+    _linkNameToIndex[rot_x_link->name()] = rot_x_link->id();
+    
+    Joint* pos_z_joint = new Joint(this, DOF_POS_Z, "DOF_POS_Z", pos_z_link, rot_x_link,
+                                   Transform::Identity(), Axis(0,0,1), Joint::PRISMATIC);
+    _root_dummy_joints.push_back(pos_z_joint);
+    _jointNameToIndex[pos_z_joint->name()] = DOF_POS_Z;
+    
+    //////////
+    
+    Link* rot_y_link = new Link(this, *rot_x_link, "DOF_ROT_Y", DOF_ROT_X, false);
+    _root_dummy_links.push_back(rot_y_link);
+    _linkNameToIndex[rot_y_link->name()] = rot_y_link->id();
+    
+    Joint* rot_x_joint = new Joint(this, DOF_ROT_X, "DOF_ROT_X", rot_x_link, rot_y_link,
+                                   Transform::Identity(), Axis(1,0,0), Joint::REVOLUTE);
+    _root_dummy_joints.push_back(rot_x_joint);
+    _jointNameToIndex[rot_x_joint->name()] = DOF_ROT_X;
+    
+    //////////
+    
+    Link* rot_z_link = new Link(this, *rot_y_link, "DOF_ROT_Z", DOF_ROT_Z, false);
+    _root_dummy_links.push_back(rot_z_link);
+    _linkNameToIndex[rot_z_link->name()] = rot_z_link->id();
+    
+    Joint* rot_y_joint = new Joint(this, DOF_ROT_Y, "DOF_ROT_Y", rot_y_link, rot_z_link,
+                                   Transform::Identity(), Axis(0,1,0), Joint::REVOLUTE);
+    _root_dummy_joints.push_back(rot_y_joint);
+    _jointNameToIndex[rot_y_joint->name()] = DOF_ROT_Y;
+    
+    //////////
+    
+    // DOF_ROT_Z joint gets created when createRootLink is called
 }
 
 Robot::~Robot()
@@ -89,6 +97,16 @@ Robot::~Robot()
     for(size_t j=0; j<_joints.size(); ++j)
     {
         delete _joints[j];
+    }
+    
+    for(size_t i=0; i<_root_dummy_links.size(); ++i)
+    {
+        delete _root_dummy_links[i];
+    }
+    
+    for(size_t j=0; j<_root_dummy_joints.size(); ++j)
+    {
+        delete _root_dummy_joints[j];
     }
 }
 
@@ -107,6 +125,12 @@ bool Robot::createRootLink(string rootLinkName, Frame& referenceFrame)
     _insertLink(rootLink);
     _root = rootLink;
     _anchor = rootLink;
+    
+    Joint* rot_z_joint = new Joint(this, DOF_ROT_Z, "DOF_ROT_Z",
+                                   _root_dummy_links.back(), rootLink,
+                                   Transform::Identity(), Axis(0,0,1), Joint::REVOLUTE);
+    _root_dummy_joints.push_back(rot_z_joint);
+    _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
     
     return true;
 }
@@ -266,6 +290,11 @@ Joint& Robot::joint(const string &jointName)
 
 Joint& Robot::joint(size_t jointNum)
 {
+    if( DOF_POS_X <= jointNum && jointNum <= DOF_ROT_Z )
+    {
+        return *_root_dummy_joints[jointNum-DOF_POS_X];
+    }
+    
     if( !verb.Assert( jointNum < _joints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a joint index which is out of bounds "
@@ -289,6 +318,11 @@ Link& Robot::link(const string &linkName)
 
 Link& Robot::link(size_t linkNum)
 {
+    if( DOF_POS_X <= linkNum && linkNum <= DOF_ROT_Z )
+    {
+        return *_root_dummy_links[linkNum-DOF_POS_X];
+    }
+    
     if( !verb.Assert( linkNum < _links.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a link index which is out of bounds "
@@ -310,7 +344,7 @@ void Robot::_insertJoint(Joint *newJoint)
     _jointNameToIndex[newJoint->name()] = _joints.size()-1;
 }
 
-bool Robot::belongsTo(const Joint &someJoint) const
+bool Robot::owns(const Joint &someJoint) const
 {
     for(size_t i=0; i<_joints.size(); ++i)
         if(_joints[i] == &someJoint)
@@ -319,7 +353,7 @@ bool Robot::belongsTo(const Joint &someJoint) const
     return false;
 }
 
-bool Robot::belongsTo(const Link &someLink) const
+bool Robot::owns(const Link &someLink) const
 {
     for(size_t i=0; i<_links.size(); ++i)
         if(_links[i] == &someLink)

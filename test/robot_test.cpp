@@ -10,13 +10,14 @@
 #include "osgAkin/Axes.h"
 
 #include "akin/Link.h"
+#include "akinUtils/urdfParsing.h"
 
 using namespace akin;
 using namespace std;
 
 Robot& build_manual_robot()
 {
-    Robot* rb_ptr = new Robot(Robot::MANUAL);
+    Robot* rb_ptr = new Robot;
     Robot& robot = *rb_ptr;
     
     robot.name("test_bot");
@@ -55,12 +56,9 @@ Robot& build_manual_robot()
 
 Robot& build_urdf_robot()
 {
-    StringArray con_info;
-    con_info.push_back("../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf");
-    con_info.push_back("../../../resources/drchubo");
-
-    Robot* rb_ptr = new Robot(Robot::URDF_FILE, con_info,
-                              Frame::World(), verbosity::DEBUG);
+    Robot* rb_ptr = new Robot(akin::Frame::World(), verbosity::DEBUG);
+    akinUtils::loadURDF(*rb_ptr, "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
+                        "../../../resources/drchubo");
     Robot& robot = *rb_ptr;
 
 //    for(size_t i=0; i<robot.numLinks(); ++i)
@@ -78,6 +76,11 @@ void display_robot(Robot& displaying_robot)
     root->addChild(akinNode);
 
     akinNode->addRobot(displaying_robot);
+    
+//    displaying_robot.joint(DOF_ROT_Z).value(90*M_PI/180);
+//    displaying_robot.joint(DOF_ROT_Y).value(90*M_PI/180);
+    displaying_robot.joint(DOF_ROT_X).value(90*M_PI/180);
+    
 
 //    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
 //                     "sphere",false);

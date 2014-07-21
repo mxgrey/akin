@@ -173,7 +173,7 @@ protected:
           Link* mParentLink=NULL, Link* mChildLink=NULL,
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
-          double mininumValue=-M_PI, double maximumValue=M_PI,
+          double mininumValue=-INFINITY, double maximumValue=INFINITY,
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     
     void _computeRefTransform();

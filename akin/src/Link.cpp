@@ -23,6 +23,33 @@ Link::~Link()
     
 }
 
+std::string Link::name() const
+{
+    return KinObject::name();
+}
+
+bool Link::name(string newName)
+{
+    if( verb.Assert(!_myRobot->checkForLinkName(newName),
+                    verbosity::ASSERT_CRITICAL,
+                    "You requested to change link named '"+name()+"' to '"
+                    +newName+"', but robot '"+_myRobot->name()+"' already has "
+                    "a link with that name!"))
+        return false;
+    
+    StringMap::iterator n = _myRobot->_linkNameToIndex.find(name());
+    size_t index = n->second;
+    _myRobot->_linkNameToIndex.erase(n);
+    _myRobot->_linkNameToIndex[newName] = index;
+    
+    return KinObject::name(newName);
+}
+
+size_t Link::id() const
+{
+    return _id;
+}
+
 void Link::setAsAnchor()
 {
     _myRobot->anchorLink(*this);

@@ -117,7 +117,7 @@ KinObject::~KinObject()
 
 Frame& KinObject::refFrame() const { return *_referenceFrame; }
 std::string KinObject::name() const { return _name; }
-void KinObject::name(std::string newName) { _name = newName; }
+bool KinObject::name(std::string newName) { _name = newName; return true; }
 
 std::string KinObject::type() const { return _type; }
 

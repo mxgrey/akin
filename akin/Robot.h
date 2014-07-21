@@ -13,60 +13,30 @@ typedef std::vector<Joint*> JointPtrArray;
 typedef std::vector<Link*> LinkPtrArray;
 typedef std::vector<std::string> StringArray;
 
+enum {
+    DOF_TPD     = (size_t)(-9),
+    DOF_TIME    = (size_t)(-8),
+    
+    DOF_POS_X   = (size_t)(-7),
+    DOF_POS_Y   = (size_t)(-6),
+    DOF_POS_Z   = (size_t)(-5),
+    DOF_ROT_X   = (size_t)(-4),
+    DOF_ROT_Y   = (size_t)(-3),
+    DOF_ROT_Z   = (size_t)(-2),
+    
+    DOF_INVALID = (size_t)(-1)
+};
+
 class Robot
 {
 public:
 
     friend class Joint;
     friend class Link;
-    
-    typedef enum {
-        
-        MANUAL = 0,
-        URDF_FILE,
-        URDF_STRING,
-        
-        CONSTRUCTION_TYPE_MAX
-    } construction_t;
 
-    /*!
-     * \fn Robot() 
-     * \brief Robot construction
-     *
-     * The constructor for the robot class can be handled in a number of ways
-     * depending on which utilities you decided to install. (Currently only
-     * URDF parsing utilities are available.)
-     * 
-     * The construction_info string may contain different kinds of information
-     * depending on how you want your robot to be assembled. The method you want
-     * is determined by the construction_t method parameter.
-     * \li MANUAL - Only the root link will be given to the robot, and you must
-     * specify all joint/link relationships. construction_info should contain
-     * the desired name for the root link.
-     * \li URDF_FILE - The robot will be constructed according to the
-     * specifications of a URDF file. construction_info should contain the name
-     * of the URDF file.
-     * \li URDF_STRING - The robot will be constructed according to the
-     * specifications of a URDF string. construction_info should contain the
-     * entire text of the URDF string.
-     *
-     * rootReferenceFrame is the frame which the root of the robot is attached to.
-     * If the anchor of the robot is changed, the new anchor will be attached to
-     * this same reference frame.
-     *
-     * report_level represents a measure of how verbose you want the robot's
-     * internal operations to be.
-     */
-    Robot(construction_t method = MANUAL,
-          std::string construction_info = "root_link",
-          Frame& rootReferenceFrame = Frame::World(),
+    Robot(akin::Frame& referenceFrame = akin::Frame::World(), 
           verbosity::verbosity_level_t report_level = verbosity::LOG);
 
-    Robot(construction_t method,
-          StringArray construction_info,
-          Frame &rootReferenceFrame = Frame::World(),
-          verbosity::verbosity_level_t report_level = verbosity::LOG);
-    
     ~Robot();
 
     void name(std::string newName);
@@ -103,8 +73,8 @@ public:
     Link& link(const std::string& linkName);
     inline size_t numLinks() { return _links.size(); }
 
-    bool belongsTo(const Link& someLink) const;
-    bool belongsTo(const Joint& someJoint) const;
+    bool owns(const Link& someLink) const;
+    bool owns(const Joint& someJoint) const;
     
     bool checkForLinkName(const std::string &name) const;
     bool checkForJointName(const std::string &name) const;
@@ -122,10 +92,7 @@ public:
 
 protected:
 
-    void _initializeRobot(construction_t method,
-                          StringArray construction_info,
-                          Frame& rootReferenceFrame,
-                          verbosity::verbosity_level_t report_level);
+    void _initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level);
     
     bool _enforceJointLimits;
 
@@ -146,12 +113,12 @@ protected:
 
     JointPtrArray _joints;
     LinkPtrArray _links;
+    
+    JointPtrArray _root_dummy_joints;
+    LinkPtrArray _root_dummy_links;
 
     StringMap _linkNameToIndex;
     StringMap _jointNameToIndex;
-
-    Robot* _myRobot;
-
 };
 
 typedef std::vector<Robot*> RobotPtrArray;

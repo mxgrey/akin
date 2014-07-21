@@ -1,7 +1,7 @@
 #ifndef LINK_H
 #define LINK_H
 
-#include "Robot.h"
+#include "akin/Robot.h"
 
 namespace akin {
 
@@ -12,6 +12,11 @@ public:
 
     friend class Joint;
     friend class Robot;
+    
+    std::string name() const;
+    bool name(std::string newName);
+    
+    size_t id() const;
 
     /*!
      * \fn isAnchor()

@@ -55,6 +55,8 @@
 
 namespace akin {
 
+const double DEG = M_PI/180.0;
+
 /*!
   * \def KinMacro( KinDerivedClass , DerivedClass )
   *
@@ -197,7 +199,7 @@ public:
       * \fn name()
       * \brief Returns the name given to this KinObject
       */
-    std::string name() const;
+    virtual std::string name() const;
     
     /*!
       * \fn name(std::string newName)
@@ -207,7 +209,7 @@ public:
       * specific way that renaming works. Please check with the particular
       * KinObject that you are dealing with in order to know what to expect.
       */
-    virtual void name(std::string newName);
+    virtual bool name(std::string newName);
     
     /*!
       * \fn type()

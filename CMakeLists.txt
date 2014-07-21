@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.6)
 project(akin)
 
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "No build type selected. Default to Release!")
+  set(CMAKE_BUILD_TYPE "Release")
+endif(NOT CMAKE_BUILD_TYPE)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
@@ -11,26 +16,18 @@ include_directories(${PROJECT_SOURCE_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-## TODO: Seperate the graphics out into their own library
-file(GLOB lib_source "src/*.cpp" "akin/*.h")
-list(SORT lib_source)
-
 file(GLOB unit_tests_source "test/*.cpp")
 LIST(SORT unit_tests_source)
 
-add_library(${PROJECT_NAME} SHARED ${lib_source})
-
+add_subdirectory(akin)
 
 find_package(OpenSceneGraph)
-
-file(GLOB osg_source "osg/*.cpp" "osgAkin/*.h")
-LIST(SORT osg_source)
-add_library(osgAkin SHARED ${osg_source})
-
+add_subdirectory(osgAkin)
 
 include_directories(${OpenSceneGraph_INCLUDE_DIRS})
 add_definitions(${OpenSourceGraph_DEFINITIONS})
-link_libraries(osg osgViewer osgDB osgAkin)
+
+link_libraries(akin osg osgViewer osgDB osgAkin)
 
 option(URDF_PARSING "include urdf parsing" ON)
 
@@ -49,13 +46,9 @@ if(URDF_PARSING)
 
       link_libraries(${urdfdom_LIBRARIES})
 
-      add_library(akinUtils SHARED ${urdf_source})
+      add_subdirectory(akinUtils)
+
       link_libraries(akinUtils)
-      target_link_libraries(${PROJECT_NAME} akinUtils)
-
-      set_property(TARGET ${PROJECT_NAME} PROPERTY COMPILE_DEFINITIONS "HAVE_URDFPARSING")
-
-      set( AKINUTILS_VERIFIED "true" )
 
     else(urdfdom_headers_FOUND)
       MESSAGE(STATUS "Could NOT find urdfdom *headers* -- We will NOT compile a URDF parser")
@@ -80,28 +73,4 @@ foreach(utest_src_file ${unit_tests_source})
     add_custom_target(${test_base}.run ${test_base} ${ARGN})
     add_dependencies(check ${test_base})
 endforeach(utest_src_file)
-
-file(GLOB akin_includes "akin/*.h")
-LIST(SORT akin_includes)
-install(FILES ${akin_includes} DESTINATION "${HEADER_INSTALL_PATH}/akin")
-
-file(GLOB akinUtils_includes "akinUtils/*.h")
-LIST(SORT akinUtils_includes)
-install(FILES ${akinUtils_includes} DESTINATION "${HEADER_INSTALL_PATH}/akinUtils")
-
-file(GLOB osgAkin_includes "osgAkin/*.h")
-LIST(SORT osgAkin_includes "osgAkin/*.h")
-install(FILES ${osgAkin_includes} DESTINATION "${HEADER_INSTALL_PATH}/osgAkin")
-
-install(TARGETS ${PROJECT_NAME} osgAkin DESTINATION ${LIBRARY_INSTALL_PATH})
-
-if(AKINUTILS_VERIFIED)
-    install(TARGETS ${akinUtils} DESTINATION ${LIBRARY_INSTALL_PATH})
-endif(AKINUTILS_VERIFIED)
-
-
-
-
-
-
 
