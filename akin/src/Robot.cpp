@@ -85,6 +85,11 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     //////////
     
     // DOF_ROT_Z joint gets created when createRootLink is called
+    
+    for(size_t i=0; i<_root_dummy_links.size(); ++i)
+    {
+        _root_dummy_links[i]->addVisual(Geometry());
+    }
 }
 
 Robot::~Robot()
@@ -115,13 +120,13 @@ void Robot::name(string newName)
     _name = newName;
 }
 
-bool Robot::createRootLink(string rootLinkName, Frame& referenceFrame)
+bool Robot::createRootLink(string rootLinkName)
 {
     if(!verb.Assert(_links.size()==0, verbosity::ASSERT_CASUAL,
                 "Cannot create a root link, because one already exists!"))
         return false;
 
-    Link* rootLink = new Link(this, referenceFrame, rootLinkName, 0, true);
+    Link* rootLink = new Link(this, *_root_dummy_links.back(), rootLinkName, 0, true);
     _insertLink(rootLink);
     _root = rootLink;
     _anchor = rootLink;

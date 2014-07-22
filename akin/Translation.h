@@ -122,13 +122,13 @@ public:
 //                   std::string translationName="translation",
 //                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    const Translation& respectToWorld();
-    Translation withRespectTo(Frame& someFrame);
+    const Translation& respectToWorld() const;
+    Translation withRespectTo(Frame& someFrame) const;
 
 protected:
 
-    void _update();
-    Translation _respectToWorld;
+    void _update() const;
+    mutable Translation _respectToWorld;
 };
 
 /*!
@@ -187,13 +187,13 @@ public:
 //                  std::string freeVectorName="free_vector",
 //                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    const FreeVector& respectToWorld();
-    FreeVector withRespectTo(Frame& someFrame);
+    const FreeVector& respectToWorld() const;
+    FreeVector withRespectTo(Frame& someFrame) const;
 
 protected:
 
-    void _update();
-    FreeVector _respectToWorld;
+    void _update() const;
+    mutable FreeVector _respectToWorld;
 };
 
 /*!
@@ -249,19 +249,19 @@ public:
 //            std::string axisName="axis",
 //            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    const Axis& respectToWorld();
-    Axis withRespectTo(Frame& someFrame);
+    const Axis& respectToWorld() const;
+    Axis withRespectTo(Frame& someFrame) const;
 
 protected:
 
-    void _update();
-    Axis _respectToWorld;
+    void _update() const;
+    mutable Axis _respectToWorld;
 
 };
 
 } // namespace akin
 
-inline std::ostream& operator<<(std::ostream& oStrStream, akin::KinTranslation& mTranslation)
+inline std::ostream& operator<<(std::ostream& oStrStream, const akin::KinTranslation& mTranslation)
 {
     oStrStream << (akin::KinObject&)mTranslation << " has relative translation:\n"
                << "<" << mTranslation.transpose() << ">\n"

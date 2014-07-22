@@ -7,12 +7,10 @@ namespace akinUtils {
 
 bool loadURDF(akin::Robot& robot, 
               const std::string& filename, 
-              const std::string &package_directory, 
-              akin::Frame& referenceFrame = akin::Frame::World());
+              const std::string &package_directory);
 
 bool loadURDFstring(akin::Robot& robot, 
-                    const std::string& urdf_string, 
-                    akin::Frame& referenceFrame = akin::Frame::World());
+                    const std::string& urdf_string);
 
 } // namespace akinUtils
 

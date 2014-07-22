@@ -5,7 +5,7 @@ using namespace akin;
 using namespace std;
 
 Link::Link(Robot *mRobot, Frame &referenceFrame, string linkName, size_t mID, bool root) :
-    Frame(referenceFrame, linkName),
+    Body(referenceFrame, linkName),
     _myRobot(mRobot),
     _isRoot(root),
     _isAnchor(root),
@@ -23,12 +23,12 @@ Link::~Link()
     
 }
 
-std::string Link::name() const
+const string& Link::name() const
 {
     return KinObject::name();
 }
 
-bool Link::name(string newName)
+bool Link::name(const string& newName)
 {
     if( verb.Assert(!_myRobot->checkForLinkName(newName),
                     verbosity::ASSERT_CRITICAL,

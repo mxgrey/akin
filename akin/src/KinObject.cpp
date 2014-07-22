@@ -47,9 +47,9 @@
 using namespace akin;
 
 KinObject::KinObject(Frame& referenceFrame,
-                     std::string myName,
+                     const std::string& myName,
                      verbosity::verbosity_level_t report_level,
-                     std::string myType, bool thisIsTheWorld)
+                     const std::string& myType, bool thisIsTheWorld)
 {
     if(report_level == verbosity::INHERIT)
         verb.level = referenceFrame.verb.level;
@@ -69,7 +69,7 @@ KinObject::KinObject(Frame& referenceFrame,
     _isFrame = false;
     _visualsUpdate = false;
 
-    referenceFrame._gainChildObject(this);
+    referenceFrame._registerObject(this);
     _referenceFrame = &referenceFrame;
     notifyUpdate();
 }
@@ -95,7 +95,7 @@ void KinObject::_copyValues(const KinObject &other)
     name(other.name());
     _type = other.type();
 
-    other.refFrame()._gainChildObject(this);
+    other.refFrame()._registerObject(this);
     _referenceFrame = &(other.refFrame());
 
     _isFrame = other.isFrame();
@@ -112,14 +112,15 @@ KinObject& KinObject::Generic()
 
 KinObject::~KinObject()
 {
-    refFrame()._loseChildObject(this);
+    refFrame()._unregisterObject(this);
 }
 
 Frame& KinObject::refFrame() const { return *_referenceFrame; }
-std::string KinObject::name() const { return _name; }
-bool KinObject::name(std::string newName) { _name = newName; return true; }
+const Frame& KinObject::const_refFrame() const { return *_referenceFrame; }
+const std::string& KinObject::name() const { return _name; }
+bool KinObject::name(const std::string& newName) { _name = newName; return true; }
 
-std::string KinObject::type() const { return _type; }
+const std::string& KinObject::type() const { return _type; }
 
 bool KinObject::changeRefFrame(Frame &newRefFrame)
 {
@@ -127,22 +128,81 @@ bool KinObject::changeRefFrame(Frame &newRefFrame)
                 << refFrame().name() << "'' to '" << newRefFrame.name() << "'";
     verb.end();
 
-    refFrame()._loseChildObject(this);
-    newRefFrame._gainChildObject(this);
+    refFrame()._unregisterObject(this);
+    newRefFrame._registerObject(this);
 
     _referenceFrame = &newRefFrame;
     
     return true;
 }
 
-bool KinObject::descendsFrom(const Frame &someFrame)
+void KinObject::_registerObject(KinObject *child)
 {
-    Frame* descentCheck = &refFrame();
+    verb.debug() << "Adding object '" << child->name() << "' to the Frame '" << name() << "'";
+    verb.end();
+
+    _registeredObjects.push_back(child);
+
+    child->notifyUpdate();
+}
+
+void KinObject::_unregisterObject(KinObject *child)
+{
+    verb.debug() << "Removing '" << child->name() << "' as an object of the Frame '" << name() << "'";
+    verb.end();
+
+    int childIndex = -1;
+    for(size_t i=0; i<_registeredObjects.size(); i++)
+    {
+        if(_registeredObjects[i] == child)
+        {
+            childIndex = i;
+            break;
+        }
+    }
+
+    if(childIndex == -1)
+    {
+        verb.brief() << "Trying to remove '" << child->name() << "' from the parentage of '"
+                     << name() << "', but they are not related!";
+        verb.desc() << " Children of '" << name() << "' include: ";
+        for(int i=0; i<_registeredObjects.size(); i++)
+            verb.desc() << " -- " << registeredObject(i).name() << "\n";
+        verb.end();
+
+        verb.Assert(false, verbosity::ASSERT_CASUAL, "");
+    }
+    else
+    {
+        _registeredObjects.erase(_registeredObjects.begin()+childIndex);
+    }
+}
+
+KinObject& KinObject::registeredObject(size_t objNum)
+{
+    if(verb.Assert(objNum < _registeredObjects.size(),
+                   verbosity::ASSERT_CASUAL,
+                   "Requested non-existent child object index in Frame '"+name()+"'"))
+        return *_registeredObjects[objNum];
+    else
+    {
+        verb.brief() << "Requested a child object of Frame '" << name()
+                     << "' which does not exist."
+                     << " Returning a generic object instead.";
+        verb.end();
+        return KinObject::Generic();
+    }
+}
+size_t KinObject::numRegisteredObjects() const { return _registeredObjects.size(); }
+
+bool KinObject::descendsFrom(const Frame &someFrame) const
+{
+    const Frame* descentCheck = &const_refFrame();
     while(!descentCheck->isWorld())
     {
-        if(&descentCheck->refFrame() == &someFrame)
+        if(&descentCheck->const_refFrame() == &someFrame)
             return true;
-        descentCheck = &descentCheck->refFrame();
+        descentCheck = &descentCheck->const_refFrame();
     }
 
     return false;
@@ -156,7 +216,23 @@ std::ostream& operator<<(std::ostream& oStrStream, const KinObject& mObject)
     return oStrStream;
 }
 
-void KinObject::notifyUpdate() { _needsUpdate = true; }
+void KinObject::notifyUpdate()
+{
+    verb.debug() << "Instructing KinObject '"+name()+"' to update"; verb.end();
+
+    if(_needsUpdate)
+    {
+        verb.debug() << "KinObject '" + name() + "' already knows that it needs to update!"; verb.end();
+        return;
+    }
+    
+    _needsUpdate = true;
+    for(size_t i=0; i<numRegisteredObjects(); ++i)
+    {
+        registeredObject(i).notifyUpdate();
+    }
+}
+
 bool KinObject::needsUpdate() { return _needsUpdate; }
 
 void KinObject::_loseParent()

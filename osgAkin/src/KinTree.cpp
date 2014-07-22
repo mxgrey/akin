@@ -133,22 +133,22 @@ void KinTree::_renderChildObjects(Frame &frame)
                          _frameMtfMap[&frame]);
     }
 
-    for(size_t i=0; i<frame.numChildObjects(); ++i)
+    for(size_t i=0; i<frame.numRegisteredObjects(); ++i)
     {
-        if(!frame.childObject(i).isFrame())
+        if(!frame.registeredObject(i).isFrame())
         {
-            ObjectGroupMap::const_iterator m = _objectGroupMap.find(&frame.childObject(i));
+            ObjectGroupMap::const_iterator m = _objectGroupMap.find(&frame.registeredObject(i));
             if( m != _objectGroupMap.end() )
             {
-                if(frame.childObject(i).visualsChanged())
+                if(frame.registeredObject(i).visualsChanged())
                 {
-                    _loadVisualArray(frame.childObject(i).grabVisualsAndReset(),
+                    _loadVisualArray(frame.registeredObject(i).grabVisualsAndReset(),
                                      _objectGroupMap[&frame]);
                 }
             }
             else
             {
-                _objectInitialize(frame, frame.childObject(i));
+                _objectInitialize(frame, frame.registeredObject(i));
             }
         }
     }

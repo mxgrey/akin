@@ -228,7 +228,7 @@ public:
                 *_outputstream << "ASSERTION LEVEL: " << assert_level_to_string(importance);
                 *_outputstream << " | MY ASSERTIVENESS LEVEL: "
                                << assert_level_to_string(assertiveness) << std::endl;
-                abort();
+                exit(1);
             }
         }
 

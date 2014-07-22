@@ -1,20 +1,21 @@
 #ifndef LINK_H
 #define LINK_H
 
+#include "akin/Body.h"
 #include "akin/Robot.h"
 
 namespace akin {
 
 
-class Link : public Frame
+class Link : public Body
 {
 public:
 
     friend class Joint;
     friend class Robot;
     
-    std::string name() const;
-    bool name(std::string newName);
+    const std::string& name() const;
+    bool name(const std::string& newName);
     
     size_t id() const;
 

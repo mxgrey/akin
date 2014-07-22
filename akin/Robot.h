@@ -42,7 +42,7 @@ public:
     void name(std::string newName);
     inline std::string name() const { return _name; }
 
-    bool createRootLink(std::string rootLinkName, Frame& referenceFrame = Frame::World());
+    bool createRootLink(std::string rootLinkName);
 
     int createJointLinkPair(Link& parentLink,
                              const std::string& newLinkName,
@@ -88,7 +88,7 @@ public:
 
     std::string robotPackageDirectory;
     
-    verbosity verb;
+    mutable verbosity verb;
 
 protected:
 

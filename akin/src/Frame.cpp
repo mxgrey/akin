@@ -83,8 +83,8 @@ void Frame::_kinitialize(const Frame &other)
 
 Frame::~Frame()
 {
-    for(size_t i=0; i < _childObjects.size(); ++i)
-        _childObjects[i]->_loseParent();
+    for(size_t i=0; i < _registeredObjects.size(); ++i)
+        _registeredObjects[i]->_loseParent();
     refFrame()._loseChildFrame(this);
 }
 
@@ -98,8 +98,8 @@ Frame& Frame::World()
 
 void Frame::_gainChildFrame(Frame *child)
 {
-    if(_isWorld)
-        return;
+//    if(_isWorld)
+//        return;
 
     verb.debug() << "Adding Frame '" << child->name() << "' into the Frame '" << name() << "'";
     verb.end();
@@ -109,8 +109,8 @@ void Frame::_gainChildFrame(Frame *child)
 
 void Frame::_loseChildFrame(Frame *child)
 {
-    if(_isWorld)
-        return;
+//    if(_isWorld)
+//        return;
 
     verb.debug() << "Removing '" << child->name() << "' from the Frame '" << name() << "'";
     verb.end();
@@ -129,7 +129,7 @@ void Frame::_loseChildFrame(Frame *child)
         verb.brief() << "Trying to remove frame '" << child->name() << "' from the parentage of '"
                      << name() << "'', that is not its parent!";
         verb.desc() << " Child frames of '" << name() << "' include: ";
-        for(int i=0; i<_childObjects.size(); i++)
+        for(int i=0; i<_registeredObjects.size(); i++)
             verb.desc() << " -- " << childFrame(i).name() << "\n";
         verb.end();
 
@@ -141,64 +141,16 @@ void Frame::_loseChildFrame(Frame *child)
     }
 }
 
-void Frame::_gainChildObject(KinObject *child)
-{
-    if(_isWorld)
-        return;
-
-    verb.debug() << "Adding object '" << child->name() << "' to the Frame '" << name() << "'";
-    verb.end();
-
-    _childObjects.push_back(child);
-
-    child->notifyUpdate();
-}
-
-void Frame::_loseChildObject(KinObject *child)
-{
-    if(_isWorld)
-        return;
-
-    verb.debug() << "Removing '" << child->name() << "' as an object of the Frame '" << name() << "'";
-    verb.end();
-
-    int childIndex = -1;
-    for(size_t i=0; i<_childObjects.size(); i++)
-    {
-        if(_childObjects[i] == child)
-        {
-            childIndex = i;
-            break;
-        }
-    }
-
-    if(childIndex == -1)
-    {
-        verb.brief() << "Trying to remove '" << child->name() << "' from the parentage of '"
-                     << name() << "', but they are not related!";
-        verb.desc() << " Children of '" << name() << "' include: ";
-        for(int i=0; i<_childObjects.size(); i++)
-            verb.desc() << " -- " << childObject(i).name() << "\n";
-        verb.end();
-
-        verb.Assert(false, verbosity::ASSERT_CASUAL, "");
-    }
-    else
-    {
-        _childObjects.erase(_childObjects.begin()+childIndex);
-    }
-}
-
 Frame& Frame::childFrame(size_t childFrameNum)
 {
-    if(_isWorld)
-    {
-        verb.brief() << "The World Frame does not keep track of its children!";
-        verb.desc() << " Returning the World Frame instead.";
-        verb.end();
+//    if(_isWorld)
+//    {
+//        verb.brief() << "The World Frame does not keep track of its children!";
+//        verb.desc() << " Returning the World Frame instead.";
+//        verb.end();
 
-        return World();
-    }
+//        return World();
+//    }
 
     if(verb.Assert(childFrameNum < _childFrames.size(),
                    verbosity::ASSERT_CASUAL,
@@ -214,32 +166,6 @@ Frame& Frame::childFrame(size_t childFrameNum)
     }
 }
 size_t Frame::numChildFrames() const { return _childFrames.size(); }
-
-KinObject& Frame::childObject(size_t childObjNum)
-{
-    if(_isWorld)
-    {
-        verb.brief() << "The World Frame does not keep track of its children!";
-        verb.desc() << " Returning a generic object instead.";
-        verb.end();
-
-        return KinObject::Generic();
-    }
-
-    if(verb.Assert(childObjNum < _childObjects.size(),
-                   verbosity::ASSERT_CASUAL,
-                   "Requested non-existent child object index in Frame '"+name()+"'"))
-        return *_childObjects[childObjNum];
-    else
-    {
-        verb.brief() << "Requested a child object of Frame '" << name()
-                     << "' which does not exist."
-                     << " Returning a generic object instead.";
-        verb.end();
-        return KinObject::Generic();
-    }
-}
-size_t Frame::numChildObjects() const { return _childObjects.size(); }
 
 bool Frame::changeRefFrame(Frame &newRefFrame)
 {
@@ -257,10 +183,10 @@ bool Frame::changeRefFrame(Frame &newRefFrame)
         return false;
 
     refFrame()._loseChildFrame(this);
-    refFrame()._loseChildObject(this);
+    refFrame()._unregisterObject(this);
     
     newRefFrame._gainChildFrame(this);
-    newRefFrame._gainChildObject(this);
+    newRefFrame._registerObject(this);
     
     _referenceFrame = &newRefFrame;
     
@@ -268,23 +194,6 @@ bool Frame::changeRefFrame(Frame &newRefFrame)
 }
 
 bool Frame::isWorld() const { return _isWorld; }
-
-void Frame::notifyUpdate()
-{
-    verb.debug() << "Instructing Frame '"+name()+"' to update"; verb.end();
-
-    if(_needsUpdate)
-    {
-        verb.debug() << "Frame '" + name() + "' already knows that it needs to update!"; verb.end();
-        return;
-    }
-    
-    _needsUpdate = true;
-    for(size_t i=0; i<numChildObjects(); ++i)
-    {
-        childObject(i).notifyUpdate();
-    }
-}
 
 void Frame::respectToRef(const Transform &newTf)
 {
@@ -307,7 +216,7 @@ void Frame::respectToRef(const Transform &newTf)
 
 const Transform& Frame::respectToRef() const { return _respectToRef; }
 
-const Transform& Frame::respectToWorld()
+const Transform& Frame::respectToWorld() const
 {
     if(_isWorld)
         return _respectToRef;
@@ -325,7 +234,7 @@ Transform Frame::withRespectTo(Frame &otherFrame)
 
 void Frame::forceUpdate() { _update(); }
 
-void Frame::_update()
+void Frame::_update() const
 {
     verb.debug() << "Updating frame '"+name()+"'"; verb.end();
 

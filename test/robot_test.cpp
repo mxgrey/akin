@@ -76,10 +76,16 @@ void display_robot(Robot& displaying_robot)
     root->addChild(akinNode);
 
     akinNode->addRobot(displaying_robot);
+    akinNode->addRootFrame(akin::Frame::World());
     
 //    displaying_robot.joint(DOF_ROT_Z).value(90*M_PI/180);
 //    displaying_robot.joint(DOF_ROT_Y).value(90*M_PI/180);
-    displaying_robot.joint(DOF_ROT_X).value(90*M_PI/180);
+//    displaying_robot.joint(DOF_ROT_X).value(90*M_PI/180);
+    displaying_robot.joint(DOF_POS_X).value(1);
+    displaying_robot.joint(DOF_POS_Y).value(0.5);
+    displaying_robot.joint(DOF_POS_Z).value(1);
+    displaying_robot.joint(DOF_ROT_X).value(45*DEG);
+    displaying_robot.joint(DOF_ROT_Y).value(45*DEG);
     
 
 //    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,

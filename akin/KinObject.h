@@ -76,24 +76,28 @@ const double DEG = M_PI/180.0;
   * KinCustomMacro2.
   */
 
-#define KinMacro(Y,X) inline Y ( const Y & copy ## Y ) : \
-                          akin::KinObject( copy ## Y ), \
-                          X ( copy ## Y ) { } \
-    \
-                      inline Y ( akin::Frame & referenceFrame, std::string X ## Name = #X , \
-                        verbosity::verbosity_level_t report_level = verbosity::INHERIT ) : \
-                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ), X () { } \
-    \
-                      inline Y ( const X & relative ## X , akin::Frame & referenceFrame, \
-                        std::string X ## Name = #X, \
-                        verbosity::verbosity_level_t report_level = verbosity::INHERIT ) : \
-                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ), \
-                        X ( relative ## X ) { } \
-    \
-                      inline Y & operator=( const Y & copy ## Y ) \
-                      {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y ); \
-                          ( X & )(*this) = ( X & )( copy ## Y ); return *this; }
-
+#define KinMacro(Y,X) inline Y ( const Y & copy ## Y ) :                                           \
+                          akin::KinObject( copy ## Y ),                                            \
+                          X ( copy ## Y ) { }                                                      \
+                                                                                                   \
+                      inline Y ( akin::Frame & referenceFrame, const std::string& X ## Name = #X , \
+                        verbosity::verbosity_level_t report_level = verbosity::INHERIT ) :         \
+                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ), X () { }  \
+                                                                                                   \
+                      inline Y ( const X & relative ## X , akin::Frame & referenceFrame,           \
+                        const std::string& X ## Name = #X,                                         \
+                        verbosity::verbosity_level_t report_level = verbosity::INHERIT ) :         \
+                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ),           \
+                        X ( relative ## X ) { }                                                    \
+                                                                                                   \
+                      inline Y & operator=( const Y & copy ## Y )                                  \
+                      {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );             \
+                          ( X & )(*this) = ( X & )( copy ## Y );                                   \
+                          notifyUpdate(); return *this; }                                          \
+                                                                                                   \
+                      inline Y & operator=( const X & copy ## X )                                  \
+                      {   ( X & )(*this) = copy ## X ;                                             \
+                          notifyUpdate(); return *this; }
 
 /*!
  * \fn _kinitialize( const DerivedClass& otherDerivedClass );
@@ -120,14 +124,18 @@ const double DEG = M_PI/180.0;
   * then you should use KinCustomMacro.
   */
 
-#define KinCustomMacro2(Y,X) inline Y ( const Y & copy ## Y ) : \
-                                  akin::KinObject( copy ## Y ), \
-                                  X ( copy ## Y ) \
-                                  { _kinitialize( copy ## Y ); } \
-                              inline Y & operator=( const Y & copy ## Y ) \
-                              {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y ); \
-                                  ( X & )(*this) = ( X & )( copy ## Y ); \
-                                  _kinitialize( copy ## Y ); return *this; } \
+#define KinCustomMacro2(Y,X) inline Y ( const Y & copy ## Y ) :                                    \
+                                  akin::KinObject( copy ## Y ),                                    \
+                                  X ( copy ## Y )                                                  \
+                                  { _kinitialize( copy ## Y ); }                                   \
+                              inline Y & operator=( const Y & copy ## Y )                          \
+                              {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );     \
+                                  ( X & )(*this) = ( X & )( copy ## Y );                           \
+                                  _kinitialize( copy ## Y );                                       \
+                                  notifyUpdate(); return *this; }                                  \
+                              inline Y & operator=( const X & copy ## X )                          \
+                              {   ( X & )(*this) = copy ## X ;                                     \
+                                  notifyUpdate(); return *this; }                                  \
                               virtual void _kinitialize( const Y & copy );
 
 /*!
@@ -138,11 +146,12 @@ const double DEG = M_PI/180.0;
   * one class (besides KinObject).
   */
 
-#define KinCustomMacro(Y) inline Y ( const Y & copy ## Y ) : \
-                            akin::KinObject( copy ## Y ) { _kinitialize( copy ## Y ); } \
-                          inline Y & operator=( const Y & copy ## Y ) \
-                            {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y ); \
-                                _kinitialize( copy ## Y ); } \
+#define KinCustomMacro(Y) inline Y ( const Y & copy ## Y ) :                                       \
+                            akin::KinObject( copy ## Y ) { _kinitialize( copy ## Y ); }            \
+                          inline Y & operator=( const Y & copy ## Y )                              \
+                            {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );       \
+                                _kinitialize( copy ## Y );                                         \
+                                notifyUpdate(); return *this; }                                    \
                           virtual void _kinitialize( const Y & copy );
 
 
@@ -165,9 +174,9 @@ public:
     friend class Frame;
 
     KinObject(Frame &referenceFrame,
-              std::string myName,
+              const std::string& myName,
               verbosity::verbosity_level_t report_level,
-              std::string myType,
+              const std::string& myType,
               bool thisIsTheWorld = false);
 
     KinObject(const KinObject& other);
@@ -194,22 +203,23 @@ public:
       * most convenient. The default reference frame for a KinObject is the World Frame.
       */
     Frame& refFrame() const;
+    const Frame& const_refFrame() const;
 
     /*!
       * \fn name()
       * \brief Returns the name given to this KinObject
       */
-    virtual std::string name() const;
+    virtual const std::string& name() const;
     
     /*!
-      * \fn name(std::string newName)
+      * \fn name(const std::string& newName)
       * \brief Changes the name of this KinObject
       *
       * Note that some implementations of KinObjects might change the
       * specific way that renaming works. Please check with the particular
       * KinObject that you are dealing with in order to know what to expect.
       */
-    virtual bool name(std::string newName);
+    virtual bool name(const std::string& newName);
     
     /*!
       * \fn type()
@@ -220,7 +230,7 @@ public:
       * information to expect, please check with the particular KinObject
       * that you are dealing with.
       */
-    virtual std::string type() const;
+    virtual const std::string& type() const;
     
     /*!
       * \fn changeRefFrame()
@@ -240,12 +250,12 @@ public:
       * \fn descendsFrom()
       * \brief Returns true if and only if this KinObject is kinematically downstream from someFrame
       */
-    bool descendsFrom(const Frame& someFrame);
+    bool descendsFrom(const Frame& someFrame) const;
     
     
 
     
-    verbosity verb;
+    mutable verbosity verb;
 
     /*!
       * \fn notifyUpdate()
@@ -262,6 +272,28 @@ public:
       * \brief Returns true if this object needs to update itself
       */
     bool needsUpdate();
+    
+    /*!
+      * \fn childObject()
+      * \brief Returns this frame's child KinObject, corresponding to childObjNum
+      *
+      * Besides child frames, a Frame can also have any number of KinObject children.
+      * These may include transformations, translations, or any other arbitrary kind
+      * of data which expresses itself relative to this frame. This function returns
+      * a KinObject reference, which means it will grant access to the meta-information
+      * of the object. This will allow you to print out information about this frame's
+      * children which might be useful for investigation or debugging. However, this
+      * does not allow you to directly manipulate the object's actual data.
+      *
+      * Note that the child frames are also included as child KinObjects.
+      */
+    KinObject &registeredObject(size_t objNum);
+    
+    /*!
+      * \fn numChildObjects()
+      * \brief Returns the frame's current number of child KinObjects
+      */
+    size_t numRegisteredObjects() const;
     
     /*!
       * \fn addVisual(const Geometry& visual_geometry)
@@ -390,6 +422,11 @@ public:
     inline bool isFrame() const { return _isFrame; }
     
 protected:
+    
+    std::vector<KinObject*> _registeredObjects;
+    
+    void _registerObject(KinObject* child);
+    void _unregisterObject(KinObject* child);
 
     void _copyValues(const KinObject& other);
     
@@ -416,7 +453,7 @@ protected:
 
     Frame* _referenceFrame;
     
-    bool _needsUpdate;
+    mutable bool _needsUpdate;
 
 private:
 

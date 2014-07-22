@@ -83,7 +83,7 @@ size_t AkinNode::addRootFrame(akin::Frame &new_root_frame)
 
 size_t AkinNode::addRobot(Robot &new_robot)
 {
-    addRootFrame(new_robot.link(0));
+//    addRootFrame(new_robot.link(0));
 
     for(size_t i=0; i<_robots.size(); ++i)
         if(_robots[i] == &new_robot)

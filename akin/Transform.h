@@ -134,14 +134,14 @@ class KinTransform : public Transform, public KinObject
 public:
     KinMacro( KinTransform, Transform )
 
-    const Transform& respectToWorld();
+    const Transform& respectToWorld() const;
     
-    Transform withRespectTo(Frame& someFrame);
+    Transform withRespectTo(Frame& someFrame) const;
 
 protected:
 
-    void _update();
-    Transform _respectToWorld;
+    void _update() const;
+    mutable Transform _respectToWorld;
     
 private:
 
@@ -151,7 +151,7 @@ private:
 } // namespace akin
 
 
-inline std::ostream& operator<<(std::ostream& oStrStream, akin::KinTransform& mTransform)
+inline std::ostream& operator<<(std::ostream& oStrStream, const akin::KinTransform& mTransform)
 {
     oStrStream << (akin::KinObject&)mTransform << " has relative matrix:\n" << (akin::Transform&)mTransform
                << "\nAnd global matrix:\n" << mTransform.respectToWorld() << std::endl;

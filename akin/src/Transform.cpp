@@ -48,7 +48,7 @@ using namespace akin;
 using namespace std;
 
 
-const Transform& KinTransform::respectToWorld()
+const Transform& KinTransform::respectToWorld() const
 {
     if(_needsUpdate)
         _update();
@@ -56,12 +56,12 @@ const Transform& KinTransform::respectToWorld()
     return _respectToWorld;
 }
 
-Transform KinTransform::withRespectTo(Frame &someFrame)
+Transform KinTransform::withRespectTo(Frame &someFrame) const
 {
     return someFrame.respectToWorld().inverse() * respectToWorld();
 }
 
-void KinTransform::_update()
+void KinTransform::_update() const
 {
     verb.debug() << "Updating transform '"+name()+"'"; verb.end();
 

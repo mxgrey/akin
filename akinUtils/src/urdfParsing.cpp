@@ -21,8 +21,7 @@ bool linkProperties(akin::Link& link, boost::shared_ptr<urdf::Link> ulink);
 } // namespace akinUtils
 
 bool akinUtils::loadURDF(akin::Robot &robot, const std::string &filename,
-                         const std::string& package_directory,
-                         akin::Frame& referenceFrame)
+                         const std::string& package_directory)
 {
     std::string xml_model_string;
     std::fstream xml_file(filename.c_str(), std::fstream::in);
@@ -46,12 +45,11 @@ bool akinUtils::loadURDF(akin::Robot &robot, const std::string &filename,
 //    size_t dir = filename.find_last_of("/\\");
     robot.robotPackageDirectory = package_directory;
     
-    return akinUtils::loadURDFstring(robot, xml_model_string, referenceFrame);
+    return akinUtils::loadURDFstring(robot, xml_model_string);
 }
 
 
-bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_string,
-                               akin::Frame& referenceFrame)
+bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_string)
 {
     boost::shared_ptr<urdf::ModelInterface> model;
     
@@ -61,7 +59,7 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
 //    model->getLinks( links );
     
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
-    if(!robot.createRootLink(rootLink->name, referenceFrame))
+    if(!robot.createRootLink(rootLink->name))
     {
         std::cout << "Root link already existed for the robot '" << robot.name()
                   << "'. Cannot load the URDF into this robot!" << std::endl;

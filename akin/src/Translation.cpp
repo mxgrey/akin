@@ -48,7 +48,7 @@
 using namespace std;
 using namespace akin;
 
-const Translation& KinTranslation::respectToWorld()
+const Translation& KinTranslation::respectToWorld() const
 {
     if(_needsUpdate)
         _update();
@@ -56,12 +56,12 @@ const Translation& KinTranslation::respectToWorld()
     return _respectToWorld;
 }
 
-Translation KinTranslation::withRespectTo(Frame &someFrame)
+Translation KinTranslation::withRespectTo(Frame &someFrame) const
 {
     return someFrame.respectToWorld().inverse() * respectToWorld();
 }
 
-void KinTranslation::_update()
+void KinTranslation::_update() const
 {
     verb.debug() << "Updating translation '"+name()+"'"; verb.end();
 
@@ -70,7 +70,7 @@ void KinTranslation::_update()
     _needsUpdate = false;
 }
 
-const FreeVector& KinFreeVector::respectToWorld()
+const FreeVector& KinFreeVector::respectToWorld() const
 {
     if(_needsUpdate)
         _update();
@@ -78,13 +78,13 @@ const FreeVector& KinFreeVector::respectToWorld()
     return _respectToWorld;
 }
 
-FreeVector KinFreeVector::withRespectTo(Frame &someFrame)
+FreeVector KinFreeVector::withRespectTo(Frame &someFrame) const
 {
     // TODO: Investigate if it is okay to leave off Transform()
     return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
 }
 
-void KinFreeVector::_update()
+void KinFreeVector::_update() const
 {
     verb.debug() << "Updating FreeVector '"+name()+"'"; verb.end();
 
@@ -93,7 +93,7 @@ void KinFreeVector::_update()
     _needsUpdate = false;
 }
 
-const Axis& KinAxis::respectToWorld()
+const Axis& KinAxis::respectToWorld() const
 {
     if(_needsUpdate)
         _update();
@@ -101,12 +101,12 @@ const Axis& KinAxis::respectToWorld()
     return _respectToWorld;
 }
 
-Axis KinAxis::withRespectTo(Frame &someFrame)
+Axis KinAxis::withRespectTo(Frame &someFrame) const
 {
     return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
 }
 
-void KinAxis::_update()
+void KinAxis::_update() const
 {
     verb.debug() << "Updating Axis '"+name()+"'"; verb.end();
 

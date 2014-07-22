@@ -9,13 +9,15 @@ bool Joint::value(double newJointValue)
     bool inBounds = true;
     if(newJointValue < _min)
     {
-        newJointValue = _min;
+        if(_myRobot->enforcingJointLimits())
+            newJointValue = _min;
         inBounds = false;
     }
     
     if(newJointValue > _max)
     {
-        newJointValue = _max;
+        if(_myRobot->enforcingJointLimits())
+            newJointValue = _max;
         inBounds = false;
     }
     
@@ -62,8 +64,7 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
              Link *mParentLink, Link *mChildLink,
              const Transform &mBaseTransform,
              const Axis &mJointAxis, Type mType,
-             double mininumValue, double maximumValue,
-             verbosity::verbosity_level_t report_level) :
+             double mininumValue, double maximumValue) :
     _myRobot(mRobot),
     _id(jointID),
     _name(jointName),
@@ -77,10 +78,22 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
     _max(maximumValue),
     _myType(mType),
     _reversed(false),
-    _value(0)
+    _value(0),
+    verb(mRobot->verb)
 {
     _computeRefTransform();
-    verb.level = report_level;
+    
+//    std::cout << "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
+//                 +"' to '"+mParentLink->name()+"' but '"+mChildLink->name()
+//                 +"' is in the reference frame of '"+mChildLink->refFrame().name()
+//                 +"'!" << std::endl;
+    
+    if( !mChildLink->isDummy() )
+        verb.Assert(mParentLink == &mChildLink->refFrame(), verbosity::ASSERT_CRITICAL,
+                "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
+                +"' to '"+mParentLink->name()+"' but '"+mChildLink->name()
+                +"' is in the reference frame of '"+mChildLink->refFrame().name()
+                +"'!", " A joint must always connect a link to its parent frame!");
 }
 
 Joint::~Joint()

@@ -165,7 +165,7 @@ public:
     
     inline Robot& robot() const { return *_myRobot; }
     
-    verbosity verb;
+    verbosity& verb;
 
 protected:
     
@@ -173,8 +173,7 @@ protected:
           Link* mParentLink=NULL, Link* mChildLink=NULL,
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
-          double mininumValue=-INFINITY, double maximumValue=INFINITY,
-          verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+          double mininumValue=-INFINITY, double maximumValue=INFINITY);
     
     void _computeRefTransform();
 

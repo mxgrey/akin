@@ -118,27 +118,7 @@ public:
       */
     size_t numChildFrames() const;
 
-    /*!
-      * \fn childObject()
-      * \brief Returns this frame's child KinObject, corresponding to childObjNum
-      *
-      * Besides child frames, a Frame can also have any number of KinObject children.
-      * These may include transformations, translations, or any other arbitrary kind
-      * of data which expresses itself relative to this frame. This function returns
-      * a KinObject reference, which means it will grant access to the meta-information
-      * of the object. This will allow you to print out information about this frame's
-      * children which might be useful for investigation or debugging. However, this
-      * does not allow you to directly manipulate the object's actual data.
-      *
-      * Note that the child frames are also included as child KinObjects.
-      */
-    KinObject &childObject(size_t childObjNum);
     
-    /*!
-      * \fn numChildObjects()
-      * \brief Returns the frame's current number of child KinObjects
-      */
-    size_t numChildObjects() const;
 
     virtual bool changeRefFrame(Frame& newRefFrame);
     
@@ -155,20 +135,6 @@ public:
       */
     bool isWorld() const;
     
-    /*!
-      * \fn notifyUpdate()
-      * \brief Notify this frame and its children that an update is necessary
-      *
-      * This function is used to efficiently handle kinematic updates. Kinematic
-      * computations are only performed when needed, and they are never performed
-      * more often than necessary. The update notification system is what ensures
-      * these things.
-      * 
-      * As a user, you should never have to explicitly call this function, because
-      * any other function which warrants an update should already be calling it.
-      * If you find that this is not the case, please report it as an issue on Github.
-      */
-    virtual void notifyUpdate();
     
     /*!
       * \fn respectToRef(const Transform& newTf)
@@ -206,7 +172,7 @@ public:
       * Note that calling this function automatically performs all necessary
       * updates to the kinematic tree.
       */
-    const Transform& respectToWorld();
+    const Transform& respectToWorld() const;
     
     /*!
       * \fn withRespectTo()
@@ -240,19 +206,15 @@ public:
 
 protected:
     
-    void _update();
+    void _update() const;
 
     Transform _respectToRef;
-    Transform _respectToWorld;
+    mutable Transform _respectToWorld;
 
     std::vector<Frame*> _childFrames;
-    std::vector<KinObject*> _childObjects;
 
     void _gainChildFrame(Frame* child);
     void _loseChildFrame(Frame* child);
-
-    void _gainChildObject(KinObject* child);
-    void _loseChildObject(KinObject* child);
 
 private:
 
@@ -266,7 +228,7 @@ typedef std::vector<akin::Frame*> FramePtrArray;
 
 } // namespace akin
 
-inline std::ostream& operator<<(std::ostream& oStrStream, akin::Frame& mFrame)
+inline std::ostream& operator<<(std::ostream& oStrStream, const akin::Frame& mFrame)
 {
     oStrStream << (akin::KinObject&)mFrame << " has relative transform:\n" << mFrame.respectToRef()
                << "\nAnd World transform:\n" << mFrame.respectToWorld() << std::endl;
