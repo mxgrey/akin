@@ -88,7 +88,7 @@ void test_KinMacro()
 
 
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
     test_KinMacro();
 

@@ -87,6 +87,8 @@ KinObject& KinObject::operator =(const KinObject& other)
     verb.debug() << "Assigning object '" << name() << "' to have the values of '" << other.name() << "'"; verb.end();
 
     _copyValues(other);
+    
+    return *this;
 }
 
 void KinObject::_copyValues(const KinObject &other)
@@ -166,7 +168,7 @@ void KinObject::_unregisterObject(KinObject *child)
         verb.brief() << "Trying to remove '" << child->name() << "' from the parentage of '"
                      << name() << "', but they are not related!";
         verb.desc() << " Children of '" << name() << "' include: ";
-        for(int i=0; i<_registeredObjects.size(); i++)
+        for(size_t i=0; i<_registeredObjects.size(); i++)
             verb.desc() << " -- " << registeredObject(i).name() << "\n";
         verb.end();
 
@@ -235,7 +237,7 @@ void KinObject::notifyUpdate()
 
 bool KinObject::needsUpdate() { return _needsUpdate; }
 
-void KinObject::_loseParent()
+void KinObject::_loseParent(akin::KinObject*)
 {
     _referenceFrame = &Frame::World();
 }

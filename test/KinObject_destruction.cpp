@@ -47,7 +47,7 @@
 using namespace akin;
 using namespace std;
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
 //    KinObject testObject(Frame::World(), "test object", "test type");
     Frame testFrame(Frame::World(), "test_frame", verbosity::DEBUG);

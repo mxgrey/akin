@@ -8,22 +8,22 @@ using namespace osgAkin;
 using namespace akin;
 
 KinTree::KinTree(float line_width, float axis_length) :
-    _initialized(false),
-    _root(NULL),
     _axisWidth(new osg::LineWidth(line_width)),
     _axisLength(axis_length),
-    _branchWidth(new osg::LineWidth(1.0f))
+    _branchWidth(new osg::LineWidth(1.0f)),
+    _root(NULL),
+    _initialized(false)
 {
     _reserveMemory();
     _branchGeode->addDrawable(_branches);
 }
 
 KinTree::KinTree(Frame &root_frame, float line_width, float axis_length) :
-    _initialized(false),
-    _root(NULL),
     _axisWidth(new osg::LineWidth(line_width)),
     _axisLength(axis_length),
-    _branchWidth(new osg::LineWidth(1.0f))
+    _branchWidth(new osg::LineWidth(1.0f)),
+    _root(NULL),
+    _initialized(false)
 {
     _reserveMemory();
     setRootFrame(root_frame);

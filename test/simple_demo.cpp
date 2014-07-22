@@ -116,7 +116,7 @@ void run_demo()
 
 
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
     run_demo();
     

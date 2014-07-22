@@ -57,17 +57,17 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
 
 Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
-    _isWorld(false),
-    _respectToRef(relativeTf)
+    _respectToRef(relativeTf),
+    _isWorld(false)
 {
     _isFrame = true;
     referenceFrame._gainChildFrame(this);
 }
 
 
-Frame::Frame(bool createWorld) :
-    _isWorld(true),
-    KinObject(*this, "World", verbosity::LOG, "World Frame", true)
+Frame::Frame(bool) :
+    KinObject(*this, "World", verbosity::LOG, "World Frame", true),
+    _isWorld(true)
 {
     _isFrame = true;
 }
@@ -84,7 +84,7 @@ void Frame::_kinitialize(const Frame &other)
 Frame::~Frame()
 {
     for(size_t i=0; i < _registeredObjects.size(); ++i)
-        _registeredObjects[i]->_loseParent();
+        _registeredObjects[i]->_loseParent(this);
     refFrame()._loseChildFrame(this);
 }
 
@@ -129,7 +129,7 @@ void Frame::_loseChildFrame(Frame *child)
         verb.brief() << "Trying to remove frame '" << child->name() << "' from the parentage of '"
                      << name() << "'', that is not its parent!";
         verb.desc() << " Child frames of '" << name() << "' include: ";
-        for(int i=0; i<_registeredObjects.size(); i++)
+        for(size_t i=0; i<_registeredObjects.size(); i++)
             verb.desc() << " -- " << childFrame(i).name() << "\n";
         verb.end();
 

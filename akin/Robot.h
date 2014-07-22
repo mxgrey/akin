@@ -80,8 +80,8 @@ public:
     bool checkForJointName(const std::string &name) const;
 
     inline Link& anchorLink() { return *_anchor; }
-    void anchorLink(Link& newAnchor);
-    void anchorLink(size_t linkNum);
+    void anchorLink(Link&);
+    void anchorLink(size_t);
     
     void enforceJointLimits(bool enforce);
     inline bool enforcingJointLimits() { return _enforceJointLimits; }

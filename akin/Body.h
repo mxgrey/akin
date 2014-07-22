@@ -19,6 +19,8 @@ protected:
     
 };
 
+typedef std::vector<Body*> BodyPtrArray;
+
 } // namespace akin
 
 

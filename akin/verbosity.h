@@ -120,6 +120,8 @@ public:
             case ASSERT_CRITICAL: return "ASSERT_CRITICAL"; break;
             case ASSERT_CASUAL: return "ASSERT_CASUAL"; break;
         }
+        
+        return "";
     }
 
     inline verbosity(verbosity_level_t verb_level = LOG, std::ostream& targetStream = std::cout)
@@ -209,7 +211,7 @@ public:
         return *this;
     }
 
-    inline verbosity& operator<<(const verbosity& verb_right)
+    inline verbosity& operator<<(const verbosity&)
     {
         return *this;
     }

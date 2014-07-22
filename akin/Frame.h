@@ -218,7 +218,7 @@ protected:
 
 private:
 
-    Frame(bool createWorld);
+    Frame(bool);
 
     bool _isWorld;
 };

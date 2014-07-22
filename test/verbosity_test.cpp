@@ -55,7 +55,7 @@ void printDifferentLevels(verbosity& verb)
     verb.debug() << "Printing debug level"; verb.end();
 }
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
     verbosity verb;
 

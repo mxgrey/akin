@@ -5,16 +5,16 @@ using namespace osgAkin;
 using namespace akin;
 
 KinBranches::KinBranches() :
-    _initialized(false),
-    _root(NULL)
+    _root(NULL),
+    _initialized(false)
 {
 
 }
 
 KinBranches::KinBranches(akin::Frame &root_frame) :
     LineTree(root_frame.respectToWorld().translation()),
-    _initialized(false),
-    _root(NULL)
+    _root(NULL),
+    _initialized(false)
 {
     setRootFrame(root_frame);
 }

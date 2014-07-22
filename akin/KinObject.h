@@ -77,18 +77,18 @@ const double DEG = M_PI/180.0;
   */
 
 #define KinMacro(Y,X) inline Y ( const Y & copy ## Y ) :                                           \
-                          akin::KinObject( copy ## Y ),                                            \
-                          X ( copy ## Y ) { }                                                      \
+                          X ( copy ## Y ),                                                         \
+                          akin::KinObject( copy ## Y ) { }                                         \
                                                                                                    \
                       inline Y ( akin::Frame & referenceFrame, const std::string& X ## Name = #X , \
                         verbosity::verbosity_level_t report_level = verbosity::INHERIT ) :         \
-                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ), X () { }  \
+                        X (), akin::KinObject( referenceFrame, X ## Name , report_level, #X ) { }  \
                                                                                                    \
                       inline Y ( const X & relative ## X , akin::Frame & referenceFrame,           \
                         const std::string& X ## Name = #X,                                         \
                         verbosity::verbosity_level_t report_level = verbosity::INHERIT ) :         \
-                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ),           \
-                        X ( relative ## X ) { }                                                    \
+                        X ( relative ## X ),                                                       \
+                        akin::KinObject( referenceFrame, X ## Name , report_level, #X ) { }        \
                                                                                                    \
                       inline Y & operator=( const Y & copy ## Y )                                  \
                       {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );             \
@@ -446,7 +446,7 @@ protected:
      * This means that whatever relationship the class had with its parent frame, it
      * will then have with the World Frame.
      */
-    virtual void _loseParent();
+    virtual void _loseParent(KinObject*);
 
     std::string _name;
     std::string _type;

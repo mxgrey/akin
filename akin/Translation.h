@@ -231,6 +231,7 @@ public:
     inline Axis& operator=(const Eigen::Vector3d& vec)
     {
         (Eigen::Vector3d&)(*this) = vec.normalized();
+        return *this;
     }
 
 };

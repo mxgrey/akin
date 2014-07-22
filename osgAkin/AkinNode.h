@@ -86,25 +86,6 @@ protected:
 };
 
 
-class SpinNode : public AkinNode
-{
-public:
-
-    virtual void update();
-};
-
-class KneeNode : public AkinNode
-{
-public:
-
-    inline KneeNode() : time(0) { }
-
-    virtual void update();
-
-protected:
-    double time;
-};
-
 } // osgAkin
 
 #endif // AKINNODE_H

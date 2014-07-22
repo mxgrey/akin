@@ -56,6 +56,27 @@
 
 using namespace std;
 using namespace akin;
+using namespace osgAkin;
+
+class SpinNode : public AkinNode
+{
+public:
+
+    virtual void update()
+    {
+        Frame* spin_frame = _kinTrees[0]->getRootFrame();
+        akin::Transform tf = spin_frame->childFrame(0).respectToRef();
+        tf.rotate(Rotation(3*M_PI/180, Axis(1,1,1)));
+        spin_frame->childFrame(0).respectToRef(tf);
+    
+        Frame* other_frame = _kinTrees[1]->getRootFrame();
+        tf = other_frame->childFrame(0).respectToRef();
+        tf.rotate(Rotation(5*M_PI/180, Axis(0,0,1)));
+        other_frame->childFrame(0).respectToRef(tf);
+    
+        AkinNode::update();
+    }
+};
 
 void pyramid_test()
 {
@@ -203,15 +224,15 @@ FramePtrArray createTrees()
     Frame* secondFrame = new Frame(Transform(Translation(1,0,1),
                                 Rotation(90*M_PI/180, Axis(0,0,1))), *rootFrame, "secondFrame");
     Frame* thirdFrame = new Frame(Transform(Translation(0,0,1)), *secondFrame, "thirdFrame");
-    Frame* fourthFrame = new Frame(Transform(Translation(0, 1, 0.5)), *thirdFrame, "thirdFrame");
+    new Frame(Transform(Translation(0, 1, 0.5)), *thirdFrame, "thirdFrame");
 
     Frame* newBranch = new Frame(Transform(Translation(-1,0,0),
                               Rotation(45*M_PI/180, Axis(0,1,0))), *secondFrame, "newBranch");
-    Frame* more = new Frame(Transform(Translation(0.1, 0.5, -0.3)), *newBranch, "more");
+    new Frame(Transform(Translation(0.1, 0.5, -0.3)), *newBranch, "more");
 
     Frame* otherRoot = new Frame(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
     Frame* otherSecond = new Frame(Transform(Translation(0,1,1)), *otherRoot, "otherSecond");
-    Frame* otherThird = new Frame(Transform(Translation(-1,0,0)), *otherSecond, "otherThird");
+    new Frame(Transform(Translation(-1,0,0)), *otherSecond, "otherThird");
 
     FramePtrArray trees;
     trees.push_back(rootFrame);
@@ -224,7 +245,7 @@ FramePtrArray createTrees()
 void spin_test(FramePtrArray trees)
 {
     osg::Group* root = new osg::Group;
-    osgAkin::SpinNode* akinNode = new osgAkin::SpinNode;
+    SpinNode* akinNode = new SpinNode;
     root->addChild(akinNode);
 
     for(size_t i=0; i<trees.size(); ++i)
@@ -255,7 +276,7 @@ void akin_test(FramePtrArray trees)
     viewer.run();
 }
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
 //    akin_test(createTrees());
     spin_test(createTrees());

@@ -17,7 +17,7 @@ void make_circle(Line* circle, const akin::Translation& center, double radius)
     circle->updateVertices();
 }
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
     osg::Group* root = new osg::Group;
     osg::Geode* geode = new osg::Geode;

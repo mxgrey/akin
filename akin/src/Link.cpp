@@ -6,11 +6,11 @@ using namespace std;
 
 Link::Link(Robot *mRobot, Frame &referenceFrame, string linkName, size_t mID, bool root) :
     Body(referenceFrame, linkName),
-    _myRobot(mRobot),
-    _isRoot(root),
-    _isAnchor(root),
     _id(mID),
-    _isDummy(false)
+    _isAnchor(root),
+    _isRoot(root),
+    _isDummy(false),
+    _myRobot(mRobot)
 {
     _needsUpdate = true;
     

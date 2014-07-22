@@ -65,21 +65,21 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
              const Transform &mBaseTransform,
              const Axis &mJointAxis, Type mType,
              double mininumValue, double maximumValue) :
-    _myRobot(mRobot),
+    verb(mRobot->verb),
     _id(jointID),
     _name(jointName),
     _parentLink(mParentLink),
     _childLink(mChildLink),
+    _reversed(false),
     _upstreamLink(mParentLink),
     _downstreamLink(mChildLink),
     _baseTransform(mBaseTransform),
     _axis(mJointAxis),
+    _value(0),
     _min(mininumValue),
     _max(maximumValue),
     _myType(mType),
-    _reversed(false),
-    _value(0),
-    verb(mRobot->verb)
+    _myRobot(mRobot)
 {
     _computeRefTransform();
     

@@ -385,12 +385,12 @@ bool Robot::checkForJointName(const string& name) const
     return true;
 }
 
-void Robot::anchorLink(Link &newAnchor)
+void Robot::anchorLink(Link &)
 {
     // TODO
 }
 
-void Robot::anchorLink(size_t linkNum)
+void Robot::anchorLink(size_t )
 {
     // TODO
 }

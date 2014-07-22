@@ -14,6 +14,27 @@
 
 using namespace akin;
 using namespace std;
+using namespace osgAkin;
+
+class KneeNode : public AkinNode
+{
+public:
+
+    inline KneeNode() : time(0) { }
+
+    virtual void update()
+    {
+        time += 0.01;
+    
+        Robot& robot = getRobot(0);
+        robot.joint("NK2").value( 45*M_PI/180 * sin(time) );
+    
+        AkinNode::update();
+    }
+
+protected:
+    double time;
+};
 
 Robot& build_manual_robot()
 {
@@ -72,7 +93,7 @@ Robot& build_urdf_robot()
 void display_robot(Robot& displaying_robot)
 {
     osg::Group* root = new osg::Group;
-    osgAkin::KneeNode* akinNode = new osgAkin::KneeNode;
+    KneeNode* akinNode = new KneeNode;
     root->addChild(akinNode);
 
     akinNode->addRobot(displaying_robot);
@@ -111,16 +132,16 @@ void display_robot(Robot& displaying_robot)
 }
 
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
 //    Robot& built_robot = build_manual_robot();
     
     Robot& built_robot = build_urdf_robot();
 
-    Frame* camera_frame = new Frame(akin::Transform(Translation(0,0,0),
-                                                    Rotation(90*M_PI/180, akin::Axis(0, 1, 0))),
-                                                    built_robot.joint("NK2").childLink(),
-                                    "camera_frame");
+    new Frame(akin::Transform(Translation(0,0,0),
+                              Rotation(90*M_PI/180, akin::Axis(0, 1, 0))),
+                              built_robot.joint("NK2").childLink(),
+                              "camera_frame");
 
     
     display_robot(built_robot);

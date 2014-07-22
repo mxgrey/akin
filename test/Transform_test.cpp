@@ -81,13 +81,13 @@ void test_rotations()
 {
     Eigen::Quaterniond rot(Eigen::AngleAxisd(90*M_PI/180, Eigen::Vector3d(1,0,0)));
 
-    Rotation otherrot = Eigen::AngleAxisd(1, Eigen::Vector3d(1,1,1));
+//    Rotation otherrot = Eigen::AngleAxisd(1, Eigen::Vector3d(1,1,1));
 
     cout << rot.matrix() << endl;
 
 }
 
-int main(int argc, char* argv[])
+int main(int , char* [])
 {
     test_operators();
 
