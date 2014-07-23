@@ -156,6 +156,7 @@ const double DEG = M_PI/180.0;
 
 
 class Frame; // Declaring Frame here so I can have a pointer to it in KinObject
+class Tracker;
 
 /*!
  * \class KinObject
@@ -172,6 +173,7 @@ class KinObject
 public:
 
     friend class Frame;
+    friend class Tracker;
 
     KinObject(Frame &referenceFrame,
               const std::string& myName,
@@ -287,7 +289,7 @@ public:
       *
       * Note that the child frames are also included as child KinObjects.
       */
-    KinObject &registeredObject(size_t objNum);
+    KinObject& registeredObject(size_t objNum);
     
     /*!
       * \fn numChildObjects()

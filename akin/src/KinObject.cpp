@@ -154,7 +154,7 @@ void KinObject::_unregisterObject(KinObject *child)
     verb.end();
 
     int childIndex = -1;
-    for(size_t i=0; i<_registeredObjects.size(); i++)
+    for(size_t i=0; i<_registeredObjects.size(); ++i)
     {
         if(_registeredObjects[i] == child)
         {
@@ -168,7 +168,7 @@ void KinObject::_unregisterObject(KinObject *child)
         verb.brief() << "Trying to remove '" << child->name() << "' from the parentage of '"
                      << name() << "', but they are not related!";
         verb.desc() << " Children of '" << name() << "' include: ";
-        for(size_t i=0; i<_registeredObjects.size(); i++)
+        for(size_t i=0; i<_registeredObjects.size(); ++i)
             verb.desc() << " -- " << registeredObject(i).name() << "\n";
         verb.end();
 
