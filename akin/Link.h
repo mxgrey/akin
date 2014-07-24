@@ -82,20 +82,25 @@ public:
     inline size_t numChildLinks() const { return _childJoints.size(); }
 
     Joint& upstreamJoint();
+    const Joint& const_upstreamJoint() const;
     Link& upstreamLink();
+    const Link& const_upstreamLink() const;
 
     Joint& downstreamJoint(size_t num);
+    const Joint& const_downstreamJoint(size_t num) const;
     Link& downstreamLink(size_t num);
+    const Link& const_downstreamLink(size_t num) const;
     
     inline size_t numDownstreamJoints() const { return _downstreamJoints.size(); }
     inline size_t numDownstreamLinks() const { return _downstreamJoints.size(); }
     
     Manipulator& manip(size_t manipNum);
-    const Manipulator& const_manip(size_t manipNum);
+    const Manipulator& const_manip(size_t manipNum) const;
     size_t numManips() const;
 
     bool belongsTo(const Robot& someRobot) const;
     Robot& robot();
+    const Robot& const_robot() const;
 
     inline bool isDummy() const { return _isDummy; }
 

@@ -123,7 +123,7 @@ public:
 //                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const Translation& respectToWorld() const;
-    Translation withRespectTo(Frame& someFrame) const;
+    Translation withRespectTo(const Frame& someFrame) const;
 
 protected:
 
@@ -188,7 +188,7 @@ public:
 //                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const FreeVector& respectToWorld() const;
-    FreeVector withRespectTo(Frame& someFrame) const;
+    FreeVector withRespectTo(const Frame& someFrame) const;
 
 protected:
 
@@ -251,7 +251,7 @@ public:
 //            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     const Axis& respectToWorld() const;
-    Axis withRespectTo(Frame& someFrame) const;
+    Axis withRespectTo(const Frame& someFrame) const;
 
 protected:
 

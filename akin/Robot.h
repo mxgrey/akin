@@ -97,7 +97,10 @@ public:
     bool changeRefFrame(Frame& newRefFrame);
     
     const KinTranslation& com() const;
+    Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(), 
+                    Crawler::policy p = Crawler::DOWNSTREAM) const;
     const double& mass() const;
+    double mass(const Link& startLink, Crawler::policy p = Crawler::DOWNSTREAM) const;
 
     void name(std::string newName);
     inline std::string name() const { return _name; }
@@ -157,7 +160,8 @@ public:
     bool checkForJointName(const std::string& name) const;
     bool checkForManipName(const std::string& name) const;
 
-    inline Link& anchorLink() { return *_anchor; }
+    Link& anchorLink();
+    const Link& const_anchorLink() const;
     void anchorLink(Link&);
     void anchorLink(size_t);
     
@@ -183,6 +187,7 @@ protected:
 
     mutable KinTranslation _com;
     mutable double _mass;
+    mutable Crawler _crawler;
     
     std::string _name;
 

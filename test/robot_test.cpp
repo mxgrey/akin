@@ -102,16 +102,16 @@ void display_robot(Robot& displaying_robot)
 //    displaying_robot.joint(DOF_ROT_Z).value(90*M_PI/180);
 //    displaying_robot.joint(DOF_ROT_Y).value(90*M_PI/180);
 //    displaying_robot.joint(DOF_ROT_X).value(90*M_PI/180);
-    displaying_robot.joint(DOF_POS_X).value(1);
-    displaying_robot.joint(DOF_POS_Y).value(0.5);
+//    displaying_robot.joint(DOF_POS_X).value(1);
+//    displaying_robot.joint(DOF_POS_Y).value(0.5);
     displaying_robot.joint(DOF_POS_Z).value(1);
-    displaying_robot.joint(DOF_ROT_X).value(45*DEG);
-    displaying_robot.joint(DOF_ROT_Y).value(45*DEG);
+//    displaying_robot.joint(DOF_ROT_X).value(45*DEG);
+//    displaying_robot.joint(DOF_ROT_Y).value(45*DEG);
     
     
-    Robot::Crawler crawl(displaying_robot.joint("LKP").childLink(), Robot::Crawler::UPSTREAM);
+    Robot::Crawler crawl(displaying_robot.joint("LKP").childLink(), Robot::Crawler::DOWNSTREAM);
 //    Robot::Crawler crawl(displaying_robot.link(0), Robot::Crawler::DOWNSTREAM);
-    size_t count = 0;
+
     const Link* link = crawl.nextLink();
     if(link==NULL)
     {
@@ -126,6 +126,11 @@ void display_robot(Robot& displaying_robot)
 //            break;
     }
     
+    std::cout << "Center of mass (" << displaying_robot.com().refFrame().name() << "): " 
+              << displaying_robot.com().transpose() << std::endl;
+    std::cout << "Center of mass (World): " << displaying_robot.com().respectToWorld().transpose()
+                 << std::endl;
+    std::cout << "Mass: " << displaying_robot.mass() << std::endl;
 
 //    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
 //                     "sphere",false);

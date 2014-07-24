@@ -191,7 +191,7 @@ public:
       * Also note that calling this function automatically performs all necessary
       * updates to any relevant kinematic trees.
       */
-    Transform withRespectTo(Frame& otherFrame);
+    Transform withRespectTo(const Frame& otherFrame);
 
     /*!
      * \fn forceUpdate();

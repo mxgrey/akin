@@ -173,6 +173,14 @@ bool akinUtils::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> u
         std::cout << "No visual for the link named '" << link.name() << "'" << std::endl;
     }
     link.addVisual(visual);
+    
+    if(ulink->inertial)
+    {
+        link.com = akin::Translation(ulink->inertial->origin.position.x,
+                                     ulink->inertial->origin.position.y,
+                                     ulink->inertial->origin.position.z);
+        link.mass = ulink->inertial->mass;
+    }
 
     return true;
 }

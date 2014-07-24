@@ -159,16 +159,6 @@ const Joint& Link::const_childJoint(size_t num) const
     return const_cast<Link*>(this)->childJoint(num);
 }
 
-Link& Link::upstreamLink()
-{
-    if( !verb.Assert(!_isAnchor, verbosity::ASSERT_CASUAL,
-                     "You are requesting the upstream link of the anchor -- currently '"
-                     +name()+"' -- for the robot '"+_myRobot->name()+"'!"))
-        return *_myRobot->_dummyLink;
-    
-    return _upstreamJoint->upstreamLink();
-}
-
 Joint& Link::upstreamJoint()
 {
     if( !verb.Assert(!_isAnchor, verbosity::ASSERT_CASUAL,
@@ -179,15 +169,24 @@ Joint& Link::upstreamJoint()
     return *_upstreamJoint;
 }
 
-Link& Link::downstreamLink(size_t num)
+const Joint& Link::const_upstreamJoint() const
 {
-    if( !verb.Assert( num < _childJoints.size(),
-                      verbosity::ASSERT_CASUAL,
-                      "You have requested a downstream link index which is out of bounds "
-                      "for link '"+name()+"' in robot '"+_myRobot->name()+"'!"))
+    return const_cast<Link*>(this)->upstreamJoint();
+}
+
+Link& Link::upstreamLink()
+{
+    if( !verb.Assert(!_isAnchor, verbosity::ASSERT_CASUAL,
+                     "You are requesting the upstream link of the anchor -- currently '"
+                     +name()+"' -- for the robot '"+_myRobot->name()+"'!"))
         return *_myRobot->_dummyLink;
     
-    return downstreamJoint(num).downstreamLink();
+    return _upstreamJoint->upstreamLink();
+}
+
+const Link& Link::const_upstreamLink() const
+{
+    return const_cast<Link*>(this)->upstreamLink();
 }
 
 Joint& Link::downstreamJoint(size_t num)
@@ -201,6 +200,27 @@ Joint& Link::downstreamJoint(size_t num)
     return *_downstreamJoints[num];
 }
 
+const Joint& Link::const_downstreamJoint(size_t num) const
+{
+    return const_cast<Link*>(this)->downstreamJoint(num);
+}
+
+Link& Link::downstreamLink(size_t num)
+{
+    if( !verb.Assert( num < _childJoints.size(),
+                      verbosity::ASSERT_CASUAL,
+                      "You have requested a downstream link index which is out of bounds "
+                      "for link '"+name()+"' in robot '"+_myRobot->name()+"'!"))
+        return *_myRobot->_dummyLink;
+    
+    return downstreamJoint(num).downstreamLink();
+}
+
+const Link& Link::const_downstreamLink(size_t num) const
+{
+    return const_cast<Link*>(this)->downstreamLink(num);
+}
+
 Manipulator& Link::manip(size_t manipNum)
 {
     if( !verb.Assert( manipNum < _manips.size(),
@@ -212,7 +232,22 @@ Manipulator& Link::manip(size_t manipNum)
     return *_manips[manipNum];
 }
 
+const Manipulator& Link::const_manip(size_t manipNum) const
+{
+    return const_cast<Link*>(this)->manip(manipNum);
+}
+
+size_t Link::numManips() const
+{
+    return _manips.size();
+}
+
 Robot& Link::robot()
+{
+    return *_myRobot;
+}
+
+const Robot& Link::const_robot() const
 {
     return *_myRobot;
 }

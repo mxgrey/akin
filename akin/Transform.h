@@ -135,8 +135,7 @@ public:
     KinMacro( KinTransform, Transform )
 
     const Transform& respectToWorld() const;
-    
-    Transform withRespectTo(Frame& someFrame) const;
+    Transform withRespectTo(const Frame& someFrame) const;
 
 protected:
 

@@ -56,7 +56,7 @@ const Translation& KinTranslation::respectToWorld() const
     return _respectToWorld;
 }
 
-Translation KinTranslation::withRespectTo(Frame &someFrame) const
+Translation KinTranslation::withRespectTo(const Frame &someFrame) const
 {
     return someFrame.respectToWorld().inverse() * respectToWorld();
 }
@@ -78,7 +78,7 @@ const FreeVector& KinFreeVector::respectToWorld() const
     return _respectToWorld;
 }
 
-FreeVector KinFreeVector::withRespectTo(Frame &someFrame) const
+FreeVector KinFreeVector::withRespectTo(const Frame &someFrame) const
 {
     // TODO: Investigate if it is okay to leave off Transform()
     return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
@@ -101,7 +101,7 @@ const Axis& KinAxis::respectToWorld() const
     return _respectToWorld;
 }
 
-Axis KinAxis::withRespectTo(Frame &someFrame) const
+Axis KinAxis::withRespectTo(const Frame &someFrame) const
 {
     return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
 }

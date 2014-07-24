@@ -136,15 +136,91 @@ bool Robot::changeRefFrame(Frame &newRefFrame)
 
 const KinTranslation& Robot::com() const
 {
-    // TODO
+    _com.setZero();
+    _mass = 0;
+    
+    _crawler.reset(const_anchorLink());
+    const Link* current = _crawler.nextLink();
+    while(current != NULL)
+    {
+        _com += current->com.withRespectTo(_com.refFrame());
+        _mass += current->mass;
+        
+        for(size_t i=0; i<current->numManips(); ++i)
+        {
+            const Manipulator& manip_ = current->const_manip(i);
+            _com += manip_.com().withRespectTo(_com.refFrame());
+            _mass += manip_.mass();
+        }
+        
+        current = _crawler.nextLink();
+    }
+    
+    if( verb.Assert(_mass > 0, verbosity::ASSERT_CASUAL,
+                    "Center of Mass requested for Robot '"+name()+"', but it has "
+                    "no mass at all!"))
+        _com.respectToRef() = _com.respectToRef()/_mass;
+    else
+        _com.setZero();
     
     return _com;
 }
 
+// TODO: Consider merging these codes together
+
+Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
+                       Crawler::policy p) const
+{
+    Translation com_;
+    double mass_ = 0;
+    
+    _crawler.reset(startLink, p);
+    const Link* current = _crawler.nextLink();
+    while(current != NULL)
+    {
+        com_ += current->com.withRespectTo(referenceFrame);
+        mass_ += current->mass;
+        
+        for(size_t i=0; i<current->numManips(); ++i)
+        {
+            const Manipulator& manip_ = current->const_manip(i);
+            com_ += manip_.com().withRespectTo(referenceFrame);
+            mass_ += manip_.mass();
+        }
+        
+        current = _crawler.nextLink();
+    }
+    
+    com_ = com_/mass_;
+    
+    return com_;
+}
+
+double Robot::mass(const Link &startLink, Crawler::policy p) const
+{
+    double mass_ = 0;
+    
+    _crawler.reset(startLink, p);
+    const Link* current = _crawler.nextLink();
+    while(current != NULL)
+    {
+        mass_ += current->mass;
+        
+        for(size_t i=0; i<current->numManips(); ++i)
+        {
+            const Manipulator& manip_ = current->const_manip(i);
+            mass_ += manip_.mass();
+        }
+        
+        current = _crawler.nextLink();
+    }
+    
+    return mass_;
+}
+
 const double& Robot::mass() const
 {
-    // TODO
-    
+    _mass = mass(const_anchorLink());
     return _mass;
 }
 
@@ -169,6 +245,8 @@ bool Robot::createRootLink(string rootLinkName)
                                    Transform::Identity(), Axis(0,0,1), Joint::REVOLUTE);
     _root_dummy_joints.push_back(rot_z_joint);
     _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
+    
+    _com.changeRefFrame(*rootLink);
     
     return true;
 }
@@ -379,6 +457,9 @@ const Link& Robot::const_link(const string &linkName) const
     return const_link(getLinkIndex(linkName));
 }
 
+Link& Robot::anchorLink() { return *_anchor; }
+const Link& Robot::const_anchorLink() const { return *_anchor; }
+
 Link& Robot::link(size_t linkNum)
 {
     if( DOF_POS_X <= linkNum && linkNum <= DOF_ROT_Z )
@@ -566,6 +647,10 @@ void Robot::Crawler::reset(const akin::Link& startLink, const akin::Link& endLin
     
     _path.clear();
     _temp.clear();
+    
+    if(!startLink.const_robot().owns(endLink))
+        return;
+    
     if(startLink.descendsFrom(endLink))
     {
         const Link* current = &startLink;
@@ -651,9 +736,9 @@ const Link* Robot::Crawler::nextLink()
         while(_recorder.size() > 0)
         {
             Recorder& t = _recorder.back();
-            if(t.count < (int)(t.link->numChildLinks()))
+            if(t.count < (int)(t.link->numDownstreamLinks()))
             {
-                _recorder.push_back(Recorder(&t.link->const_childLink(t.count), 0));
+                _recorder.push_back(Recorder(&t.link->const_downstreamLink(t.count), 0));
                 ++t.count;
                 return _recorder.back().link;
             }
@@ -681,19 +766,19 @@ const Link* Robot::Crawler::nextLink()
             Recorder& t = _recorder.back();
             if(t.count == -1)
             {
-                if(t.link->const_parentLink().isDummy())
+                if(t.link->const_upstreamLink().isDummy())
                 {
                     ++t.count;
                 }
                 else if(_recorder.size() == 1)
                 {
-                    _recorder.push_back(Recorder(&t.link->const_parentLink(), -1));
+                    _recorder.push_back(Recorder(&t.link->const_upstreamLink(), -1));
                     ++t.count;
                     return _recorder.back().link;
                 }
-                else if(&t.link->const_parentLink() != _recorder[_recorder.size()-2].link)
+                else if(&t.link->const_upstreamLink() != _recorder[_recorder.size()-2].link)
                 {
-                    _recorder.push_back(Recorder(&t.link->const_parentLink(), -1));
+                    _recorder.push_back(Recorder(&t.link->const_upstreamLink(), -1));
                     ++t.count;
                     return _recorder.back().link;
                 }
@@ -702,20 +787,20 @@ const Link* Robot::Crawler::nextLink()
                     ++t.count;
                 }
             }
-            else if(t.count < (int)(t.link->numChildLinks()))
+            else if(t.count < (int)(t.link->numDownstreamLinks()))
             {
                 if(_recorder.size()==1)
                 {
                     ++t.count;
                 }
-                else if(&t.link->const_childLink(t.count) != _recorder[_recorder.size()-2].link)
+                else if(&t.link->const_downstreamLink(t.count) != _recorder[_recorder.size()-2].link)
                 {
-                    _recorder.push_back(Recorder(&t.link->const_childLink(t.count), -1));
+                    _recorder.push_back(Recorder(&t.link->const_downstreamLink(t.count), -1));
                     ++t.count;
                     if(_recorder.back().link->isDummy())
-                        std::cout << "Dummy found as child #" << t.count-1 << " of " 
+                        std::cout << "Dummy found as downstream #" << t.count-1 << " of " 
                                   << t.link->name() << " which has " 
-                                  << t.link->numChildLinks() << " children" << std::endl;
+                                  << t.link->numDownstreamLinks() << " downstreams" << std::endl;
                     return _recorder.back().link;
                 }
                 else

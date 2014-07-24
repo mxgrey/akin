@@ -56,7 +56,7 @@ const Transform& KinTransform::respectToWorld() const
     return _respectToWorld;
 }
 
-Transform KinTransform::withRespectTo(Frame &someFrame) const
+Transform KinTransform::withRespectTo(const akin::Frame& someFrame) const
 {
     return someFrame.respectToWorld().inverse() * respectToWorld();
 }

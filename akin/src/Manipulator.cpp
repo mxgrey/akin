@@ -189,9 +189,29 @@ const KinTranslation& Manipulator::com() const
         _mass += robot_->mass();
     }
     
-    _com.respectToRef() = _com.respectToRef()/_mass;
+    if(_mass>0)
+        _com.respectToRef() = _com.respectToRef()/_mass;
     
     return _com;
+}
+
+const double& Manipulator::mass() const
+{
+    _mass = 0;
+    
+    for(size_t i=0; i<_items.size(); ++i)
+    {
+        const Body* item_ = _items[i];
+        _mass += item_->mass;
+    }
+    
+    for(size_t i=0; i<_robots.size(); ++i)
+    {
+        const Robot* robot_ = _robots[i];
+        _mass += robot_->mass();
+    }
+    
+    return _mass;
 }
 
 void Manipulator::_findParentLink()
