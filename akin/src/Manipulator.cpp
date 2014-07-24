@@ -174,19 +174,22 @@ const KinTranslation& Manipulator::com() const
 {
     _com.setZero();
     _mass = 0;
+    double bmass;
     
     for(size_t i=0; i<_items.size(); ++i)
     {
         const Body* item_ = _items[i];
-        _com += item_->com.withRespectTo(refFrame());
-        _mass += item_->mass;
+        bmass = item_->mass;
+        _com += bmass*item_->com.withRespectTo(refFrame());
+        _mass += bmass;
     }
     
     for(size_t i=0; i<_robots.size(); ++i)
     {
         const Robot* robot_ = _robots[i];
-        _com += robot_->com().withRespectTo(refFrame());
-        _mass += robot_->mass();
+        bmass = robot_->mass();
+        _com += bmass*robot_->com().withRespectTo(refFrame());
+        _mass += bmass;
     }
     
     if(_mass>0)

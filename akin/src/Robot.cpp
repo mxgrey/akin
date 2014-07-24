@@ -136,62 +136,46 @@ bool Robot::changeRefFrame(Frame &newRefFrame)
 
 const KinTranslation& Robot::com() const
 {
-    _com.setZero();
-    _mass = 0;
-    
-    _crawler.reset(const_anchorLink());
-    const Link* current = _crawler.nextLink();
-    while(current != NULL)
-    {
-        _com += current->com.withRespectTo(_com.refFrame());
-        _mass += current->mass;
-        
-        for(size_t i=0; i<current->numManips(); ++i)
-        {
-            const Manipulator& manip_ = current->const_manip(i);
-            _com += manip_.com().withRespectTo(_com.refFrame());
-            _mass += manip_.mass();
-        }
-        
-        current = _crawler.nextLink();
-    }
-    
-    if( verb.Assert(_mass > 0, verbosity::ASSERT_CASUAL,
-                    "Center of Mass requested for Robot '"+name()+"', but it has "
-                    "no mass at all!"))
-        _com.respectToRef() = _com.respectToRef()/_mass;
-    else
-        _com.setZero();
-    
+    _com = com(const_anchorLink(), _com.refFrame());
     return _com;
 }
-
-// TODO: Consider merging these codes together
 
 Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
                        Crawler::policy p) const
 {
     Translation com_;
-    double mass_ = 0;
+    double mass_ = 0, lmass = 0;
     
     _crawler.reset(startLink, p);
     const Link* current = _crawler.nextLink();
     while(current != NULL)
     {
-        com_ += current->com.withRespectTo(referenceFrame);
-        mass_ += current->mass;
+        std::cout << current->name() << " (" << current->mass << "): " 
+                  << current->com.respectToRef() << std::endl;
+        lmass = current->mass;
+        com_ += lmass*current->com.withRespectTo(referenceFrame);
+        mass_ += lmass;
         
         for(size_t i=0; i<current->numManips(); ++i)
         {
             const Manipulator& manip_ = current->const_manip(i);
-            com_ += manip_.com().withRespectTo(referenceFrame);
-            mass_ += manip_.mass();
+            std::cout << manip_.name() << " (" << manip_.mass() << "): " 
+                      << manip_.com.respectToRef() << std::endl;
+            lmass = manip_.mass();
+            com_ += lmass*manip_.com().withRespectTo(referenceFrame);
+            mass_ += lmass;
         }
         
         current = _crawler.nextLink();
     }
     
-    com_ = com_/mass_;
+//    if( verb.Assert(_mass > 0, verbosity::ASSERT_CASUAL,
+//                    "Center of Mass requested for Robot '"+name()+"' starting at Link '"
+//                    +startLink.name()+"', but there was no mass at all!") )
+    if( _mass > 0 )
+        com_ = com_/mass_;
+    else
+        com_.setZero();
     
     return com_;
 }
