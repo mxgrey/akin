@@ -109,8 +109,9 @@ void display_robot(Robot& displaying_robot)
 //    displaying_robot.joint(DOF_ROT_Y).value(45*DEG);
     
     
-    Robot::Crawler crawl(displaying_robot.joint("LKP").childLink(), Robot::Crawler::DOWNSTREAM);
-//    Robot::Crawler crawl(displaying_robot.link(0), Robot::Crawler::DOWNSTREAM);
+//    Robot::Crawler crawl(displaying_robot.joint("LKP").childLink(), Robot::Crawler::DOWNSTREAM);
+    Robot::Crawler crawl(displaying_robot.link(0), Robot::Crawler::DOWNSTREAM);
+//    Robot::Crawler crawl(displaying_robot.link(DOF_POS_X), Robot::Crawler::DOWNSTREAM);
 
     const Link* link = crawl.nextLink();
     if(link==NULL)
@@ -119,7 +120,8 @@ void display_robot(Robot& displaying_robot)
     }
     while(link != NULL)
     {
-        std::cout << link->name() << std::endl;
+        std::cout << *link << std::endl;
+//        std::cout << link->const_parentJoint() << std::endl;
         link = crawl.nextLink();
 //        ++count;
 //        if(count > 10)
@@ -128,6 +130,10 @@ void display_robot(Robot& displaying_robot)
     
     std::cout << "Center of mass (" << displaying_robot.com().refFrame().name() << "): " 
               << displaying_robot.com().transpose() << std::endl;
+    
+    
+//    std::cout << displaying_robot.joint(0) << std::endl;
+    
 //    std::cout << "Center of mass (World): " << displaying_robot.com().respectToWorld().transpose()
 //                 << std::endl;
 //    std::cout << "Mass: " << displaying_robot.mass() << std::endl;

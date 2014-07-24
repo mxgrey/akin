@@ -21,7 +21,8 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _dummyLink->_isDummy = true;
 
     _dummyJoint = new Joint(this, -1, "dummy", _dummyLink, _dummyLink);
-    _dummyJoint->_myType = Joint::DUMMY;
+    _dummyJoint->_myType = Joint::FIXED;
+    _dummyJoint->_isDummy = true;
     _dummyJoint->_changeParentLink(_dummyLink);
     _dummyJoint->_childLink = _dummyLink;
     
@@ -30,10 +31,13 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     
     // Create the root degrees of freedom
     Link* pos_x_link = new Link(this, referenceFrame, "DOF_POS_X", DOF_POS_X, true);
+    pos_x_link->_isDummy = true;
     _root_dummy_links.push_back(pos_x_link);
     _linkNameToIndex[pos_x_link->name()] = pos_x_link->id();
+    pos_x_link->_setParentJoint(_dummyJoint);
     
     Link* pos_y_link = new Link(this, *pos_x_link, "DOF_POS_Y", DOF_POS_Y, false);
+    pos_y_link->_isDummy = true;
     _root_dummy_links.push_back(pos_y_link);
     _linkNameToIndex[pos_y_link->name()] = pos_y_link->id();
     
@@ -42,9 +46,13 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _root_dummy_joints.push_back(pos_x_joint);
     _jointNameToIndex[pos_x_joint->name()] = DOF_POS_X;
     
+    pos_x_link->_addChildJoint(pos_x_joint);
+    pos_y_link->_setParentJoint(pos_x_joint);
+    
     //////////
     
     Link* pos_z_link = new Link(this, *pos_y_link, "DOF_POS_Z", DOF_POS_Z, false);
+    pos_z_link->_isDummy = true;
     _root_dummy_links.push_back(pos_z_link);
     _linkNameToIndex[pos_z_link->name()] = pos_z_link->id();
     
@@ -53,9 +61,13 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _root_dummy_joints.push_back(pos_y_joint);
     _jointNameToIndex[pos_y_joint->name()] = DOF_POS_Y;
     
+    pos_y_link->_addChildJoint(pos_y_joint);
+    pos_z_link->_setParentJoint(pos_y_joint);
+    
     //////////
     
     Link* rot_x_link = new Link(this, *pos_z_link, "DOF_ROT_X", DOF_ROT_X, false);
+    rot_x_link->_isDummy = true;
     _root_dummy_links.push_back(rot_x_link);
     _linkNameToIndex[rot_x_link->name()] = rot_x_link->id();
     
@@ -64,9 +76,13 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _root_dummy_joints.push_back(pos_z_joint);
     _jointNameToIndex[pos_z_joint->name()] = DOF_POS_Z;
     
+    pos_z_link->_addChildJoint(pos_z_joint);
+    rot_x_link->_setParentJoint(pos_z_joint);
+    
     //////////
     
     Link* rot_y_link = new Link(this, *rot_x_link, "DOF_ROT_Y", DOF_ROT_X, false);
+    rot_y_link->_isDummy = true;
     _root_dummy_links.push_back(rot_y_link);
     _linkNameToIndex[rot_y_link->name()] = rot_y_link->id();
     
@@ -75,9 +91,13 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _root_dummy_joints.push_back(rot_x_joint);
     _jointNameToIndex[rot_x_joint->name()] = DOF_ROT_X;
     
+    rot_x_link->_addChildJoint(rot_x_joint);
+    rot_y_link->_setParentJoint(rot_x_joint);
+    
     //////////
     
     Link* rot_z_link = new Link(this, *rot_y_link, "DOF_ROT_Z", DOF_ROT_Z, false);
+    rot_z_link->_isDummy = true;
     _root_dummy_links.push_back(rot_z_link);
     _linkNameToIndex[rot_z_link->name()] = rot_z_link->id();
     
@@ -85,6 +105,9 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
                                    Transform::Identity(), Axis(0,1,0), Joint::REVOLUTE);
     _root_dummy_joints.push_back(rot_y_joint);
     _jointNameToIndex[rot_y_joint->name()] = DOF_ROT_Y;
+    
+    rot_y_link->_addChildJoint(rot_y_joint);
+    rot_z_link->_setParentJoint(rot_y_joint);
     
     //////////
     
@@ -227,6 +250,9 @@ bool Robot::createRootLink(string rootLinkName)
     _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
     
     _com.changeRefFrame(*rootLink);
+
+    _root_dummy_links.back()->_addChildJoint(rot_z_joint);
+    rootLink->_setParentJoint(rot_z_joint);
     
     return true;
 }

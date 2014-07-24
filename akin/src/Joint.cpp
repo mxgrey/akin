@@ -4,6 +4,20 @@
 using namespace akin;
 using namespace std;
 
+std::string Joint::type_to_string(Type myJointType)
+{
+    switch(myJointType)
+    {
+        case FIXED:             return "FIXED";
+        case REVOLUTE:          return "REVOLUTE";
+        case PRISMATIC:         return "PRISMATIC";
+        case CUSTOM:            return "CUSTOM";
+        case JOINT_TYPE_SIZE:   return "INVALID (JOINT_TYPE_SIZE)";
+    }
+    
+    return "UNKNOWN JOINT TYPE ("+to_string((int)myJointType)+")";
+}
+
 bool Joint::value(double newJointValue)
 {
     bool inBounds = true;
@@ -30,6 +44,8 @@ bool Joint::value(double newJointValue)
     
     return inBounds;
 }
+
+double Joint::value() const { return _value; }
 
 void Joint::_computeRefTransform()
 {
@@ -79,6 +95,7 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
     _min(mininumValue),
     _max(maximumValue),
     _myType(mType),
+    _isDummy(false),
     _myRobot(mRobot)
 {
     _computeRefTransform();
@@ -100,30 +117,6 @@ Joint::~Joint()
 {
     
 }
-
-bool Joint::withinLimits()
-{
-    if( min() <= value() && value() <= max() )
-        return true;
-    
-    return false;
-}
-
-bool Joint::withinLimits(double someValue)
-{
-    if( min() <= someValue && someValue <= max() )
-        return true;
-    
-    return false;
-}
-
-void Joint::_changeParentLink(Link *newParent)
-{
-    _upstreamLink = newParent;
-    _parentLink = newParent;
-}
-
-//Robot& Joint::robot() const { return *_myRobot; }
 
 bool Joint::min(double newMinValue)
 {
@@ -153,6 +146,44 @@ bool Joint::max(double newMaxValue)
     return inBounds;
 }
 
+bool Joint::withinLimits() const
+{
+    return withinLimits(value());
+}
+
+bool Joint::withinLimits(double someValue) const
+{
+    if( min() <= someValue && someValue <= max() )
+        return true;
+    
+    return false;
+}
+
+Joint::Type Joint::type() const { return _myType; }
+void Joint::type(Type newType) { _myType = newType; _computeRefTransform(); }
+
+void Joint::_changeParentLink(Link *newParent)
+{
+    _upstreamLink = newParent;
+    _parentLink = newParent;
+}
+
+void Joint::axis(Axis newAxis) { _axis = newAxis; _computeRefTransform(); }
+const Axis& Joint::axis() const { return _axis; }
+
+void Joint::baseTransform(const Transform &newBaseTf)
+{
+    _baseTransform = newBaseTf; _computeRefTransform();
+}
+
+const Transform& Joint::baseTransform() const { return _baseTransform; }
+
+size_t Joint::id() const { return _id; }
+
+std::string Joint::name() const { return _name; }
+
+//Robot& Joint::robot() const { return *_myRobot; }
+
 bool Joint::name(const string &new_name)
 {
     if( verb.Assert(!_myRobot->checkForJointName(new_name),
@@ -172,32 +203,68 @@ bool Joint::name(const string &new_name)
     return true;
 }
 
-Joint& Joint::parentJoint()
+Link& Joint::parentLink() { return *_parentLink; }
+const Link& Joint::const_parentLink() const { return const_cast<Joint*>(this)->parentLink(); }
+
+Link& Joint::childLink() { return *_childLink; }
+const Link& Joint::const_childLink() const { return const_cast<Joint*>(this)->childLink(); }
+
+Joint& Joint::parentJoint() { return _parentLink->parentJoint(); }
+const Joint& Joint::const_parentJoint() const { return const_cast<Joint*>(this)->parentJoint(); }
+
+Joint& Joint::childJoint(size_t num) { return _childLink->childJoint(num); }
+const Joint& Joint::const_childJoint(size_t num) const
+    { return const_cast<Joint*>(this)->childJoint(num); }
+
+size_t Joint::numChildJoints() const { return _childLink->numChildJoints(); }
+
+Link& Joint::upstreamLink() { return *_upstreamLink; }
+const Link& Joint::const_upstreamLink() const { return const_cast<Joint*>(this)->upstreamLink(); }
+
+Link& Joint::downstreamLink() { return *_downstreamLink; }
+const Link& Joint::const_downstreamLink() const
+    { return const_cast<Joint*>(this)->downstreamLink(); }
+
+Joint& Joint::upstreamJoint() { return _upstreamLink->upstreamJoint(); }
+const Joint& Joint::const_upstreamJoint() const 
+    { return const_cast<Joint*>(this)->upstreamJoint(); }
+
+Joint& Joint::downstreamJoint(size_t num) { return _downstreamLink->downstreamJoint(num); }
+const Joint& Joint::const_downstreamJoint(size_t num) const
+    { return const_cast<Joint*>(this)->downstreamJoint(num); }
+
+size_t Joint::numDownstreamJoints() const { return _downstreamLink->numDownstreamJoints(); }
+
+bool Joint::belongsTo(const Robot &someRobot) const { return &someRobot == _myRobot; }
+Robot& Joint::robot() { return *_myRobot; }
+const Robot& Joint::const_robot() const { return const_cast<Joint*>(this)->robot(); }
+
+bool Joint::isDummy() const { return _isDummy; }
+
+bool Joint::isReversed() const { return _reversed; }
+
+std::ostream& operator<<(std::ostream& oStrStream, akin::Joint::Type type)
 {
-    return _parentLink->parentJoint();
+    oStrStream << Joint::type_to_string(type);
+    return oStrStream;
 }
 
-Joint& Joint::childJoint(size_t num)
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Joint& someJoint)
 {
-    return _childLink->childJoint(num);
+    oStrStream << "Joint named '" << someJoint.name() << "' with ID " << someJoint.id()
+               << " connects Parent Link '" << someJoint.const_parentLink().name() << "' to Child '" 
+               << someJoint.const_childLink().name() << "' for robot '" 
+               << someJoint.const_robot().name() << "'\n";
+    if(someJoint.isReversed())
+        oStrStream << "[Parent/Child are currently kinematically reversed]\n";
+    oStrStream << "Axis: <" << someJoint.axis().transpose() << "> (" << someJoint.type() 
+               << ") with Base Transform:\n" << someJoint.baseTransform() << "\n";
+    oStrStream << "Current value: " << someJoint.value() << " (min " 
+               << someJoint.min() << " | max " << someJoint.max() << ")";
+    if(!someJoint.withinLimits())
+        oStrStream << " [Currently outside its limits!]";
+    oStrStream << "\n";
+    
+    return oStrStream;
 }
 
-size_t Joint::numChildJoints()
-{
-    return _childLink->numChildJoints();
-}
-
-Joint& Joint::upstreamJoint()
-{
-    return _upstreamLink->upstreamJoint();
-}
-
-Joint& Joint::downstreamJoint(size_t num)
-{
-    return _downstreamLink->downstreamJoint(num);
-}
-
-size_t Joint::numDownstreamJoints()
-{
-    return _downstreamLink->numDownstreamJoints();
-}

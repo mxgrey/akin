@@ -96,7 +96,7 @@ bool akinUtils::exploreLink(akin::Robot &robot,
                                           ujoint->parent_to_joint_origin_transform.rotation.y,
                                           ujoint->parent_to_joint_origin_transform.rotation.z)
                                       );
-        akin::Joint::Type jt = akin::Joint::DUMMY;
+        akin::Joint::Type jt = akin::Joint::FIXED;
         if(ujoint->type == urdf::Joint::REVOLUTE)
             jt = akin::Joint::REVOLUTE;
         else if(ujoint->type == urdf::Joint::PRISMATIC)

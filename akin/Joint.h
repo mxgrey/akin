@@ -16,27 +16,30 @@ public:
     friend class Robot;
 
     typedef enum {
-        DUMMY = 0,
+        
+        FIXED = 0,
         REVOLUTE,
         PRISMATIC,
         CUSTOM,
 
         JOINT_TYPE_SIZE
     } Type;
+    
+    static std::string type_to_string(Type myJointType);
 
     /*!
      * \fn value(double newJointValue)
      * \brief Set this joint's value
      * \param newJointValue
      */
-    virtual bool value(double newJointValue);
+    bool value(double newJointValue);
 
     /*!
      * \fn value()
      * \brief Get this joint's value
      * \return
      */
-    inline virtual double value() { return _value; }
+    double value() const;
 
     /*!
      * \fn min(double newMinValue)
@@ -50,7 +53,7 @@ public:
      * \brief Get this joint's minimum value
      * \return This joint's minimum value
      */
-    inline virtual double min() { return _min; }
+    inline virtual double min() const { return _min; }
 
     /*!
      * \fn max(double newMaxValue)
@@ -64,70 +67,60 @@ public:
      * \brief Get this joint's maximum value
      * \return This joint's maximum value
      */
-    inline virtual double max() { return _max; }
+    inline virtual double max() const { return _max; }
     
-    virtual bool withinLimits();
-    virtual bool withinLimits(double someValue);
+    virtual bool withinLimits() const;
+    virtual bool withinLimits(double someValue) const;
 
     /*!
      * \fn jointType()
      * \brief Returns this joint's type
      * \return This joint's type
      */
-    inline Type jointType() { return _myType; }
-    
-    inline void jointType(Type newType)
-    {
-        _myType = newType; _computeRefTransform();
-    }
+    Type type() const;
+    void type(Type newType);
 
     /*!
      * \fn jointAxis(Axis& jointAxis)
      * \brief Set the axis of this joint
      * \param newAxis
      */
-    inline void jointAxis(Axis newAxis)
-    {
-        _axis = newAxis; _computeRefTransform();
-    }
+    void axis(Axis newAxis);
 
     /*!
      * \fn jointAxis()
      * \brief Get the axis of this joint
      * \return This joint's axis
      */
-    inline const Axis& jointAxis() { return _axis; }
+    const Axis& axis() const;
 
     /*!
      * \fn baseTransform(const Transform& newBaseTf)
      * \brief Set what the relative transform is when the joint value is 0.
      * \param newBaseTf
      */
-    inline void baseTransform(const Transform& newBaseTf)
-    {
-        _baseTransform = newBaseTf; _computeRefTransform();
-    }
+    void baseTransform(const Transform& newBaseTf);
 
     /*!
      * \fn baseTransform()
      * \brief Get what the relative transform is when the joint value is 0.
      * \return
      */
-    inline const Transform& baseTransform() { return _baseTransform; }
+    const Transform& baseTransform() const;
 
     /*!
      * \fn id()
      * \brief Get this joint's index ID
      * \return
      */
-    inline size_t id() { return _id; }
+    size_t id() const;
 
     /*!
      * \fn name()
      * \brief Get this joint's name
      * \return
      */
-    inline std::string name() const { return _name; }
+    std::string name() const;
 
     /*!
      * \fn name(const std::string& new_name)
@@ -145,27 +138,37 @@ public:
 
 
 //    virtual void parentLink(Link& new_parent_link);
-    inline Link& parentLink() { return *_parentLink; }
-    inline Link& childLink() { return *_childLink; }
+    Link& parentLink();
+    const Link& const_parentLink() const;
+    Link& childLink();
+    const Link& const_childLink() const;
     
     Joint& parentJoint();
+    const Joint& const_parentJoint() const;
     Joint& childJoint(size_t num);
-    size_t numChildJoints();
+    const Joint& const_childJoint(size_t num) const;
+    size_t numChildJoints() const;
     
-    inline Link& upstreamLink() { return *_upstreamLink; }
-    inline Link& downstreamLink() { return *_downstreamLink; }
+    Link& upstreamLink();
+    const Link& const_upstreamLink() const;
+    Link& downstreamLink();
+    const Link& const_downstreamLink() const;
     
     Joint& upstreamJoint();
+    const Joint& const_upstreamJoint() const;
     Joint& downstreamJoint(size_t num);
-    size_t numDownstreamJoints();
+    const Joint& const_downstreamJoint(size_t num) const;
+    size_t numDownstreamJoints() const;
 
-    inline bool belongsTo(const Robot& someRobot) const { return &someRobot == _myRobot; }
-
-    inline bool isDummy() { return _myType == DUMMY; }
+    bool belongsTo(const Robot& someRobot) const;
+    Robot& robot();
+    const Robot& const_robot() const;
     
-    inline Robot& robot() const { return *_myRobot; }
+    bool isDummy() const;
     
     verbosity& verb;
+    
+    bool isReversed() const;
 
 protected:
     
@@ -200,6 +203,7 @@ protected:
 
     Type _myType;
 
+    bool _isDummy;
     Robot* _myRobot;
     
     ~Joint();
@@ -207,5 +211,7 @@ protected:
 
 } // namespace akin
 
+std::ostream& operator<<(std::ostream& oStrStream, akin::Joint::Type type);
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Joint& someJoint);
 
 #endif // JOINT_H

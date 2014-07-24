@@ -28,7 +28,7 @@ public:
      * robot represents the frame which does not move when joint angles are changed.
      * Any link can be set as the robot's anchor.
      */
-    inline bool isAnchor() const { return _isAnchor; }
+    bool isAnchor() const;
 
     /*!
      * \fn setAsAnchor()
@@ -41,7 +41,7 @@ public:
      * \brief Returns true iff this link is the root link of the robot
      * \return
      */
-    inline bool isRoot() const { return _isRoot; }
+    bool isRoot() const;
 
     /*!
      * \fn parentLink()
@@ -78,8 +78,8 @@ public:
     Joint& childJoint(size_t num);
     const Joint& const_childJoint(size_t num) const;
 
-    inline size_t numChildJoints() const { return _childJoints.size(); }
-    inline size_t numChildLinks() const { return _childJoints.size(); }
+    size_t numChildJoints() const;
+    inline size_t numChildLinks() const;
 
     Joint& upstreamJoint();
     const Joint& const_upstreamJoint() const;
@@ -91,8 +91,8 @@ public:
     Link& downstreamLink(size_t num);
     const Link& const_downstreamLink(size_t num) const;
     
-    inline size_t numDownstreamJoints() const { return _downstreamJoints.size(); }
-    inline size_t numDownstreamLinks() const { return _downstreamJoints.size(); }
+    size_t numDownstreamJoints() const;
+    size_t numDownstreamLinks() const;
     
     Manipulator& manip(size_t manipNum);
     const Manipulator& const_manip(size_t manipNum) const;
@@ -102,7 +102,7 @@ public:
     Robot& robot();
     const Robot& const_robot() const;
 
-    inline bool isDummy() const { return _isDummy; }
+    bool isDummy() const;
 
 protected:
     
@@ -133,49 +133,6 @@ protected:
 
 } // namespace akin
 
-inline std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
-{
-    oStrStream << "Link named '" << someLink.name() << "' ";
-    if(someLink.isRoot())
-    {
-        oStrStream << "is the root link ";
-    }
-    if(someLink.isAnchor())
-    {
-        if(someLink.isRoot())
-            oStrStream << "and ";
-        oStrStream << "is the anchor link ";
-    }
-    
-    if(!someLink.isRoot())
-    {
-        if(someLink.isAnchor())
-            oStrStream << "with ";
-        else
-            oStrStream << " has ";
-        oStrStream << "parent joint " << someLink.const_parentJoint().name();
-    }
-    
-    oStrStream << "\n";
-    
-    if(someLink.numChildJoints() == 0)
-    {
-        oStrStream << "This link has no child joints";
-    }
-    else
-    {
-        oStrStream << "Child joints are: ";
-        for(size_t i=0; i<someLink.numChildJoints(); ++i)
-        {
-            oStrStream << someLink.const_childJoint(i).name();
-            if(i+1 < someLink.numChildJoints())
-                oStrStream << ", ";
-        }
-    }
-    
-    oStrStream << "\n" << (akin::Frame&)someLink << std::endl;
-    
-    return oStrStream;
-}
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink);
 
 #endif // LINK_H
