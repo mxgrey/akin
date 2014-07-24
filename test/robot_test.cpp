@@ -128,9 +128,9 @@ void display_robot(Robot& displaying_robot)
     
     std::cout << "Center of mass (" << displaying_robot.com().refFrame().name() << "): " 
               << displaying_robot.com().transpose() << std::endl;
-    std::cout << "Center of mass (World): " << displaying_robot.com().respectToWorld().transpose()
-                 << std::endl;
-    std::cout << "Mass: " << displaying_robot.mass() << std::endl;
+//    std::cout << "Center of mass (World): " << displaying_robot.com().respectToWorld().transpose()
+//                 << std::endl;
+//    std::cout << "Mass: " << displaying_robot.mass() << std::endl;
 
 //    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
 //                     "sphere",false);

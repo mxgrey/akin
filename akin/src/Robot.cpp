@@ -150,8 +150,6 @@ Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
     const Link* current = _crawler.nextLink();
     while(current != NULL)
     {
-        std::cout << current->name() << " (" << current->mass << "): " 
-                  << current->com.respectToRef() << std::endl;
         lmass = current->mass;
         com_ += lmass*current->com.withRespectTo(referenceFrame);
         mass_ += lmass;
@@ -159,8 +157,6 @@ Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
         for(size_t i=0; i<current->numManips(); ++i)
         {
             const Manipulator& manip_ = current->const_manip(i);
-            std::cout << manip_.name() << " (" << manip_.mass() << "): " 
-                      << manip_.com.respectToRef() << std::endl;
             lmass = manip_.mass();
             com_ += lmass*manip_.com().withRespectTo(referenceFrame);
             mass_ += lmass;
