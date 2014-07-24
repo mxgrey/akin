@@ -49,6 +49,7 @@ using namespace std;
 
 Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
+    _isLink(false),
     _isWorld(false)
 {
     _isFrame = true;
@@ -58,6 +59,7 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
 Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _respectToRef(relativeTf),
+    _isLink(false),
     _isWorld(false)
 {
     _isFrame = true;
@@ -67,6 +69,7 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
 
 Frame::Frame(bool) :
     KinObject(*this, "World", verbosity::LOG, "World Frame", true),
+    _isLink(false),
     _isWorld(true)
 {
     _isFrame = true;
@@ -194,6 +197,8 @@ bool Frame::changeRefFrame(Frame &newRefFrame)
 }
 
 bool Frame::isWorld() const { return _isWorld; }
+
+bool Frame::isLink() const { return _isLink; }
 
 void Frame::respectToRef(const Transform &newTf)
 {

@@ -135,6 +135,12 @@ public:
       */
     bool isWorld() const;
     
+    /*!
+     * \fn isLink()
+     * \brief Return true if the frame is also a robot's link
+     * \return 
+     */
+    bool isLink() const;
     
     /*!
       * \fn respectToRef(const Transform& newTf)
@@ -215,6 +221,8 @@ protected:
 
     void _gainChildFrame(Frame* child);
     void _loseChildFrame(Frame* child);
+    
+    bool _isLink;
 
 private:
 

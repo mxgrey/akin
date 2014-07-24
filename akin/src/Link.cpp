@@ -13,9 +13,10 @@ Link::Link(Robot *mRobot, Frame &referenceFrame, string linkName, size_t mID, bo
     _myRobot(mRobot)
 {
     _needsUpdate = true;
+    _isLink = true;
     
-    if(_isRoot)
-        _parentJoint = _myRobot->_dummyJoint;
+//    if(_isRoot)
+//        _parentJoint = _myRobot->_dummyJoint;
 }
 
 Link::~Link()
@@ -106,6 +107,11 @@ Link& Link::parentLink()
     return _parentJoint->parentLink();
 }
 
+const Link& Link::const_parentLink() const
+{
+    return const_cast<Link*>(this)->parentLink();
+}
+
 Joint& Link::parentJoint()
 {
     if( !verb.Assert(!_isRoot, verbosity::ASSERT_CASUAL,
@@ -114,6 +120,11 @@ Joint& Link::parentJoint()
         return *_myRobot->_dummyJoint;
     
     return *_parentJoint;
+}
+
+const Joint& Link::const_parentJoint() const
+{
+    return const_cast<Link*>(this)->parentJoint();
 }
 
 Link& Link::childLink(size_t num)
@@ -127,6 +138,11 @@ Link& Link::childLink(size_t num)
     return childJoint(num).childLink();
 }
 
+const Link& Link::const_childLink(size_t num) const
+{
+    return const_cast<Link*>(this)->childLink(num);
+}
+
 Joint& Link::childJoint(size_t num)
 {
     if( !verb.Assert( num < _childJoints.size(),
@@ -136,6 +152,11 @@ Joint& Link::childJoint(size_t num)
         return *_myRobot->_dummyJoint;
     
     return *_childJoints[num];
+}
+
+const Joint& Link::const_childJoint(size_t num) const
+{
+    return const_cast<Link*>(this)->childJoint(num);
 }
 
 Link& Link::upstreamLink()
@@ -178,6 +199,17 @@ Joint& Link::downstreamJoint(size_t num)
         return *_myRobot->_dummyJoint;
     
     return *_downstreamJoints[num];
+}
+
+Manipulator& Link::manip(size_t manipNum)
+{
+    if( !verb.Assert( manipNum < _manips.size(),
+                      verbosity::ASSERT_CASUAL,
+                      "You have requested a manipulator index which is out of bounds "
+                      "for link '"+name()+"' in robot '"+_myRobot->name()+"'!"))
+        return *_myRobot->_dummyManip;
+    
+    return *_manips[manipNum];
 }
 
 Robot& Link::robot()

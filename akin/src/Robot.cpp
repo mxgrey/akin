@@ -5,7 +5,8 @@
 using namespace akin;
 using namespace std;
 
-Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level)
+Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level) :
+    _com(referenceFrame, "CenterOfMass")
 {
     _initializeRobot(referenceFrame, report_level);
 }
@@ -23,6 +24,9 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _dummyJoint->_myType = Joint::DUMMY;
     _dummyJoint->_changeParentLink(_dummyLink);
     _dummyJoint->_childLink = _dummyLink;
+    
+    _dummyManip = new Manipulator(this, *_dummyLink, "dummy");
+    _dummyManip->_isDummy = true;
     
     // Create the root degrees of freedom
     Link* pos_x_link = new Link(this, referenceFrame, "DOF_POS_X", DOF_POS_X, true);
@@ -113,6 +117,35 @@ Robot::~Robot()
     {
         delete _root_dummy_joints[j];
     }
+}
+
+Frame& Robot::refFrame()
+{
+    return _root_dummy_links.front()->refFrame();
+}
+
+const Frame& Robot::const_refFrame() const
+{
+    return const_cast<Robot*>(this)->refFrame();
+}
+
+bool Robot::changeRefFrame(Frame &newRefFrame)
+{
+    return _root_dummy_links.front()->changeRefFrame(newRefFrame);
+}
+
+const KinTranslation& Robot::com() const
+{
+    // TODO
+    
+    return _com;
+}
+
+const double& Robot::mass() const
+{
+    // TODO
+    
+    return _mass;
 }
 
 void Robot::name(string newName)
@@ -281,16 +314,26 @@ void Robot::_deleteConnection(Joint *deadJoint)
     delete deadJoint;
 }
 
-Joint& Robot::joint(const string &jointName)
+size_t Robot::getJointIndex(const string &jointName) const
 {
     StringMap::const_iterator j = _jointNameToIndex.find(jointName);
     if( !verb.Assert( j != _jointNameToIndex.end(),
                       verbosity::ASSERT_CASUAL,
                      "There is no joint named '"+jointName+"' in the robot named '"
                      +name()+"'!") )
-        return *_dummyJoint;
+        return DOF_INVALID;
     
-    return *_joints.at(j->second);
+    return j->second;
+}
+
+Joint& Robot::joint(const string &jointName)
+{
+    return joint(getJointIndex(jointName));
+}
+
+const Joint& Robot::const_joint(const string &jointName) const
+{
+    return const_joint(getJointIndex(jointName));
 }
 
 Joint& Robot::joint(size_t jointNum)
@@ -309,16 +352,31 @@ Joint& Robot::joint(size_t jointNum)
     return *_joints[jointNum];
 }
 
-Link& Robot::link(const string &linkName)
+const Joint& Robot::const_joint(size_t jointNum) const
+{
+    return const_cast<Robot*>(this)->joint(jointNum);
+}
+
+size_t Robot::getLinkIndex(const string &linkName) const
 {
     StringMap::const_iterator i = _linkNameToIndex.find(linkName);
     if( !verb.Assert( i != _linkNameToIndex.end(),
                       verbosity::ASSERT_CASUAL,
                       "There is no link named '"+linkName+"' in the robot named '"
                       +name()+"'!") )
-        return *_dummyLink;
+        return DOF_INVALID;
     
-    return *_links.at(i->second);
+    return i->second;
+}
+
+Link& Robot::link(const string &linkName)
+{
+    return link(getLinkIndex(linkName));
+}
+
+const Link& Robot::const_link(const string &linkName) const
+{
+    return const_link(getLinkIndex(linkName));
 }
 
 Link& Robot::link(size_t linkNum)
@@ -337,6 +395,27 @@ Link& Robot::link(size_t linkNum)
     return *_links[linkNum];
 }
 
+const Link& Robot::const_link(size_t linkNum) const
+{
+    return const_cast<Robot*>(this)->link(linkNum);
+}
+
+int Robot::addManipulator(Frame &attachment, const string &name, Transform relativeTf)
+{
+    if(checkForManipName(name))
+        return -1;
+    
+    Manipulator* newManip = new Manipulator(this, attachment, name);
+    newManip->respectToRef(relativeTf);
+    
+    _insertManip(newManip);
+    if(newManip->parentLink().isDummy())
+        return -2;
+    
+    newManip->parentLink()._manips.push_back(newManip);
+    return _manips.size()-1;
+}
+
 void Robot::_insertLink(Link *newLink)
 {
     _links.push_back(newLink);
@@ -347,6 +426,12 @@ void Robot::_insertJoint(Joint *newJoint)
 {
     _joints.push_back(newJoint);
     _jointNameToIndex[newJoint->name()] = _joints.size()-1;
+}
+
+void Robot::_insertManip(Manipulator* newManip)
+{
+    _manips.push_back(newManip);
+    _manipNameToIndex[newManip->name()] = _manips.size()-1;
 }
 
 bool Robot::owns(const Joint &someJoint) const
@@ -367,6 +452,15 @@ bool Robot::owns(const Link &someLink) const
     return false;
 }
 
+bool Robot::owns(const Manipulator &someManip) const
+{
+    for(size_t i=0; i<_manips.size(); ++i)
+        if(_manips[i] == &someManip)
+            return true;
+    
+    return false;
+}
+
 bool Robot::checkForLinkName(const string& name) const
 {
     StringMap::const_iterator n = _linkNameToIndex.find(name);
@@ -380,6 +474,15 @@ bool Robot::checkForJointName(const string& name) const
 {
     StringMap::const_iterator n = _jointNameToIndex.find(name);
     if( n == _jointNameToIndex.end() )
+        return false;
+    
+    return true;
+}
+
+bool Robot::checkForManipName(const string &name) const
+{
+    StringMap::const_iterator n = _manipNameToIndex.find(name);
+    if( n == _manipNameToIndex.end() )
         return false;
     
     return true;
@@ -409,4 +512,239 @@ void Robot::enforceJointLimits(bool enforce)
     }
 }
 
+std::vector<const Link*> Robot::Crawler::getPath(const Link &startLink, const Link &endLink)
+{
+    Crawler crawl(startLink, endLink);
+    
+    return crawl._path;
+}
 
+std::vector<size_t> Robot::Crawler::getIdPath(const Link &startLink, const Link &endLink)
+{
+    Crawler crawl(startLink, endLink);
+    
+    std::vector<size_t> result; result.reserve(crawl._path.size());
+    const Link* link = crawl.nextLink();
+    while(link != NULL)
+    {
+        result.push_back(link->id());
+    }
+    
+    return result;
+}
+
+Robot::Crawler::Crawler()
+{
+    _init();
+    _p = INACTIVE;
+}
+
+Robot::Crawler::Crawler(const akin::Link& startLink, const akin::Link& endLink)
+{
+    _init();
+    reset(startLink, endLink);
+}
+
+Robot::Crawler::Crawler(const akin::Link& startLink, policy p)
+{
+    _init();
+    reset(startLink, p);
+}
+
+void Robot::Crawler::_init()
+{
+    _recorder.reserve(100);
+    _path.reserve(100);
+    _temp.reserve(100);
+    stopAtRoot = false;
+}
+
+void Robot::Crawler::reset(const akin::Link& startLink, const akin::Link& endLink)
+{
+    _p = PATH;
+    _pathLocation = 0;
+    
+    _path.clear();
+    _temp.clear();
+    if(startLink.descendsFrom(endLink))
+    {
+        const Link* current = &startLink;
+        while(current != &endLink)
+        {
+            _temp.push_back(current);
+            current = &current->const_parentLink();
+        }
+        _temp.push_back(current);
+        
+        for(size_t i=_temp.size(); i>0; --i)
+            _path.push_back(_temp[i-1]);
+    }
+    else if(endLink.descendsFrom(startLink))
+    {
+        const Link* current = &startLink;
+        while(current != &endLink)
+        {
+            _path.push_back(current);
+            current = &current->const_parentLink();
+        }
+        _path.push_back(current);
+    }
+    else
+    {
+        const Link* current = &startLink;
+        while(!current->isRoot())
+        {
+            _path.push_back(current);
+            current = &current->const_parentLink();
+        }
+        _path.push_back(current);
+        
+        current = &endLink;
+        while(!current->isRoot())
+        {
+            _temp.push_back(current);
+            current = &current->const_parentLink();
+        }
+        
+        for(size_t i=_temp.size(); i>0; --i)
+            _path.push_back(_temp[i-1]);
+    }
+}
+
+void Robot::Crawler::reset(const Link &startLink, policy p)
+{
+    if(p==PATH)
+    {
+        _p = INACTIVE;
+        return;
+    }
+    
+    _p = p;
+    _recorder.clear();
+    _first = &startLink;
+    _finished = false;
+}
+
+const Link* Robot::Crawler::nextLink()
+{
+    if(_p == PATH)
+    {
+        if(_pathLocation < _path.size())
+        {
+            ++_pathLocation;
+            return _path[_pathLocation-1];
+        }
+        else
+            return NULL;
+    }
+    else if(_p == DOWNSTREAM)
+    {
+        if(_finished)
+            return NULL;
+        
+        if(_recorder.size()==0)
+        {
+            _recorder.push_back(Recorder(_first, 0));
+            return _first;
+        }
+        
+        while(_recorder.size() > 0)
+        {
+            Recorder& t = _recorder.back();
+            if(t.count < (int)(t.link->numChildLinks()))
+            {
+                _recorder.push_back(Recorder(&t.link->const_childLink(t.count), 0));
+                ++t.count;
+                return _recorder.back().link;
+            }
+            else
+            {
+                _recorder.pop_back();
+            }
+        }
+        
+        _finished = true;
+    }
+    else if(_p == UPSTREAM)
+    {
+        if(_finished)
+            return NULL;
+        
+        if(_recorder.size()==0)
+        {
+            _recorder.push_back(Recorder(_first, -1));
+            return _first;
+        }
+        
+        while(_recorder.size() > 0)
+        {
+            Recorder& t = _recorder.back();
+            if(t.count == -1)
+            {
+                if(t.link->const_parentLink().isDummy())
+                {
+                    ++t.count;
+                }
+                else if(_recorder.size() == 1)
+                {
+                    _recorder.push_back(Recorder(&t.link->const_parentLink(), -1));
+                    ++t.count;
+                    return _recorder.back().link;
+                }
+                else if(&t.link->const_parentLink() != _recorder[_recorder.size()-2].link)
+                {
+                    _recorder.push_back(Recorder(&t.link->const_parentLink(), -1));
+                    ++t.count;
+                    return _recorder.back().link;
+                }
+                else
+                {
+                    ++t.count;
+                }
+            }
+            else if(t.count < (int)(t.link->numChildLinks()))
+            {
+                if(_recorder.size()==1)
+                {
+                    ++t.count;
+                }
+                else if(&t.link->const_childLink(t.count) != _recorder[_recorder.size()-2].link)
+                {
+                    _recorder.push_back(Recorder(&t.link->const_childLink(t.count), -1));
+                    ++t.count;
+                    if(_recorder.back().link->isDummy())
+                        std::cout << "Dummy found as child #" << t.count-1 << " of " 
+                                  << t.link->name() << " which has " 
+                                  << t.link->numChildLinks() << " children" << std::endl;
+                    return _recorder.back().link;
+                }
+                else
+                {
+                    ++t.count;
+                }
+            }
+            else
+            {
+                _recorder.pop_back();
+            }
+        }
+        
+        _finished = true;
+    }
+    
+    return NULL;
+}
+
+Robot::Crawler::Recorder::Recorder() :
+    link(NULL),
+    count(0)
+{
+    
+}
+
+Robot::Crawler::Recorder::Recorder(const Link *link_, size_t count_) :
+    link(link_),
+    count(count_)
+{
+    
+}

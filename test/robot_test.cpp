@@ -108,6 +108,24 @@ void display_robot(Robot& displaying_robot)
     displaying_robot.joint(DOF_ROT_X).value(45*DEG);
     displaying_robot.joint(DOF_ROT_Y).value(45*DEG);
     
+    
+    Robot::Crawler crawl(displaying_robot.joint("LKP").childLink(), Robot::Crawler::UPSTREAM);
+//    Robot::Crawler crawl(displaying_robot.link(0), Robot::Crawler::DOWNSTREAM);
+    size_t count = 0;
+    const Link* link = crawl.nextLink();
+    if(link==NULL)
+    {
+        std::cout << "First link was NULL!" << std::endl;
+    }
+    while(link != NULL)
+    {
+        std::cout << link->name() << std::endl;
+        link = crawl.nextLink();
+//        ++count;
+//        if(count > 10)
+//            break;
+    }
+    
 
 //    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
 //                     "sphere",false);

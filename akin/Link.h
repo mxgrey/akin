@@ -28,7 +28,7 @@ public:
      * robot represents the frame which does not move when joint angles are changed.
      * Any link can be set as the robot's anchor.
      */
-    inline bool isAnchor() { return _isAnchor; }
+    inline bool isAnchor() const { return _isAnchor; }
 
     /*!
      * \fn setAsAnchor()
@@ -41,7 +41,7 @@ public:
      * \brief Returns true iff this link is the root link of the robot
      * \return
      */
-    inline bool isRoot() { return _isRoot; }
+    inline bool isRoot() const { return _isRoot; }
 
     /*!
      * \fn parentLink()
@@ -49,6 +49,8 @@ public:
      * \return
      */
     Link& parentLink();
+    
+    const Link& const_parentLink() const;
 
     /*!
      * \fn parentJoint()
@@ -56,6 +58,7 @@ public:
      * \return
      */
     Joint& parentJoint();
+    const Joint& const_parentJoint() const;
 
     /*!
      * \fn childLink(size_t num)
@@ -64,6 +67,7 @@ public:
      * \return
      */
     Link& childLink(size_t num);
+    const Link& const_childLink(size_t num) const;
 
     /*!
      * \fn childJoint(size_t num)
@@ -72,9 +76,10 @@ public:
      * \return
      */
     Joint& childJoint(size_t num);
+    const Joint& const_childJoint(size_t num) const;
 
-    inline size_t numChildJoints() { return _childJoints.size(); }
-    inline size_t numChildLinks() { return _childJoints.size(); }
+    inline size_t numChildJoints() const { return _childJoints.size(); }
+    inline size_t numChildLinks() const { return _childJoints.size(); }
 
     Joint& upstreamJoint();
     Link& upstreamLink();
@@ -82,13 +87,17 @@ public:
     Joint& downstreamJoint(size_t num);
     Link& downstreamLink(size_t num);
     
-    inline size_t numDownstreamJoints() { return _downstreamJoints.size(); }
-    inline size_t numDownstreamLinks() { return _downstreamJoints.size(); }
+    inline size_t numDownstreamJoints() const { return _downstreamJoints.size(); }
+    inline size_t numDownstreamLinks() const { return _downstreamJoints.size(); }
+    
+    Manipulator& manip(size_t manipNum);
+    const Manipulator& const_manip(size_t manipNum);
+    size_t numManips() const;
 
     bool belongsTo(const Robot& someRobot) const;
     Robot& robot();
 
-    inline bool isDummy() { return _isDummy; }
+    inline bool isDummy() const { return _isDummy; }
 
 protected:
     
@@ -109,16 +118,17 @@ protected:
 
     Joint* _upstreamJoint;
     JointPtrArray _downstreamJoints;
+    
+    ManipPtrArray _manips;
 
     Robot* _myRobot;
     
     ~Link();
-
 };
 
 } // namespace akin
 
-inline std::ostream& operator<<(std::ostream& oStrStream, akin::Link& someLink)
+inline std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
 {
     oStrStream << "Link named '" << someLink.name() << "' ";
     if(someLink.isRoot())
@@ -138,7 +148,7 @@ inline std::ostream& operator<<(std::ostream& oStrStream, akin::Link& someLink)
             oStrStream << "with ";
         else
             oStrStream << " has ";
-        oStrStream << "parent joint " << someLink.parentJoint().name();
+        oStrStream << "parent joint " << someLink.const_parentJoint().name();
     }
     
     oStrStream << "\n";
@@ -152,7 +162,7 @@ inline std::ostream& operator<<(std::ostream& oStrStream, akin::Link& someLink)
         oStrStream << "Child joints are: ";
         for(size_t i=0; i<someLink.numChildJoints(); ++i)
         {
-            oStrStream << someLink.childJoint(i).name();
+            oStrStream << someLink.const_childJoint(i).name();
             if(i+1 < someLink.numChildJoints())
                 oStrStream << ", ";
         }
