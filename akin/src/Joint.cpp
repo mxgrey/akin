@@ -54,16 +54,25 @@ void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame)
                     Vec3(const_childLink().respectToRef().rotation()*_axis);
     
     // Put z_i into the reference frame
-    z_i = refFrame.respectToWorld().rotation().transpose()
-          *const_childLink().respectToWorld().rotation()*z_i;
+    if(refFrame.isWorld())
+        z_i = const_childLink().respectToWorld().rotation()*z_i;
+    else
+        z_i = refFrame.respectToWorld().rotation().transpose()
+              *const_childLink().respectToWorld().rotation()*z_i;
 }
 
 Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point, 
                                 const Frame &refFrame) const
 {
     if(type()==REVOLUTE)
-        return z_i.cross( point.withRespectTo(refFrame)
-                          - const_childLink().withRespectTo(refFrame).translation() );
+    {
+        if(refFrame.isWorld())
+            return z_i.cross( point.respectToWorld() 
+                              - const_childLink().respectToWorld().translation() );
+        else
+            return z_i.cross( point.withRespectTo(refFrame)
+                              - const_childLink().withRespectTo(refFrame).translation() );
+    }
     else if(type()==PRISMATIC)
         return z_i;
     
@@ -106,12 +115,6 @@ Vec3 Joint::Jacobian_posOnly(const KinTranslation &point, const Frame &refFrame,
     
     Vec3 z_i;
     _computeTransformedJointAxis(z_i, refFrame);
-    
-//    if(type() == REVOLUTE)
-//        return z_i.cross( point.withRespectTo(refFrame)
-//                      - const_childLink().withRespectTo(refFrame).translation() );
-//    else if(type() == PRISMATIC)
-//        return z_i;
     
     return _computePosJacobian(z_i, point, refFrame);
 }

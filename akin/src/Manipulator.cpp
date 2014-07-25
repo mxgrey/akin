@@ -6,12 +6,15 @@ using namespace std;
 
 Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &manipName) :
     Frame(referenceFrame, manipName),
+    _point(*this, manipName+"_point"),
     _com(*this, manipName+"_com"),
     _myRobot(robot)
 {
     _findParentLink();
     
 }
+
+const KinTranslation& Manipulator::point() const { return _point; }
 
 int Manipulator::attachItem(Body* item)
 {

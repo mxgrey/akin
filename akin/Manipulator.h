@@ -16,6 +16,7 @@ public:
     
     Manipulator(Robot* robot, Frame& referenceFrame, const std::string& manipName);
     
+    const KinTranslation& point() const;
     
     int attachItem(Body* item);
     
@@ -51,6 +52,7 @@ public:
     
 protected:
     
+    KinTranslation _point;
     mutable KinTranslation _com;
     mutable double _mass;
     

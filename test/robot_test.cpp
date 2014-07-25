@@ -114,6 +114,7 @@ void display_robot(Robot& displaying_robot)
     
     
     r.joint("LSP").value(90*DEG);
+    r.joint("LSY").value(-90*DEG);
 //    r.joint("LEP").value(90*DEG);
     
     
