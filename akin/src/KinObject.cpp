@@ -199,6 +199,9 @@ size_t KinObject::numRegisteredObjects() const { return _registeredObjects.size(
 
 bool KinObject::descendsFrom(const Frame &someFrame) const
 {
+    if(&const_refFrame() == &someFrame)
+        return true;
+    
     const Frame* descentCheck = &const_refFrame();
     while(!descentCheck->isWorld())
     {
