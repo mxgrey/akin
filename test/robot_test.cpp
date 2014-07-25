@@ -99,40 +99,25 @@ void display_robot(Robot& displaying_robot)
     akinNode->addRobot(displaying_robot);
     akinNode->addRootFrame(akin::Frame::World());
     
-//    displaying_robot.joint(DOF_ROT_Z).value(90*M_PI/180);
-//    displaying_robot.joint(DOF_ROT_Y).value(90*M_PI/180);
-//    displaying_robot.joint(DOF_ROT_X).value(90*M_PI/180);
-//    displaying_robot.joint(DOF_POS_X).value(1);
-//    displaying_robot.joint(DOF_POS_Y).value(0.5);
-//    displaying_robot.joint(DOF_POS_Z).value(1);
-//    displaying_robot.joint(DOF_ROT_X).value(45*DEG);
-//    displaying_robot.joint(DOF_ROT_Y).value(45*DEG);
     
-    
-////    Robot::Crawler crawl(displaying_robot.joint("LKP").childLink(), Robot::Crawler::DOWNSTREAM);
-//    Robot::Crawler crawl(displaying_robot.link(0), Robot::Crawler::DOWNSTREAM);
-////    Robot::Crawler crawl(displaying_robot.link(DOF_POS_X), Robot::Crawler::DOWNSTREAM);
-
-//    const Link* link = crawl.nextLink();
-//    if(link==NULL)
-//    {
-//        std::cout << "First link was NULL!" << std::endl;
-//    }
-//    while(link != NULL)
-//    {
-//        std::cout << *link << std::endl;
-////        std::cout << link->const_parentJoint() << std::endl;
-//        link = crawl.nextLink();
-////        ++count;
-////        if(count > 10)
-////            break;
-//    }
-    
-//    std::cout << "Center of mass (" << displaying_robot.com().refFrame().name() << "): " 
-//              << displaying_robot.com().transpose() << std::endl;
     
     Robot& r = displaying_robot;
-    Eigen::Matrix<double, 6, 7> J;
+    
+//    r.joint(DOF_ROT_Z).value(90*M_PI/180);
+//    r.joint(DOF_ROT_Y).value(90*M_PI/180);
+//    r.joint(DOF_ROT_X).value(90*M_PI/180);
+//    r.joint(DOF_POS_X).value(1);
+//    r.joint(DOF_POS_Y).value(0.5);
+//    r.joint(DOF_POS_Z).value(1);
+    r.joint(DOF_ROT_X).value(90*DEG);
+//    r.joint(DOF_ROT_Y).value(45*DEG);
+    
+    
+    r.joint("LSP").value(90*DEG);
+//    r.joint("LEP").value(90*DEG);
+    
+    
+    Eigen::Matrix<double, 6, 14> J;
     std::vector<std::string> joints;
     joints.push_back("LSP");
     joints.push_back("LSR");
@@ -141,13 +126,31 @@ void display_robot(Robot& displaying_robot)
     joints.push_back("LWY");
     joints.push_back("LWP");
     joints.push_back("LWR");
+    joints.push_back("DOF_POS_X");
+    joints.push_back("DOF_POS_Y");
+    joints.push_back("DOF_POS_Z");
+    joints.push_back("DOF_ROT_X");
+    joints.push_back("DOF_ROT_Y");
+    joints.push_back("DOF_ROT_Z");
+    joints.push_back("RSP");
     
     KinTranslation manip(Translation(),r.link("leftPalm"));
+    std::cout << "Robot:" << std::endl;
     for(size_t i=0; i<joints.size(); ++i)
     {
-        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, r.refFrame());
+        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, r.frame());
     }
     
+    std::cout << "wrt Robot:\n";
+    std::cout << J << std::endl;
+    
+    std::cout << "World:" << std::endl;
+    for(size_t i=0; i<joints.size(); ++i)
+    {
+        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, Frame::World());
+    }
+    
+    std::cout << "\nwrt World:\n";
     std::cout << J << std::endl;
     
 //    std::cout << displaying_robot.joint(0) << std::endl;

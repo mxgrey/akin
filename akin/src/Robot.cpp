@@ -157,6 +157,18 @@ bool Robot::changeRefFrame(Frame &newRefFrame)
     return _root_dummy_links.front()->changeRefFrame(newRefFrame);
 }
 
+Frame& Robot::frame()
+{
+    // TODO: Should this return the anchor link frame or always the root link frame?
+//    return anchorLink();
+    return *_root;
+}
+
+const Frame& Robot::const_frame() const
+{
+    return const_cast<Robot*>(this)->frame();
+}
+
 const KinTranslation& Robot::com() const
 {
     _com = com(const_anchorLink(), _com.refFrame());

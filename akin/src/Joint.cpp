@@ -54,8 +54,8 @@ void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame)
                     Vec3(const_childLink().respectToRef().rotation()*_axis);
     
     // Put z_i into the reference frame
-    z_i = refFrame.respectToWorld().rotation()
-          *const_childLink().respectToWorld().rotation().transpose()*z_i;
+    z_i = refFrame.respectToWorld().rotation().transpose()
+          *const_childLink().respectToWorld().rotation()*z_i;
 }
 
 Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point, 

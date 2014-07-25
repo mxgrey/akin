@@ -95,6 +95,9 @@ public:
     const Frame& const_refFrame() const;
     bool changeRefFrame(Frame& newRefFrame);
     
+    Frame& frame();
+    const Frame& const_frame() const;
+    
     const KinTranslation& com() const;
     Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(), 
                     Crawler::policy p = Crawler::DOWNSTREAM) const;
