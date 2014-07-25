@@ -42,8 +42,8 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TRANSFORM_H
-#define TRANSFORM_H
+#ifndef AKIN_TRANSFORM_H
+#define AKIN_TRANSFORM_H
 
 #include "KinObject.h"
 #include "Translation.h"
@@ -157,4 +157,4 @@ inline std::ostream& operator<<(std::ostream& oStrStream, const akin::KinTransfo
     return oStrStream;
 }
 
-#endif // TRANSFORM_H
+#endif // AKIN_TRANSFORM_H

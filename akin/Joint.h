@@ -1,5 +1,5 @@
-#ifndef JOINT_H
-#define JOINT_H
+#ifndef AKIN_JOINT_H
+#define AKIN_JOINT_H
 
 #include "Frame.h"
 
@@ -209,9 +209,11 @@ protected:
     ~Joint();
 };
 
+typedef std::vector<Joint*> JointPtrArray;
+
 } // namespace akin
 
 std::ostream& operator<<(std::ostream& oStrStream, akin::Joint::Type type);
 std::ostream& operator<<(std::ostream& oStrStream, const akin::Joint& someJoint);
 
-#endif // JOINT_H
+#endif // AKIN_JOINT_H

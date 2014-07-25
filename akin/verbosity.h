@@ -42,8 +42,8 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VERBOSITY_H
-#define VERBOSITY_H
+#ifndef AKIN_VERBOSITY_H
+#define AKIN_VERBOSITY_H
 
 #include <string>
 #include <iostream>
@@ -265,4 +265,4 @@ inline std::ostream& operator<<(std::ostream& oStrStream,
 } // namespace akin
 
 
-#endif // VERBOSITY_H
+#endif // AKIN_VERBOSITY_H

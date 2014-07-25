@@ -42,14 +42,14 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KINOBJECT_H
-#define KINOBJECT_H
+#ifndef AKIN_KINOBJECT_H
+#define AKIN_KINOBJECT_H
 
 #include "verbosity.h"
 #include <vector>
 
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include "Geometry.h"
 
@@ -471,4 +471,4 @@ typedef std::vector<KinObject*> KinObjectPtrArray;
 
 std::ostream& operator<<(std::ostream& oStrStream, const akin::KinObject& mObject);
 
-#endif // KINOBJECT_H
+#endif // AKIN_KINOBJECT_H

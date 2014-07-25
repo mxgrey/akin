@@ -42,8 +42,8 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FRAME_H
-#define FRAME_H
+#ifndef AKIN_FRAME_H
+#define AKIN_FRAME_H
 
 #include "Transform.h"
 
@@ -236,11 +236,6 @@ typedef std::vector<akin::Frame*> FramePtrArray;
 
 } // namespace akin
 
-inline std::ostream& operator<<(std::ostream& oStrStream, const akin::Frame& mFrame)
-{
-    oStrStream << (akin::KinObject&)mFrame << " has relative transform:\n" << mFrame.respectToRef()
-               << "\nAnd World transform:\n" << mFrame.respectToWorld() << std::endl;
-    return oStrStream;
-}
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Frame& mFrame);
 
-#endif // FRAME_H
+#endif // AKIN_FRAME_H

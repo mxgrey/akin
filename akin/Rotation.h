@@ -42,8 +42,8 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ROTATION_H
-#define ROTATION_H
+#ifndef AKIN_ROTATION_H
+#define AKIN_ROTATION_H
 
 #include "KinObject.h"
 
@@ -101,4 +101,4 @@ public:
 
 } // namespace akin
 
-#endif // ROTATION_H
+#endif // AKIN_ROTATION_H

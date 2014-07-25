@@ -1,5 +1,5 @@
 
-#include "akin/Link.h"
+#include "akin/Robot.h"
 
 using namespace akin;
 using namespace std;
@@ -292,7 +292,7 @@ std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
         }
     }
     
-    oStrStream << "\n" << (akin::Frame&)someLink;
+    oStrStream << "\n" << (akin::Body&)someLink;
     
     return oStrStream;
 }

@@ -1,5 +1,5 @@
-#ifndef MANIPULATOR_H
-#define MANIPULATOR_H
+#ifndef AKIN_MANIPULATOR_H
+#define AKIN_MANIPULATOR_H
 
 #include "akin/Body.h"
 
@@ -69,4 +69,4 @@ typedef std::vector<Manipulator*> ManipPtrArray;
 
 } // namespace akin
 
-#endif // MANIPULATOR_H
+#endif // AKIN_MANIPULATOR_H

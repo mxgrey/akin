@@ -11,3 +11,19 @@ Body::Body(Frame &referenceFrame, const string &bodyName) :
 {
     com.setZero();
 }
+
+
+
+
+
+
+
+
+
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Body& someBody)
+{
+    std::cout << "Body named '" << someBody.name() << "' has mass " << someBody.mass 
+              << " and a relative Center of Mass <" << someBody.com.transpose() << ">\n";
+    oStrStream << (akin::Frame&)someBody;
+    return oStrStream;
+}

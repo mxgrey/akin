@@ -1,7 +1,8 @@
-#ifndef ROBOT_H
-#define ROBOT_H
+#ifndef AKIN_ROBOT_H
+#define AKIN_ROBOT_H
 
 #include "Joint.h"
+#include "Link.h"
 #include "Manipulator.h"
 #include <map>
 
@@ -10,8 +11,6 @@ namespace akin {
 class Link;
 
 typedef std::map<std::string,size_t> StringMap;
-typedef std::vector<Joint*> JointPtrArray;
-typedef std::vector<Link*> LinkPtrArray;
 typedef std::vector<std::string> StringArray;
 
 enum {
@@ -215,4 +214,4 @@ typedef std::vector<Robot*> RobotPtrArray;
 
 } // namespace akin
 
-#endif // ROBOT_H
+#endif // AKIN_ROBOT_H

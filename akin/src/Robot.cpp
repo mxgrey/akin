@@ -1,5 +1,5 @@
 
-#include "akin/Link.h"
+#include "akin/Robot.h"
 #include "akinUtils/urdfParsing.h"
 
 using namespace akin;

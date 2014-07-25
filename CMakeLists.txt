@@ -8,7 +8,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 add_definitions("-Wall -Wextra -std=c++0x")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+find_package(Eigen REQUIRED)
+include_directories(${Eigen_INCLUDE_DIRS})
 
 set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 set(HEADER_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/include)

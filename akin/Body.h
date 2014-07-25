@@ -1,5 +1,5 @@
-#ifndef BODY_H
-#define BODY_H
+#ifndef AKIN_BODY_H
+#define AKIN_BODY_H
 
 #include "akin/Frame.h"
 
@@ -23,5 +23,6 @@ typedef std::vector<Body*> BodyPtrArray;
 
 } // namespace akin
 
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Body& someBody);
 
-#endif // BODY_H
+#endif // AKIN_BODY_H

@@ -1,5 +1,5 @@
-#ifndef TRACKER_H
-#define TRACKER_H
+#ifndef AKIN_TRACKER_H
+#define AKIN_TRACKER_H
 
 #include "KinObject.h"
 
@@ -30,4 +30,4 @@ protected:
 
 } // namespace akin
 
-#endif // TRACKER_H
+#endif // AKIN_TRACKER_H

@@ -1,7 +1,7 @@
 #ifndef URDFPARSING_H
 #define URDFPARSING_H
 
-#include "akin/Link.h"
+#include "akin/Robot.h"
 
 namespace akinUtils {
 

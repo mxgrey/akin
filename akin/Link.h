@@ -1,11 +1,13 @@
-#ifndef LINK_H
-#define LINK_H
+#ifndef AKIN_LINK_H
+#define AKIN_LINK_H
 
-#include "akin/Body.h"
-#include "akin/Robot.h"
+#include "Body.h"
+#include "Joint.h"
+#include "Manipulator.h"
 
 namespace akin {
 
+class Robot;
 
 class Link : public Body
 {
@@ -131,8 +133,10 @@ protected:
     ~Link();
 };
 
+typedef std::vector<Link*> LinkPtrArray;
+
 } // namespace akin
 
 std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink);
 
-#endif // LINK_H
+#endif // AKIN_LINK_H

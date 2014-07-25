@@ -247,3 +247,10 @@ void Frame::_update() const
 
     _needsUpdate = false;
 }
+
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Frame& mFrame)
+{
+    oStrStream << (akin::KinObject&)mFrame << " has relative transform:\n" << mFrame.respectToRef()
+               << "\nAnd World transform:\n" << mFrame.respectToWorld() << std::endl;
+    return oStrStream;
+}

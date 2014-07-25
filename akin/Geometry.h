@@ -1,7 +1,7 @@
-#ifndef VISUAL_H
-#define VISUAL_H
+#ifndef AKIN_VISUAL_H
+#define AKIN_VISUAL_H
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #include <string>
 #include <vector>
 
@@ -140,4 +140,4 @@ typedef std::vector<Geometry> GeometryArray;
 
 } // namespace akin
 
-#endif // VISUAL_H
+#endif // AKIN_VISUAL_H
