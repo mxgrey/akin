@@ -82,16 +82,25 @@ public:
 
     }
 
-    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false/*, true*/>& vec) :
+    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false>& vec) :
         Eigen::Vector3d(vec)
     {
 
     }
 
+    // Returned by Transform operations
     inline Translation(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec) :
         Eigen::Vector3d(vec)
     {
 
+    }
+    
+    // Returned by Rotation operations
+    inline Translation(const Eigen::CoeffBasedProduct<const Eigen::Matrix<double,3,3>&,
+                       const Eigen::Matrix<double, 3, 1>&, 6>& vec) :
+        Eigen::Vector3d(vec)
+    {
+        
     }
     
     inline Translation& operator=(const Eigen::Vector3d& vec)
@@ -137,7 +146,9 @@ protected:
  *
  */
 typedef Translation Point;
+typedef Translation Vec3;
 typedef KinTranslation KinPoint;
+typedef KinTranslation KinVec3;
 
 /*!
  * \class FreeVector
@@ -218,15 +229,20 @@ public:
         (Eigen::Vector3d&)(*this) = Eigen::Vector3d(x,y,z).normalized();
     }
 
-    inline Axis(const Eigen::Vector3d& vec)
+//    inline Axis(const Eigen::Vector3d& vec)
+//    {
+//        (Eigen::Vector3d&)(*this) = vec.normalized();
+//    }
+    
+    inline Axis(const Translation& vec)
     {
         (Eigen::Vector3d&)(*this) = vec.normalized();
     }
     
-    inline Axis(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec)
-    {
-        (Eigen::Vector3d&)(*this) = vec.normalized();
-    }
+//    inline Axis(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec)
+//    {
+//        (Eigen::Vector3d&)(*this) = vec.normalized();
+//    }
     
     inline Axis& operator=(const Eigen::Vector3d& vec)
     {

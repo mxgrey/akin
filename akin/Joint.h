@@ -2,6 +2,7 @@
 #define AKIN_JOINT_H
 
 #include "Frame.h"
+#include "Screw.h"
 
 namespace akin {
 
@@ -40,6 +41,10 @@ public:
      * \return
      */
     double value() const;
+    
+    Vec3 jacobian(const KinTranslation& point, const Frame& refFrame) const;
+    Screw Jacobian(const KinTranslation& point, const Frame& refFrame, 
+                   bool checkDescension=true) const;
 
     /*!
      * \fn min(double newMinValue)

@@ -93,10 +93,11 @@ public:
         return akin::Translation((Eigen::Isometry3d&)(*this) * (Eigen::Vector3d&)(other));
     }
 
-    inline Eigen::Vector3d operator*(const Eigen::Vector3d& other) const
-    {
-        return (Eigen::Isometry3d&)(*this) * other;
-    }
+//    // This caused ambiguous overload issues (because Translation has a constructor for Vector3d)
+//    inline Eigen::Vector3d operator*(const Eigen::Vector3d& other) const
+//    {
+//        return (Eigen::Isometry3d&)(*this) * other;
+//    }
 
     inline akin::FreeVector operator*(const akin::FreeVector& other) const
     {

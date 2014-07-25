@@ -47,6 +47,24 @@ bool Joint::value(double newJointValue)
 
 double Joint::value() const { return _value; }
 
+Screw Joint::Jacobian(const KinTranslation &point, const Frame &refFrame,
+                      bool checkDescension) const
+{
+    if(checkDescension)
+    {
+        if(!point.descendsFrom(const_childLink()))
+            return Screw::Zero();
+    }
+    
+//    Translation z_i = _reversed ?
+//                          (-const_childLink().respectToRef().rotation()*_axis) :
+//                           (const_childLink().respectToRef().rotation()*_axis);
+    
+//    Axis z_i = const_childLink().respectToRef().rotation()*_axis;
+//    z_i = const_childLink().respectToRef().rotation()*Translation::Zero();
+//    Translation z_i = const_childLink().respectToRef()*Translation::Zero();
+}
+
 void Joint::_computeRefTransform()
 {
     // Handle different joint types

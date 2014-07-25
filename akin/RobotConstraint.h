@@ -1,7 +1,7 @@
 #ifndef AKIN_ROBOTCONSTRAINT_H
 #define AKIN_ROBOTCONSTRAINT_H
 
-#include "akin/Constraint.h"
+#include "Constraint.h"
 #include "Robot.h"
 
 namespace akin {
