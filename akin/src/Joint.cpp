@@ -47,22 +47,88 @@ bool Joint::value(double newJointValue)
 
 double Joint::value() const { return _value; }
 
-Screw Joint::Jacobian(const KinTranslation &point, const Frame &refFrame,
-                      bool checkDescension) const
+void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame) const
 {
-    if(checkDescension)
+    z_i = _reversed ?
+                    Vec3(-const_childLink().respectToRef().rotation()*_axis) :
+                    Vec3(const_childLink().respectToRef().rotation()*_axis);
+    
+    // Put z_i into the reference frame
+    z_i = refFrame.respectToWorld().rotation()
+          *const_childLink().respectToWorld().rotation().transpose()*z_i;
+}
+
+Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point, 
+                                const Frame &refFrame) const
+{
+    if(type()==REVOLUTE)
+        return z_i.cross( point.withRespectTo(refFrame)
+                          - const_childLink().withRespectTo(refFrame).translation() );
+    else if(type()==PRISMATIC)
+        return z_i;
+    
+    return Vec3::Zero();
+}
+
+Vec3 Joint::_computeRotJacobian(const Vec3 &z_i) const
+{
+    if(type()==REVOLUTE)
+        return z_i;
+    else if(type()==PRISMATIC)
+        return Vec3::Zero();
+    
+    return Vec3::Zero();
+}
+
+Vec3 Joint::Jacobian_rotOnly(const KinTranslation &point, const Frame &refFrame,
+                         bool checkDependence) const
+{
+    if(checkDependence)
+    {
+        if(!point.descendsFrom(const_childLink()))
+            return Vec3::Zero();
+    }
+    
+    Vec3 z_i;
+    _computeTransformedJointAxis(z_i, refFrame);
+    
+    return _computeRotJacobian(z_i);
+}
+
+Vec3 Joint::Jacobian_posOnly(const KinTranslation &point, const Frame &refFrame, 
+                      bool checkDependence) const
+{
+    if(checkDependence)
+    {
+        if(!point.descendsFrom(const_childLink()))
+            return Vec3::Zero();
+    }
+    
+    Vec3 z_i;
+    _computeTransformedJointAxis(z_i, refFrame);
+    
+//    if(type() == REVOLUTE)
+//        return z_i.cross( point.withRespectTo(refFrame)
+//                      - const_childLink().withRespectTo(refFrame).translation() );
+//    else if(type() == PRISMATIC)
+//        return z_i;
+    
+    return _computePosJacobian(z_i, point, refFrame);
+}
+
+Screw Joint::Jacobian(const KinTranslation& point, const Frame &refFrame,
+                      bool checkDependence) const
+{
+    if(checkDependence)
     {
         if(!point.descendsFrom(const_childLink()))
             return Screw::Zero();
     }
     
-//    Translation z_i = _reversed ?
-//                          (-const_childLink().respectToRef().rotation()*_axis) :
-//                           (const_childLink().respectToRef().rotation()*_axis);
+    Vec3 z_i;
+    _computeTransformedJointAxis(z_i, refFrame);
     
-//    Axis z_i = const_childLink().respectToRef().rotation()*_axis;
-//    z_i = const_childLink().respectToRef().rotation()*Translation::Zero();
-//    Translation z_i = const_childLink().respectToRef()*Translation::Zero();
+    return Screw(_computePosJacobian(z_i,point,refFrame), _computeRotJacobian(z_i));
 }
 
 void Joint::_computeRefTransform()
@@ -82,14 +148,10 @@ void Joint::_computeRefTransform()
     // Handle if the kinematic direction is reversed
     if(_reversed)
     {
-//        cout << "(reversed) Setting respectToRef of " << _downstreamLink->name() << " to\n"
-//             << respectToRef.inverse().matrix() << endl;
         _downstreamLink->respectToRef(respectToRef.inverse());
     }
     else
     {
-//        cout << "Setting respectToRef of " << _downstreamLink->name() << " to\n"
-//             << respectToRef.matrix() << endl;
         _downstreamLink->respectToRef(respectToRef);
     }
 }
@@ -186,8 +248,8 @@ void Joint::_changeParentLink(Link *newParent)
     _parentLink = newParent;
 }
 
-void Joint::axis(Axis newAxis) { _axis = newAxis; _computeRefTransform(); }
-const Axis& Joint::axis() const { return _axis; }
+void Joint::axis(Vec3 newAxis) { _axis = Axis(newAxis); _computeRefTransform(); }
+const Vec3& Joint::axis() const { return _axis; }
 
 void Joint::baseTransform(const Transform &newBaseTf)
 {

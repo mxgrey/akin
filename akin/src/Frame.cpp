@@ -232,7 +232,7 @@ const Transform& Frame::respectToWorld() const
     return _respectToWorld;
 }
 
-Transform Frame::withRespectTo(const Frame &otherFrame)
+Transform Frame::withRespectTo(const Frame &otherFrame) const
 {
     return otherFrame.respectToWorld().inverse() * respectToWorld();
 }

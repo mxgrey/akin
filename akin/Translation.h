@@ -95,13 +95,24 @@ public:
 
     }
     
-    // Returned by Rotation operations
-    inline Translation(const Eigen::CoeffBasedProduct<const Eigen::Matrix<double,3,3>&,
-                       const Eigen::Matrix<double, 3, 1>&, 6>& vec) :
+    // Returned by Rotation operations, but conflicts with the one below
+//    inline Translation(const Eigen::CoeffBasedProduct<const Eigen::Matrix<double,3,3>&,
+//                       const Eigen::Matrix<double, 3, 1>&, 6>& vec) :
+//        Eigen::Vector3d(vec)
+//    {
+        
+//    }
+    
+    // Returned when a negative is put in front of a rotation
+    inline Translation(const Eigen::CoeffBasedProduct<
+                       const Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<double>,
+                       const Eigen::Matrix<double,3,3> >,
+                       const Eigen::Matrix<double,3,1>&, 6 >& vec) :
         Eigen::Vector3d(vec)
     {
         
     }
+    
     
     inline Translation& operator=(const Eigen::Vector3d& vec)
     {

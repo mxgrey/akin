@@ -42,9 +42,12 @@ public:
      */
     double value() const;
     
-    Vec3 jacobian(const KinTranslation& point, const Frame& refFrame) const;
-    Screw Jacobian(const KinTranslation& point, const Frame& refFrame, 
-                   bool checkDescension=true) const;
+    Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
+                      bool checkDependence=true) const;
+    Vec3 Jacobian_rotOnly(const KinTranslation& point, const Frame& refFrame,
+                      bool checkDependence=true) const;
+    Screw Jacobian(const KinTranslation& point, const Frame& refFrame,
+                   bool checkDependence=true) const;
 
     /*!
      * \fn min(double newMinValue)
@@ -90,14 +93,14 @@ public:
      * \brief Set the axis of this joint
      * \param newAxis
      */
-    void axis(Axis newAxis);
+    void axis(Vec3 newAxis);
 
     /*!
      * \fn jointAxis()
      * \brief Get the axis of this joint
      * \return This joint's axis
      */
-    const Axis& axis() const;
+    const Vec3& axis() const;
 
     /*!
      * \fn baseTransform(const Transform& newBaseTf)
@@ -184,6 +187,11 @@ protected:
           double mininumValue=-INFINITY, double maximumValue=INFINITY);
     
     void _computeRefTransform();
+    void _computeTransformedJointAxis(Vec3& z_i, const Frame& refFrame) const;
+    Vec3 _computePosJacobian(const Vec3& z_i, 
+                             const KinTranslation& point, 
+                             const Frame& refFrame) const;
+    Vec3 _computeRotJacobian(const Vec3& z_i) const;
 
     size_t _id;
     std::string _name;
@@ -200,7 +208,7 @@ protected:
     void _reverse();
 
     Transform _baseTransform;
-    Axis _axis;
+    Vec3 _axis;
 
     double _value;
     double _min;
