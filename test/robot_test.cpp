@@ -173,7 +173,6 @@ void display_robot(Robot& displaying_robot)
     
     ManipConstraint<7> constraint(&r, joints);
     
-    
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
     viewer.setSceneData(root);

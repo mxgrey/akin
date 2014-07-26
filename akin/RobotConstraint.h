@@ -78,6 +78,7 @@ public:
     typedef typename Constraint<Q>::VectorQ VectorQ;
     typedef typename JacobianConstraint<Q,6>::Error Error;
     typedef typename JacobianConstraint<Q,6>::Jacobian Jacobian;
+//    typedef Eigen::Matrix<double,6,Q> Jacobian;
     
     ManipConstraint() :
         RobotConstraintBase(), manip(NULL), target(Frame::World(), "manip_target")
@@ -104,10 +105,10 @@ public:
         this->_Jacobian.setZero();
         for(size_t i=0; i<this->_joints.size(); ++i)
             if(_dependency[i])
-//                this->_Jacobian.block<6,1>(0,i) = this->_robot->const_joint(this->_joints[i]).Jacobian(
-//                                                manip->point(), target.refFrame(), false);
-                this->_Jacobian.block(0,i,6,1) = this->_robot->const_joint(this->_joints[i]).Jacobian(
-                                                manip->point(), target.refFrame(), false);
+                this->_Jacobian.template block<6,1>(0,i) = 
+                        this->_robot->const_joint(this->_joints[i]).Jacobian(
+                        manip->point(), target.refFrame(), false);
+
         return this->_Jacobian;
     }
     
