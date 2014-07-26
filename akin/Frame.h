@@ -184,9 +184,9 @@ public:
       * \fn withRespectTo()
       * \brief Returns this frame's transformation with respect to otherFrame
       * 
-      * Note: If otherFrame is the reference frame, then it is more efficient
-      * to use the function respectToRef(). If otherFrame is the World Frame,
-      * it is more efficient to use the function respectToWorld().
+      * Note: If otherFrame is the reference frame, then this function will call
+      * respectToRef(). If otherFrame is the World Frame, then it will call the
+      * function respectToWorld().
       *
       * Also note that calling this function automatically performs all necessary
       * updates to any relevant kinematic trees.

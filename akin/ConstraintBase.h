@@ -23,6 +23,8 @@ public:
         
     }; // Definitions are given in Constraint.cpp
     
+    ConstraintBase();
+    
     virtual Validity getGradientX(Eigen::VectorXd& gradient, 
                                      const Eigen::VectorXd& configuration) = 0;
     
@@ -30,6 +32,8 @@ public:
     
     virtual double getErrorNormX(const Eigen::VectorXd& configuration) = 0;
     
+    Eigen::VectorXd gradient_weights;
+    Eigen::VectorXd error_weights;
 };
 
 }

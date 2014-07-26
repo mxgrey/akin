@@ -50,8 +50,8 @@ double Joint::value() const { return _value; }
 void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame) const
 {
     z_i = _reversed ?
-                    Vec3(-const_childLink().respectToRef().rotation()*_axis) :
-                    Vec3(const_childLink().respectToRef().rotation()*_axis);
+            Vec3(-const_childLink().respectToRef().rotation()*_axis) :
+            Vec3(const_childLink().respectToRef().rotation()*_axis);
     
     // Put z_i into the reference frame
     if(refFrame.isWorld())
@@ -66,12 +66,8 @@ Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point,
 {
     if(type()==REVOLUTE)
     {
-        if(refFrame.isWorld())
-            return z_i.cross( point.respectToWorld() 
-                              - const_childLink().respectToWorld().translation() );
-        else
-            return z_i.cross( point.withRespectTo(refFrame)
-                              - const_childLink().withRespectTo(refFrame).translation() );
+        return z_i.cross( point.withRespectTo(refFrame)
+                          - const_childLink().withRespectTo(refFrame).translation() );
     }
     else if(type()==PRISMATIC)
         return z_i;
