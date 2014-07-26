@@ -30,9 +30,12 @@ public:
     
     virtual double getErrorNormX(const Eigen::VectorXd& configuration) = 0;
     
+    virtual int getConfigurationSize() = 0;
+    
     Eigen::VectorXd gradient_weights;
     Eigen::VectorXd error_weights;
     double error_clamp;
+    double component_clamp;
 };
 
 }

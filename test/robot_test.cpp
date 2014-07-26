@@ -9,18 +9,20 @@
 #include "osgAkin/AkinCallback.h"
 #include "osgAkin/Axes.h"
 
-#include "akin/Link.h"
+#include "akin/Robot.h"
 #include "akinUtils/urdfParsing.h"
+
+#include "akin/RobotConstraint.h"
 
 using namespace akin;
 using namespace std;
 using namespace osgAkin;
 
-class KneeNode : public AkinNode
+class CustomNode : public AkinNode
 {
 public:
 
-    inline KneeNode() : time(0) { }
+    inline CustomNode() : time(0) { }
 
     virtual void update()
     {
@@ -93,7 +95,7 @@ Robot& build_urdf_robot()
 void display_robot(Robot& displaying_robot)
 {
     osg::Group* root = new osg::Group;
-    KneeNode* akinNode = new KneeNode;
+    CustomNode* akinNode = new CustomNode;
     root->addChild(akinNode);
 
     akinNode->addRobot(displaying_robot);
@@ -103,78 +105,74 @@ void display_robot(Robot& displaying_robot)
     
     Robot& r = displaying_robot;
     
-//    r.joint(DOF_ROT_Z).value(90*M_PI/180);
-//    r.joint(DOF_ROT_Y).value(90*M_PI/180);
-//    r.joint(DOF_ROT_X).value(90*M_PI/180);
-//    r.joint(DOF_POS_X).value(1);
-//    r.joint(DOF_POS_Y).value(0.5);
-//    r.joint(DOF_POS_Z).value(1);
-    r.joint(DOF_ROT_X).value(90*DEG);
-//    r.joint(DOF_ROT_Y).value(45*DEG);
+////    r.joint(DOF_ROT_Z).value(90*M_PI/180);
+////    r.joint(DOF_ROT_Y).value(90*M_PI/180);
+////    r.joint(DOF_ROT_X).value(90*M_PI/180);
+////    r.joint(DOF_POS_X).value(1);
+////    r.joint(DOF_POS_Y).value(0.5);
+////    r.joint(DOF_POS_Z).value(1);
+//    r.joint(DOF_ROT_X).value(90*DEG);
+////    r.joint(DOF_ROT_Y).value(45*DEG);
     
     
-    r.joint("LSP").value(90*DEG);
-    r.joint("LSY").value(-90*DEG);
-//    r.joint("LEP").value(90*DEG);
+//    r.joint("LSP").value(90*DEG);
+//    r.joint("LSY").value(-90*DEG);
+////    r.joint("LEP").value(90*DEG);
     
     
-    Eigen::Matrix<double, 6, 14> J;
-    std::vector<std::string> joints;
-    joints.push_back("LSP");
-    joints.push_back("LSR");
-    joints.push_back("LSY");
-    joints.push_back("LEP");
-    joints.push_back("LWY");
-    joints.push_back("LWP");
-    joints.push_back("LWR");
-    joints.push_back("DOF_POS_X");
-    joints.push_back("DOF_POS_Y");
-    joints.push_back("DOF_POS_Z");
-    joints.push_back("DOF_ROT_X");
-    joints.push_back("DOF_ROT_Y");
-    joints.push_back("DOF_ROT_Z");
-    joints.push_back("RSP");
+//    Eigen::Matrix<double, 6, 14> J;
+//    std::vector<std::string> joints;
+//    joints.push_back("LSP");
+//    joints.push_back("LSR");
+//    joints.push_back("LSY");
+//    joints.push_back("LEP");
+//    joints.push_back("LWY");
+//    joints.push_back("LWP");
+//    joints.push_back("LWR");
+//    joints.push_back("DOF_POS_X");
+//    joints.push_back("DOF_POS_Y");
+//    joints.push_back("DOF_POS_Z");
+//    joints.push_back("DOF_ROT_X");
+//    joints.push_back("DOF_ROT_Y");
+//    joints.push_back("DOF_ROT_Z");
+//    joints.push_back("RSP");
     
-    KinTranslation manip(Translation(),r.link("leftPalm"));
-    std::cout << "Robot:" << std::endl;
-    for(size_t i=0; i<joints.size(); ++i)
-    {
-        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, r.frame());
-    }
+//    KinTranslation manip(Translation(),r.link("leftPalm"));
+//    std::cout << "Robot:" << std::endl;
+//    for(size_t i=0; i<joints.size(); ++i)
+//    {
+//        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, r.frame());
+//    }
     
-    std::cout << "wrt Robot:\n";
-    std::cout << J << std::endl;
+//    std::cout << "wrt Robot:\n";
+//    std::cout << J << std::endl;
     
-    std::cout << "World:" << std::endl;
-    for(size_t i=0; i<joints.size(); ++i)
-    {
-        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, Frame::World());
-    }
+//    std::cout << "World:" << std::endl;
+//    for(size_t i=0; i<joints.size(); ++i)
+//    {
+//        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, Frame::World());
+//    }
     
-    std::cout << "\nwrt World:\n";
-    std::cout << J << std::endl;
+//    std::cout << "\nwrt World:\n";
+//    std::cout << J << std::endl;
     
-//    std::cout << displaying_robot.joint(0) << std::endl;
     
-//    std::cout << "Center of mass (World): " << displaying_robot.com().respectToWorld().transpose()
-//                 << std::endl;
-//    std::cout << "Mass: " << displaying_robot.mass() << std::endl;
-
-//    KinObject sphere(displaying_robot.joint("RWR").childLink(),"sphere",verbosity::INHERIT,
-//                     "sphere",false);
-//    akin::Geometry sGeom;
-//    sGeom.type = Geometry::SPHERE;
-//    sGeom.scale[0] = 0.1;
-//    sGeom.colors.push_back(ColorSpec::Blue());
-//    sphere.addVisual(sGeom);
-
-//    KinObject box(displaying_robot.joint("LWR").childLink(),"box",verbosity::INHERIT,
-//                  "box",false);
-//    akin::Geometry bGeom;
-//    bGeom.type = Geometry::BOX;
-//    bGeom.scale = Eigen::Vector3d::Ones()*0.1;
-//    bGeom.colors.push_back(ColorSpec::Red());
-//    box.addVisual(bGeom);
+    std::vector<std::string> joint_names;
+    joint_names.push_back("LSP");
+    joint_names.push_back("LSR");
+    joint_names.push_back("LSY");
+    joint_names.push_back("LEP");
+    joint_names.push_back("LWY");
+    joint_names.push_back("LWP");
+    joint_names.push_back("LWR");
+    std::vector<size_t> joints;
+    for(size_t i=0; i<joint_names.size(); ++i)
+        joints.push_back(r.joint(joint_names[i]).id());
+    
+    
+    
+    ManipConstraint<7> constraint(&r, joints);
+    
     
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
