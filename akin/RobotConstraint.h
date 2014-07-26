@@ -102,12 +102,15 @@ public:
         if(update)
             _update(config);
         
-        this->_Jacobian.setZero();
         for(size_t i=0; i<this->_joints.size(); ++i)
+        {
             if(_dependency[i])
                 this->_Jacobian.template block<6,1>(0,i) = 
                         this->_robot->const_joint(this->_joints[i]).Jacobian(
                         manip->point(), target.refFrame(), false);
+            else
+                this->_Jacobian.template block<6,1>(0,i) = Error::Zero();
+        }
 
         return this->_Jacobian;
     }
