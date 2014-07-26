@@ -50,12 +50,9 @@ protected:
 };
 
 template<int N>
-class ManipConstraint : public Constraint<N>, public RobotConstraintBase
+class ManipConstraint : public JacobianConstraint<6,N>, public RobotConstraintBase
 {
 public:
-    
-    typedef Eigen::Matrix<double,6,N> Jacobian;
-    typedef Eigen::Matrix<double,6,1> Error;
     
     ManipConstraint() :
         RobotConstraintBase(), manip(NULL), target(Frame::World(), "manip_target")
@@ -74,9 +71,8 @@ public:
     Frame target;
     Error min_limits;
     Error max_limits;
-    bool computeErrorFromCenter;
     
-    const Jacobian& getJacobian(const VectorN& config, bool update=true) const {
+    virtual const Jacobian& getJacobian(const VectorN& config, bool update=true) const {
         if(update)
             _update(config);
         
@@ -88,14 +84,15 @@ public:
         return _Jacobian;
     }
     
-    const Error& getError(const VectorN& config, bool fromCenter=false, bool update=true) const {
+    virtual const Error& getError(const VectorN& config, 
+                                  bool fromCenter=false, bool update=true) const {
         if(update)
             _update(config);
         
         Transform tf_error = manip->withRespectTo(target.refFrame())*target.respectToRef().inverse();
-        
         const Eigen::Vector3d& v = tf_error.translation();
         const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
+        
         for(size_t i=0; i<3; ++i)
             _error[i] = v[i];
         _error[3] =  atan2(rot(2,1), rot(2,2));
@@ -129,18 +126,11 @@ public:
         return _error;
     }
     
-    virtual Validity getGradient(VectorN &gradient, const VectorN &configuration) {
-        _update(config);
-        
-        getError(config, computeErrorFromCenter, false);
-        
-        
-    }
-    
 protected:
     
     void _initializeDefaults() {
          min_limits.setZero(); max_limits.setZero();
+         error_clamp = 0.2;
          computeErrorFromCenter = true;
     }
     
@@ -155,8 +145,6 @@ protected:
         return v;
     }
 
-    Jacobian _Jacobian;
-    Error _error;
     Error _center;
     std::vector<bool> _dependency;
     bool _reconfigure() {
