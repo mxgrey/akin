@@ -89,7 +89,7 @@ public:
     Robot(akin::Frame& referenceFrame = akin::Frame::World(), 
           verbosity::verbosity_level_t report_level = verbosity::LOG);
 
-    ~Robot();
+    virtual ~Robot();
     
     Frame& refFrame();
     const Frame& const_refFrame() const;
@@ -105,7 +105,7 @@ public:
     double mass(const Link& startLink, Crawler::policy p = Crawler::DOWNSTREAM) const;
 
     void name(std::string newName);
-    inline std::string name() const { return _name; }
+    const std::string& name() const;
 
     bool createRootLink(std::string rootLinkName);
 
@@ -135,14 +135,14 @@ public:
     size_t getJointIndex(const std::string& jointName) const;
     const Joint& const_joint(size_t jointNum) const;
     const Joint& const_joint(const std::string& jointName) const;
-    inline size_t numJoints() { return _joints.size(); }
+    size_t numJoints() const;
 
     Link& link(size_t linkNum);
     Link& link(const std::string& linkName);
     size_t getLinkIndex(const std::string& linkName) const;
     const Link& const_link(size_t linkNum) const;
     const Link& const_link(const std::string& linkName) const;
-    inline size_t numLinks() { return _links.size(); }
+    size_t numLinks() const;
     
     int addManipulator(Frame& attachment, const std::string& name, 
                         Transform relativeTf = Transform::Identity());
@@ -152,7 +152,7 @@ public:
     size_t getManipIndex(const std::string& manipName) const;
     const Manipulator& const_manip(size_t manipNum) const;
     const Manipulator& const_manip(const std::string& manipName) const;
-    inline size_t numManips() { return _manips.size(); }
+    size_t numManips() const;
 
     bool owns(const Link& someLink) const;
     bool owns(const Joint& someJoint) const;

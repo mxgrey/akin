@@ -187,7 +187,7 @@ public:
     KinObject(const KinObject& other);
     KinObject& operator=(const KinObject& other);
 
-    ~KinObject();
+    virtual ~KinObject();
 
     /*!
       * \fn Generic()

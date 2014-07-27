@@ -7,6 +7,7 @@ namespace akin {
 
 class Robot;
 class Link;
+class ManipConstraintBase;
 
 class Manipulator : public Frame
 {
@@ -14,7 +15,8 @@ public:
     
     friend class Robot;
     
-    Manipulator(Robot* robot, Frame& referenceFrame, const std::string& manipName);
+    ManipConstraintBase& constraint();
+    void setConstraint(ManipConstraintBase* newConstraint, bool giveOwnership=true);
     
     const KinTranslation& point() const;
     
@@ -30,7 +32,6 @@ public:
     bool deleteItem(Body* item);
     bool deleteItem(size_t itemNum);
 
-    
     int attachRobot(Robot* robot);
     
     Robot* robot(size_t robotNum);
@@ -43,6 +44,9 @@ public:
     const KinTranslation& com() const;
     const double& mass() const;
     
+    Robot& parentRobot();
+    const Robot& const_parentRobot() const;
+    
     Link& parentLink();
     const Link& const_parentLink() const;
     
@@ -52,6 +56,11 @@ public:
     
 protected:
     
+    Manipulator(Robot* robot, Frame& referenceFrame, const std::string& manipName);
+    virtual ~Manipulator();
+    
+    bool _ownConstraint;
+    ManipConstraintBase* _constraint;
     KinTranslation _point;
     mutable KinTranslation _com;
     mutable double _mass;

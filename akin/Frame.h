@@ -82,7 +82,7 @@ public:
           std::string frameName = "arbitrary_frame",
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
-    ~Frame();
+    virtual ~Frame();
 
     /*!
       * \fn World()

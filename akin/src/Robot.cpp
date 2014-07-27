@@ -244,6 +244,8 @@ void Robot::name(string newName)
     _name = newName;
 }
 
+const string& Robot::name() const { return _name; }
+
 bool Robot::createRootLink(string rootLinkName)
 {
     if(!verb.Assert(_links.size()==0, verbosity::ASSERT_CASUAL,
@@ -453,6 +455,8 @@ const Joint& Robot::const_joint(size_t jointNum) const
     return const_cast<Robot*>(this)->joint(jointNum);
 }
 
+size_t Robot::numJoints() const { return _joints.size(); }
+
 size_t Robot::getLinkIndex(const string &linkName) const
 {
     StringMap::const_iterator i = _linkNameToIndex.find(linkName);
@@ -475,6 +479,8 @@ const Link& Robot::const_link(const string &linkName) const
     return const_link(getLinkIndex(linkName));
 }
 
+size_t Robot::numLinks() const { return _links.size(); }
+
 Link& Robot::anchorLink() { return *_anchor; }
 const Link& Robot::const_anchorLink() const { return *_anchor; }
 
@@ -487,7 +493,9 @@ Link& Robot::link(size_t linkNum)
     
     if( !verb.Assert( linkNum < _links.size(),
                       verbosity::ASSERT_CASUAL,
-                      "You have requested a link index which is out of bounds "
+                      "You have requested a link index ("
+                      +to_string(linkNum)+") which is out of bounds ("
+                      +to_string(_links.size())+") "
                       "on the robot named '"+name()+"'") )
         return *_dummyLink;
     
@@ -514,6 +522,61 @@ int Robot::addManipulator(Frame &attachment, const string &name, Transform relat
     newManip->parentLink()._manips.push_back(newManip);
     return _manips.size()-1;
 }
+
+bool Robot::removeManipulator(Manipulator &m)
+{
+    for(size_t i=0; i<_manips.size(); ++i)
+    {
+        if( &m == _manips[i] )
+        {
+            delete _manips[i];
+            _manips[i] = _dummyManip;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+Manipulator& Robot::manip(const string &manipName)
+{
+    return manip(getManipIndex(manipName));
+}
+
+size_t Robot::getManipIndex(const string &manipName) const
+{
+    StringMap::const_iterator i = _manipNameToIndex.find(manipName);
+    if( !verb.Assert( i != _manipNameToIndex.end(), verbosity::ASSERT_CASUAL,
+                      "There is no manipulator named '"+manipName+"' in the robot named '"
+                      +name()+"'!") )
+        return DOF_INVALID;
+    
+    return i->second;
+}
+
+const Manipulator& Robot::const_manip(const string &manipName) const
+{
+    return const_cast<Robot*>(this)->manip(manipName);
+}
+
+Manipulator& Robot::manip(size_t manipNum)
+{
+    if( !verb.Assert( manipNum < _manips.size(), verbosity::ASSERT_CASUAL,
+                      "You have requested a manipulator index ("
+                      +to_string(manipNum)+") which is out of bounds ("
+                      +to_string(_manips.size())+") on the robot named '"
+                      +name()+"'") )
+        return *_dummyManip;
+    
+    return *_manips[manipNum];
+}
+
+const Manipulator& Robot::const_manip(size_t manipNum) const
+{
+    return const_cast<Robot*>(this)->manip(manipNum);
+}
+
+size_t Robot::numManips() const { return _manips.size(); }
 
 void Robot::_insertLink(Link *newLink)
 {

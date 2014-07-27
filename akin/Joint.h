@@ -219,7 +219,7 @@ protected:
     bool _isDummy;
     Robot* _myRobot;
     
-    ~Joint();
+    virtual ~Joint();
 };
 
 typedef std::vector<Joint*> JointPtrArray;

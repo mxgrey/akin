@@ -6,39 +6,16 @@
 
 namespace akin {
 
-class RobotConstraintBase
+class RobotConstraintBase : public virtual ConstraintBase
 {
 public:
     
-    RobotConstraintBase() :
-        _robot(NULL) { }
+    RobotConstraintBase();
+    RobotConstraintBase(Robot& robot, const std::vector<size_t>& joints);
     
-    RobotConstraintBase(Robot* robot, const std::vector<size_t>& joints) :
-        _robot(robot),
-        _joints(joints) {  }
-    
-    bool changeRobot(Robot* newRobot, bool reconfigure=true) {
-        
-        _robot = newRobot;
-        
-        if(reconfigure)
-            return _reconfigure();
-        return false;
-    }
-    
-    bool changeJoints(const std::vector<size_t>& newJoints, bool reconfigure=true) {
-        
-        _joints = newJoints;
-        
-        if(reconfigure)
-            return _reconfigure();
-        return false;
-    }
-    
-    bool changeSetup(Robot* newRobot, const std::vector<size_t>& newJoints) {
-        changeRobot(newRobot, false);
-        return changeJoints(newJoints);
-    }
+    bool changeRobot(Robot* newRobot, bool reconfigure=true);
+    bool changeJoints(const std::vector<size_t>& newJoints, bool reconfigure=true);
+    bool changeSetup(Robot* newRobot, const std::vector<size_t>& newJoints);
 
 protected:
     
@@ -50,16 +27,11 @@ protected:
 };
 
 template<int Q, int W>
-class RobotJacobianConstraint : public JacobianConstraint<Q,W>, public RobotConstraintBase
+class RobotJacobianConstraint : public JacobianConstraint<Q,W>, public virtual RobotConstraintBase
 {
 public:
     
     typedef typename Constraint<Q>::VectorQ VectorQ;
-    
-    RobotJacobianConstraint() : RobotConstraintBase() { }
-    RobotJacobianConstraint(Robot* robot, const std::vector<size_t>& joints) :
-        RobotConstraintBase(robot, joints) { }
-    
     
 protected:
     
@@ -70,37 +42,57 @@ protected:
     
 };
 
+class ManipConstraintBase : public virtual RobotConstraintBase
+{
+public:
+    
+    ManipConstraintBase();
+    ManipConstraintBase(Manipulator& manipulator);
+    
+    Manipulator* manip;
+    Frame target;
+    Screw min_limits;
+    Screw max_limits;
+    
+    virtual bool checkSetup() const;
+    
+protected:
+    
+    std::vector<bool> _dependency;
+    bool _reconfigure();
+    
+};
+
+class NullManipConstraint : public ManipConstraintBase, public NullConstraintBase
+{
+public:
+    
+};
+
 template<int Q>
-class ManipConstraint : public RobotJacobianConstraint<Q,6>
+class ManipConstraint : public RobotJacobianConstraint<Q,6>, public ManipConstraintBase
 {
 public:
     
     typedef typename Constraint<Q>::VectorQ VectorQ;
     typedef typename JacobianConstraint<Q,6>::Error Error;
     typedef typename JacobianConstraint<Q,6>::Jacobian Jacobian;
-//    typedef Eigen::Matrix<double,6,Q> Jacobian;
     
     ManipConstraint() :
-        RobotConstraintBase(), manip(NULL), target(Frame::World(), "manip_target")
+        RobotConstraintBase(), ManipConstraintBase() 
     { _initializeDefaults(); }
-    ManipConstraint(Robot* robot, const std::vector<size_t>& joints) :
-        RobotJacobianConstraint<Q,6>(robot, joints), 
-        manip(NULL),  target(Frame::World(), "manip_target") 
+    ManipConstraint(Manipulator& manipulator, const std::vector<size_t> joints):
+        RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator)
     { _initializeDefaults(); }
-    ManipConstraint(const Manipulator* manipulator, Robot* robot, 
-                    const std::vector<size_t> joints) :
-        RobotJacobianConstraint<Q,6>(robot, joints),
-        manip(manipulator), target(Frame::World(), manipulator->name()+"_target")
-    { target.respectToRef(manip->respectToWorld()); _initializeDefaults(); }
     
-    const Manipulator* manip;
-    Frame target;
-    Error min_limits;
-    Error max_limits;
     
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
+        if(!checkSetup()) { this->_Jacobian.setZero(); return this->_Jacobian; }
+        
         if(update)
             _update(config);
+        else
+            return this->_Jacobian;
         
         for(size_t i=0; i<this->_joints.size(); ++i)
         {
@@ -117,8 +109,12 @@ public:
     
     virtual const Error& getError(const VectorQ& config, 
                                   bool fromCenter=false, bool update=true) {
+        if(!checkSetup()) { this->_error.setZero(); return this->_error; }
+        
         if(update)
             _update(config);
+        else
+            return this->_error;
         
         Transform tf_error = manip->withRespectTo(target.refFrame())*target.respectToRef().inverse();
         const Eigen::Vector3d& v = tf_error.translation();
@@ -161,36 +157,11 @@ protected:
     
     void _initializeDefaults() {
          min_limits.setOnes(); max_limits.setOnes();
-         min_limits *= 0.001;  max_limits *= 0.001;
+         min_limits *= -0.001;  max_limits *= 0.001;
          this->error_clamp = 0.2; this->component_clamp = 0.2;
          this->computeErrorFromCenter = true;
     }
-
-    std::vector<bool> _dependency;
-    bool _reconfigure() {
-        if(this->_robot==NULL)
-            return false;
-        
-        this->_robot->verb.Assert(this->_joints.size()==Q, verbosity::ASSERT_CRITICAL,
-                            "ManipConstraint templated for "+std::to_string(Q)
-                            +" DoF was given an index array of size "
-                            +std::to_string(this->_joints.size())+"!");
-        
-        if(manip==NULL)
-            return false;
-        
-        _dependency.clear();
-        for(int i=0; i<Q; ++i)
-        {
-            const Joint& j = this->_robot->const_joint(this->_joints[i]);
-            if(manip->descendsFrom(j.const_childLink()))
-                _dependency.push_back(true);
-            else
-                _dependency.push_back(false);
-        }
-        
-        return true;
-    }
+    
 };
 
 

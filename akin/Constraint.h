@@ -6,7 +6,7 @@
 namespace akin {
 
 template<int Q>
-class Constraint : public ConstraintBase
+class Constraint : public virtual ConstraintBase
 {
 public:
     
@@ -17,8 +17,7 @@ public:
         useNullspace = false;
     }
     
-    Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration)
-    {
+    Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration) {
         _tempGradient = VectorQ(gradient);
         Validity v = getGradient(_tempGradient, VectorQ(configuration));
         gradient = Eigen::VectorXd(_tempGradient);
@@ -26,15 +25,13 @@ public:
     }
     virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) = 0;
     
-    Validity getValidityX(const Eigen::VectorXd &configuration)
-    {
+    Validity getValidityX(const Eigen::VectorXd &configuration) {
         return getValidity(VectorQ(configuration));
     }
     virtual Validity getValidity(const VectorQ& configuration) = 0;
     
-    double getErrorNormX(const Eigen::VectorXd &configuration)
-    {
-        return getErrorNorm(VectorQ(configuration));
+    double getErrorNormX(const Eigen::VectorXd &configuration, bool update=true) {
+        return getErrorNorm(VectorQ(configuration), update);
     }
     virtual double getErrorNorm(const VectorQ& configuration, bool update=true) = 0;
     
@@ -119,7 +116,7 @@ public:
     Validity getValidity(const VectorQ &configuration) {
         _update(configuration);
         
-        getError(configuration, computeErrorFromCenter, false);
+        getError(configuration, computeErrorFromCenter);
         return _computeCurrentValidity();
     }
     
@@ -147,10 +144,10 @@ protected:
     virtual void _update(const VectorQ& config) = 0;
     
     virtual Validity _computeCurrentValidity() {
-        Validity v;
         if(_error.norm() == 0)
-            v.valid = true;
-        return v;
+            return Validity::Valid();
+        
+        return Validity::Invalid();
     }
     
     Jacobian _Jacobian;

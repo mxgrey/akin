@@ -169,9 +169,25 @@ void display_robot(Robot& displaying_robot)
     for(size_t i=0; i<joint_names.size(); ++i)
         joints.push_back(r.joint(joint_names[i]).id());
     
-    
-    
-    ManipConstraint<7> constraint(&r, joints);
+    int m = r.addManipulator(r.link("leftPalm"), "leftHandManip");
+    if(m < 0)
+    {
+        std::cout << "something went wrong: " << m << std::endl;
+    }
+    else
+    {
+        ManipConstraint<7>* constraint = new ManipConstraint<7>(r.manip(m), joints);
+        Eigen::VectorXd config(7); config.setZero();
+        std::cout << "Null: " << r.manip(m).constraint().getValidityX(config) << std::endl;
+        r.manip(m).setConstraint(constraint);
+        std::cout << "7: " << r.manip(m).constraint().getValidityX(config) << std::endl;
+        std::cout << r.manip(m).constraint().target << std::endl;
+        std::cout << "\n" << r.manip(m) << std::endl;
+        std::cout << "\n" << r.manip(m).constraint().getErrorNormX(config) << std::endl;
+        std::cout << constraint->getError(config, true, true).transpose() << std::endl;
+        std::cout << constraint->min_limits.transpose() << std::endl;
+        std::cout << constraint->max_limits.transpose() << std::endl;
+    }
     
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));

@@ -1,17 +1,39 @@
 
 #include "akin/Robot.h"
+#include "akin/RobotConstraint.h"
 
 using namespace akin;
 using namespace std;
 
 Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &manipName) :
     Frame(referenceFrame, manipName),
+    _ownConstraint(true),
+    _constraint(NULL),
     _point(*this, manipName+"_point"),
     _com(*this, manipName+"_com"),
     _myRobot(robot)
 {
+    _constraint = new NullManipConstraint;
     _findParentLink();
-    
+}
+
+Manipulator::~Manipulator()
+{
+    if(_ownConstraint)
+        delete _constraint;
+}
+
+ManipConstraintBase& Manipulator::constraint()
+{
+    return *_constraint;
+}
+
+void Manipulator::setConstraint(ManipConstraintBase *newConstraint, bool giveOwnership)
+{
+//    if(_ownConstraint)
+//        delete _constraint;
+    _constraint = newConstraint;
+    _ownConstraint = giveOwnership;
 }
 
 const KinTranslation& Manipulator::point() const { return _point; }
@@ -154,6 +176,16 @@ bool Manipulator::detachRobot(size_t robotNum)
     _robots[robotNum]->changeRefFrame(Frame::World());
     _robots.erase(_robots.begin()+robotNum);    
     return true;
+}
+
+Robot& Manipulator::parentRobot()
+{
+    return *_myRobot;
+}
+
+const Robot& Manipulator::const_parentRobot() const
+{
+    return const_cast<Manipulator*>(this)->parentRobot();
 }
 
 Link& Manipulator::parentLink() { return *_myLink; }

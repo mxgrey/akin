@@ -130,7 +130,7 @@ protected:
 
     Robot* _myRobot;
     
-    ~Link();
+    virtual ~Link();
 };
 
 typedef std::vector<Link*> LinkPtrArray;

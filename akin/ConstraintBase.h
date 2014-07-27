@@ -14,6 +14,12 @@ public:
     {
     public:
         
+        static Validity Valid();
+        static Validity Stuck();
+        static Validity Invalid();
+        
+        friend bool operator==(const Validity& v1, const Validity& v2);
+        
         Validity();
         bool valid;
         bool stuck;
@@ -28,7 +34,7 @@ public:
     
     virtual Validity getValidityX(const Eigen::VectorXd& configuration) = 0;
     
-    virtual double getErrorNormX(const Eigen::VectorXd& configuration) = 0;
+    virtual double getErrorNormX(const Eigen::VectorXd& configuration, bool update=true) = 0;
     
     virtual int getConfigurationSize() = 0;
     
@@ -36,6 +42,19 @@ public:
     Eigen::VectorXd error_weights;
     double error_clamp;
     double component_clamp;
+};
+
+class NullConstraintBase : public virtual ConstraintBase
+{
+public:
+    
+    Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);
+    Validity getValidityX(const Eigen::VectorXd &);
+    double getErrorNormX(const Eigen::VectorXd &, bool update=true);
+    int getConfigurationSize();
+    
+protected:
+    
 };
 
 }
