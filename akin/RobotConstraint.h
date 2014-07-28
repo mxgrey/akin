@@ -52,7 +52,8 @@ public:
     ManipConstraintBase();
     ManipConstraintBase(Manipulator& manipulator);
     
-    Manipulator* manip;
+    Manipulator* manip();
+    bool changeManipulator(Manipulator* manip);
     Frame target;
     Screw min_limits;
     Screw max_limits;
@@ -61,6 +62,7 @@ public:
     
 protected:
     
+    Manipulator* _manip;
     std::vector<bool> _dependency;
     bool _reconfigure();
     
@@ -94,15 +96,13 @@ public:
         
         if(update)
             _update(config);
-        else
-            return this->_Jacobian;
         
         for(size_t i=0; i<this->_joints.size(); ++i)
         {
             if(_dependency[i])
                 this->_Jacobian.template block<6,1>(0,i) = 
                         this->_robot->const_joint(this->_joints[i]).Jacobian(
-                        manip->point(), target.refFrame(), false);
+                        _manip->point(), target.refFrame(), false);
             else
                 this->_Jacobian.template block<6,1>(0,i) = Error::Zero();
         }
@@ -113,13 +113,11 @@ public:
     virtual const Error& getError(const VectorQ& config, 
                                   bool fromCenter=false, bool update=true) {
         if(!checkSetup()) { this->_error.setZero(); return this->_error; }
-        
+
         if(update)
             _update(config);
-        else
-            return this->_error;
         
-        Transform tf_error = manip->withRespectTo(target.refFrame())*target.respectToRef().inverse();
+        Transform tf_error = _manip->withRespectTo(target.refFrame())*target.respectToRef().inverse();
         const Eigen::Vector3d& v = tf_error.translation();
         const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
         
@@ -163,6 +161,7 @@ protected:
          min_limits *= -0.001;  max_limits *= 0.001;
          this->error_clamp = 0.2; this->component_clamp = 0.2;
          this->computeErrorFromCenter = true;
+         _reconfigure();
     }
     
 };

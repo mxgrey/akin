@@ -56,41 +56,12 @@ class AkinCallback : public osg::NodeCallback
 {
 public:
 
-    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
-    {
-        osg::ref_ptr<AkinNode> currentNode =
-                dynamic_cast<AkinNode*>(node);
-        
-        if(currentNode)
-            currentNode->update();
-
-        traverse(node, nv);
-    }
+    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 };
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// TODO: Get rid of this? Or move it to a test file? ...
 
 class SpinData : public osg::Referenced
 {

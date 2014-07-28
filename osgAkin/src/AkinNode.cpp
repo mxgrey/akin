@@ -140,7 +140,16 @@ akin::Robot& AkinNode::getRobot(size_t num)
     return *_robots[num];
 }
 
+void AkinCallback::operator ()(osg::Node* node, osg::NodeVisitor* nv)
+{
+    osg::ref_ptr<AkinNode> currentNode =
+            dynamic_cast<AkinNode*>(node);
 
+    if(currentNode)
+        currentNode->update();
+
+    traverse(node, nv);
+}
 
 
 

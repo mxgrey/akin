@@ -9,7 +9,7 @@ SolverX::SolverX() :
     step_size(1.0),
     max_steps(300),
     max_attempts(1),
-    max_perturbation(3),
+    max_perturbation(3.0),
     perturb_seed(true),
     random_resolution(10000),
     _mandatory(NULL),

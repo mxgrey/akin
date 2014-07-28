@@ -144,6 +144,10 @@ protected:
     virtual void _update(const VectorQ& config) = 0;
     
     virtual Validity _computeCurrentValidity() {
+        for(int i=0; i<_error.size(); ++i)
+            if(_error[i] != _error[i])
+                return Validity::Invalid();
+
         if(_error.norm() == 0)
             return Validity::Valid();
         

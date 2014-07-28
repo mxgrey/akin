@@ -6,13 +6,14 @@
 #include <osg/LineWidth>
 #include <osg/MatrixTransform>
 
-#include "osgAkin/AkinCallback.h"
-#include "osgAkin/Axes.h"
+#include "../osgAkin/AkinCallback.h"
+#include "../osgAkin/Axes.h"
 
-#include "akin/Robot.h"
-#include "akinUtils/urdfParsing.h"
+#include "../akin/Robot.h"
+#include "../akinUtils/urdfParsing.h"
 
-#include "akin/RobotConstraint.h"
+#include "../akin/RobotConstraint.h"
+#include "../akin/Solver.h"
 
 using namespace akin;
 using namespace std;
@@ -22,7 +23,27 @@ class CustomNode : public AkinNode
 {
 public:
 
-    inline CustomNode() : time(0) { }
+    inline CustomNode() : manip(NULL), solver(NULL), time(0) { }
+
+    void setManipulator(Manipulator& new_manip)
+    {
+        solver->setMandatoryConstraint(&new_manip.constraint());
+        manip = &new_manip;
+        config = getRobot(0).getConfig(manip->constraint().getJoints());
+    }
+
+    size_t addRobot(Robot &new_robot)
+    {
+        size_t r = AkinNode::addRobot(new_robot);
+
+        if(solver == NULL)
+        {
+            solver = new RobotSolverX(new_robot);
+            solver->max_steps = 10;
+        }
+
+        return r;
+    }
 
     virtual void update()
     {
@@ -30,11 +51,24 @@ public:
     
         Robot& robot = getRobot(0);
         robot.joint("NK2").value( 45*M_PI/180 * sin(time) );
+
+        if(solver != NULL && manip != NULL)
+        {
+            tf = manip->constraint().target.respectToRef();
+            tf.translate( Vec3(0.5,-0.5,0) * 0.2*sin(time)*0.01 );
+            manip->constraint().target.respectToRef(tf);
+            solver->solve(config);
+        }
     
         AkinNode::update();
     }
 
 protected:
+
+    Transform tf;
+    Eigen::VectorXd config;
+    Manipulator* manip;
+    RobotSolverX* solver;
     double time;
 };
 
@@ -104,6 +138,8 @@ void display_robot(Robot& displaying_robot)
     
     
     Robot& r = displaying_robot;
+
+    r.joint(DOF_POS_Z).value(-r.link("leftFoot").respectToWorld().translation()[2]);
     
 ////    r.joint(DOF_ROT_Z).value(90*M_PI/180);
 ////    r.joint(DOF_ROT_Y).value(90*M_PI/180);
@@ -171,29 +207,41 @@ void display_robot(Robot& displaying_robot)
 //        joints.push_back(r.joint(joint_names[i]).id());
     
     std::vector<size_t> joints = Robot::Explorer::getIdPath(r.joint("LSP"),r.joint("LWR"));
-//    for(size_t i=0; i<joints.size(); ++i)
-//        std::cout << r.joint(joints[i]).name() << std::endl;
+//    std::vector<size_t> joints = Robot::Explorer::getIdPath(r.joint("LWR"),r.joint("LSP"));
+    for(size_t i=0; i<joints.size(); ++i)
+        std::cout << r.joint(joints[i]).name() << std::endl;
     
     int m = r.addManipulator(r.link("leftPalm"), "leftHandManip");
     if(m < 0)
-    {
         std::cout << "something went wrong: " << m << std::endl;
-    }
     else
-    {
-        ManipConstraint<7>* constraint = new ManipConstraint<7>(r.manip(m), joints);
-        Eigen::VectorXd config(7); config.setZero();
-        std::cout << "Null: " << r.manip(m).constraint().getValidityX(config) << std::endl;
-        r.manip(m).setConstraint(constraint);
-        std::cout << "7: " << r.manip(m).constraint().getValidityX(config) << std::endl;
-        std::cout << r.manip(m).constraint().target << std::endl;
-        std::cout << "\n" << r.manip(m) << std::endl;
-        std::cout << "\n" << r.manip(m).constraint().getErrorNormX(config) << std::endl;
-        std::cout << constraint->getError(config, true, true).transpose() << std::endl;
-        std::cout << constraint->min_limits.transpose() << std::endl;
-        std::cout << constraint->max_limits.transpose() << std::endl;
-    }
-    
+        r.manip(m).setConstraint(new ManipConstraint<7>(r.manip(m),joints));
+
+    r.joint("LEP").value(-90*DEG);
+    r.manip(m).constraint().target.respectToRef(r.manip(m).respectToWorld());
+    Transform tf = r.manip(m).constraint().target.respectToRef();
+    tf.translate(Vec3(0,0.2,0.2));
+    r.manip(m).constraint().target.respectToRef(tf);
+
+    akinNode->setManipulator(r.manip(m));
+
+//    Eigen::VectorXd config = r.getConfig(joints);
+//    RobotSolverX solver(r);
+//    solver.setMandatoryConstraint(&r.manip(m).constraint());
+//    if(solver.solve(config))
+//    {
+//        std::cout << "Solved!" << std::endl;
+
+//        std::cout << config.transpose() << std::endl;
+//    }
+//    else
+//    {
+//        std::cout << "Failed!" << std::endl;
+
+//        std::cout << config.transpose() << std::endl;
+//        return;
+//    }
+
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
     viewer.setSceneData(root);

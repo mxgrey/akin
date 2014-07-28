@@ -139,17 +139,32 @@ Robot* RobotConstraintBase::getRobot()
 }
 
 ManipConstraintBase::ManipConstraintBase() :
-    manip(NULL),
-    target(Frame::World(), "manip_target")
+    target(Frame::World(), "manip_target"),
+    _manip(NULL)
 {
     
 }
 
 ManipConstraintBase::ManipConstraintBase(Manipulator& manipulator) :
-    manip(&manipulator),
-    target(Frame::World(), manipulator.name()+"_target")
+    target(Frame::World(), manipulator.name()+"_target"),
+    _manip(&manipulator)
 {
-    target.respectToRef(manip->respectToWorld());
+    target.respectToRef(_manip->respectToWorld());
+}
+
+Manipulator* ManipConstraintBase::manip()
+{
+    return _manip;
+}
+
+bool ManipConstraintBase::changeManipulator(Manipulator *manip)
+{
+    if(!_robot->owns(*manip))
+        return false;
+
+    _manip = manip;
+    _reconfigure();
+    return true;
 }
 
 bool ManipConstraintBase::checkSetup() const
@@ -160,7 +175,7 @@ bool ManipConstraintBase::checkSetup() const
         return false;
     }
     
-    if(!_robot->verb.Assert(manip != NULL, verbosity::ASSERT_CRITICAL,
+    if(!_robot->verb.Assert(_manip != NULL, verbosity::ASSERT_CRITICAL,
                                   "Constraint has not been set up yet!") )
         return false;
     
@@ -178,14 +193,14 @@ bool ManipConstraintBase::_reconfigure() {
                         +" DoF was given an index array of size "
                         +std::to_string(this->_joints.size())+"!");
     
-    if(manip==NULL)
+    if(_manip==NULL)
         return false;
     
     _dependency.clear();
     for(int i=0; i<getConfigurationSize(); ++i)
     {
         const Joint& j = this->_robot->const_joint(this->_joints[i]);
-        if(manip->descendsFrom(j.const_childLink()))
+        if(_manip->descendsFrom(j.const_childLink()))
             _dependency.push_back(true);
         else
             _dependency.push_back(false);

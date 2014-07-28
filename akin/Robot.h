@@ -105,6 +105,8 @@ public:
           verbosity::verbosity_level_t report_level = verbosity::LOG);
 
     virtual ~Robot();
+
+    Eigen::VectorXd getConfig(std::vector<size_t> joints) const;
     
     Frame& refFrame();
     const Frame& const_refFrame() const;

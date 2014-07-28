@@ -1,6 +1,6 @@
 
-#include "akin/Robot.h"
-#include "akinUtils/urdfParsing.h"
+#include "../Robot.h"
+#include "../../akinUtils/urdfParsing.h"
 
 using namespace akin;
 using namespace std;
@@ -140,6 +140,14 @@ Robot::~Robot()
     {
         delete _root_dummy_joints[j];
     }
+}
+
+Eigen::VectorXd Robot::getConfig(std::vector<size_t> joints) const
+{
+    Eigen::VectorXd config(joints.size());
+    for(size_t i=0; i<joints.size(); ++i)
+        config[i] = const_joint(joints[i]).value();
+    return config;
 }
 
 Frame& Robot::refFrame()

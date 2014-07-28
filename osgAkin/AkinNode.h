@@ -60,7 +60,7 @@ public:
 
     size_t addRootFrame(akin::Frame& new_root_frame);
 
-    size_t addRobot(akin::Robot& new_robot);
+    virtual size_t addRobot(akin::Robot& new_robot);
 
     void removeRootFrame(akin::Frame& existing_frame);
     
