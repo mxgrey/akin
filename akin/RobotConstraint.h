@@ -16,6 +16,9 @@ public:
     bool changeRobot(Robot* newRobot, bool reconfigure=true);
     bool changeJoints(const std::vector<size_t>& newJoints, bool reconfigure=true);
     bool changeSetup(Robot* newRobot, const std::vector<size_t>& newJoints);
+    
+    const std::vector<size_t>& getJoints() const;
+    Robot* getRobot();
 
 protected:
     

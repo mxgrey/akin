@@ -54,31 +54,31 @@ public:
      * \brief Set this joint's minimum value
      * \param newMinValue
      */
-    virtual bool min(double newMinValue);
+    bool min(double newMinValue);
 
     /*!
      * \fn min()
      * \brief Get this joint's minimum value
      * \return This joint's minimum value
      */
-    inline virtual double min() const { return _min; }
+    double min() const;
 
     /*!
      * \fn max(double newMaxValue)
      * \brief Set this joint's maximum value
      * \param newMaxValue
      */
-    virtual bool max(double newMaxValue);
+    bool max(double newMaxValue);
 
     /*!
      * \fn max()
      * \brief Get this joint's maximum value
      * \return This joint's maximum value
      */
-    inline virtual double max() const { return _max; }
+    double max() const;
     
-    virtual bool withinLimits() const;
-    virtual bool withinLimits(double someValue) const;
+    bool withinLimits() const;
+    bool withinLimits(double someValue) const;
 
     /*!
      * \fn jointType()
@@ -142,7 +142,7 @@ public:
      * If this function returns true, then the name of this joint
      * was successfully changed.
      */
-    virtual bool name(const std::string& new_name);
+    bool name(const std::string& new_name);
 
 
 //    virtual void parentLink(Link& new_parent_link);

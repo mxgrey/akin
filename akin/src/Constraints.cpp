@@ -128,6 +128,16 @@ bool RobotConstraintBase::changeSetup(Robot* newRobot, const std::vector<size_t>
     return changeJoints(newJoints);
 }
 
+const std::vector<size_t>& RobotConstraintBase::getJoints() const
+{
+    return _joints;
+}
+
+Robot* RobotConstraintBase::getRobot()
+{
+    return _robot;
+}
+
 ManipConstraintBase::ManipConstraintBase() :
     manip(NULL),
     target(Frame::World(), "manip_target")

@@ -176,7 +176,7 @@ const KinTranslation& Robot::com() const
 }
 
 Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
-                       Crawler::policy p) const
+                       Explorer::policy p) const
 {
     Translation com_;
     double mass_ = 0, lmass = 0;
@@ -211,7 +211,7 @@ Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
     return com_;
 }
 
-double Robot::mass(const Link &startLink, Crawler::policy p) const
+double Robot::mass(const Link &startLink, Explorer::policy p) const
 {
     double mass_ = 0;
     
@@ -674,46 +674,89 @@ void Robot::enforceJointLimits(bool enforce)
     }
 }
 
-std::vector<const Link*> Robot::Crawler::getPath(const Link &startLink, const Link &endLink)
+std::vector<const Link*> Robot::Explorer::getPath(const Link &startLink, const Link &endLink)
 {
-    Crawler crawl(startLink, endLink);
+    Explorer crawl(startLink, endLink);
     
     return crawl._path;
 }
 
-std::vector<size_t> Robot::Crawler::getIdPath(const Link &startLink, const Link &endLink)
+std::vector<size_t> Robot::Explorer::getIdPath(const Link &startLink, const Link &endLink)
 {
-    Crawler crawl(startLink, endLink);
+    Explorer crawl(startLink, endLink);
     
     std::vector<size_t> result; result.reserve(crawl._path.size());
     const Link* link = crawl.nextLink();
     while(link != NULL)
     {
         result.push_back(link->id());
+        link = crawl.nextLink();
     }
     
     return result;
 }
 
-Robot::Crawler::Crawler()
+std::vector<const Joint*> Robot::Explorer::getPath(const Joint &startJoint, const Joint &endJoint)
+{
+    Explorer crawl(startJoint, endJoint);
+    
+    std::vector<const Joint*> result; result.reserve(crawl._path.size());
+    const Joint* joint = crawl.nextJoint();
+    while(joint != NULL)
+    {
+        result.push_back(joint);
+        joint = crawl.nextJoint();
+    }
+    
+    return result;
+}
+
+std::vector<size_t> Robot::Explorer::getIdPath(const Joint &startJoint, const Joint &endJoint)
+{
+    Explorer crawl(startJoint, endJoint);
+    
+    std::vector<size_t> result; result.reserve(crawl._path.size());
+    const Joint* joint = crawl.nextJoint();
+    while(joint != NULL)
+    {
+        result.push_back(joint->id());
+        joint = crawl.nextJoint();
+    }
+    
+    return result;
+}
+
+Robot::Explorer::Explorer()
 {
     _init();
     _p = INACTIVE;
 }
 
-Robot::Crawler::Crawler(const akin::Link& startLink, const akin::Link& endLink)
+Robot::Explorer::Explorer(const akin::Link& startLink, const akin::Link& endLink)
 {
     _init();
     reset(startLink, endLink);
 }
 
-Robot::Crawler::Crawler(const akin::Link& startLink, policy p)
+Robot::Explorer::Explorer(const akin::Link& startLink, policy p)
 {
     _init();
     reset(startLink, p);
 }
 
-void Robot::Crawler::_init()
+Robot::Explorer::Explorer(const Joint &startJoint, const Joint &endJoint)
+{
+    _init();
+    reset(startJoint, endJoint);
+}
+
+Robot::Explorer::Explorer(const Joint &startJoint, policy p)
+{
+    _init();
+    reset(startJoint, p);
+}
+
+void Robot::Explorer::_init()
 {
     _recorder.reserve(100);
     _path.reserve(100);
@@ -721,7 +764,7 @@ void Robot::Crawler::_init()
     stopAtRoot = false;
 }
 
-void Robot::Crawler::reset(const akin::Link& startLink, const akin::Link& endLink)
+void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLink)
 {
     _p = PATH;
     _pathLocation = 0;
@@ -737,6 +780,16 @@ void Robot::Crawler::reset(const akin::Link& startLink, const akin::Link& endLin
         const Link* current = &startLink;
         while(current != &endLink)
         {
+            _path.push_back(current);
+            current = &current->const_parentLink();
+        }
+        _path.push_back(current);
+    }
+    else if(endLink.descendsFrom(startLink))
+    {
+        const Link* current = &endLink;
+        while(current != &startLink)
+        {
             _temp.push_back(current);
             current = &current->const_parentLink();
         }
@@ -744,16 +797,6 @@ void Robot::Crawler::reset(const akin::Link& startLink, const akin::Link& endLin
         
         for(size_t i=_temp.size(); i>0; --i)
             _path.push_back(_temp[i-1]);
-    }
-    else if(endLink.descendsFrom(startLink))
-    {
-        const Link* current = &startLink;
-        while(current != &endLink)
-        {
-            _path.push_back(current);
-            current = &current->const_parentLink();
-        }
-        _path.push_back(current);
     }
     else
     {
@@ -777,7 +820,7 @@ void Robot::Crawler::reset(const akin::Link& startLink, const akin::Link& endLin
     }
 }
 
-void Robot::Crawler::reset(const Link &startLink, policy p)
+void Robot::Explorer::reset(const Link &startLink, policy p)
 {
     if(p==PATH)
     {
@@ -791,7 +834,49 @@ void Robot::Crawler::reset(const Link &startLink, policy p)
     _finished = false;
 }
 
-const Link* Robot::Crawler::nextLink()
+void Robot::Explorer::reset(const Joint &startJoint, const Joint &endJoint)
+{
+    reset(startJoint.const_childLink(), endJoint.const_childLink());
+}
+
+void Robot::Explorer::reset(const Joint &startJoint, policy p)
+{
+    reset(startJoint.const_childLink(), p);
+}
+
+const Link* Robot::Explorer::currentLink() const
+{
+    if(_recorder.size()==0)
+    {
+        if(_finished)
+            return NULL;
+        
+        return _first;
+    }
+    
+    return _recorder.back().link;
+}
+
+Link* Robot::Explorer::nonconst_currentLink() const
+{
+    return const_cast<Link*>(currentLink());
+}
+
+const Joint* Robot::Explorer::currentJoint() const
+{
+    const Link* link = currentLink();
+    if(link == NULL)
+        return NULL;
+    
+    return &currentLink()->const_parentJoint();
+}
+
+Joint* Robot::Explorer::nonconst_currentJoint() const
+{
+    return const_cast<Joint*>(currentJoint());
+}
+
+const Link* Robot::Explorer::nextLink()
 {
     if(_p == PATH)
     {
@@ -901,14 +986,28 @@ const Link* Robot::Crawler::nextLink()
     return NULL;
 }
 
-Robot::Crawler::Recorder::Recorder() :
+const Joint* Robot::Explorer::nextJoint()
+{
+    const Link* link = nextLink();
+    if(link == NULL)
+        return NULL;
+    
+    return &link->const_parentJoint();
+}
+
+Joint* Robot::Explorer::nonconst_nextJoint()
+{
+    return const_cast<Joint*>(nextJoint());
+}
+
+Robot::Explorer::Recorder::Recorder() :
     link(NULL),
     count(0)
 {
     
 }
 
-Robot::Crawler::Recorder::Recorder(const Link *link_, size_t count_) :
+Robot::Explorer::Recorder::Recorder(const Link *link_, size_t count_) :
     link(link_),
     count(count_)
 {

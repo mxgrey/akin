@@ -157,17 +157,22 @@ void display_robot(Robot& displaying_robot)
 //    std::cout << J << std::endl;
     
     
-    std::vector<std::string> joint_names;
-    joint_names.push_back("LSP");
-    joint_names.push_back("LSR");
-    joint_names.push_back("LSY");
-    joint_names.push_back("LEP");
-    joint_names.push_back("LWY");
-    joint_names.push_back("LWP");
-    joint_names.push_back("LWR");
-    std::vector<size_t> joints;
-    for(size_t i=0; i<joint_names.size(); ++i)
-        joints.push_back(r.joint(joint_names[i]).id());
+//    std::vector<std::string> joint_names;
+//    joint_names.push_back("LSP");
+//    joint_names.push_back("LSR");
+//    joint_names.push_back("LSY");
+//    joint_names.push_back("LEP");
+//    joint_names.push_back("LWY");
+//    joint_names.push_back("LWP");
+//    joint_names.push_back("LWR");
+    
+//    std::vector<size_t> joints;
+//    for(size_t i=0; i<joint_names.size(); ++i)
+//        joints.push_back(r.joint(joint_names[i]).id());
+    
+    std::vector<size_t> joints = Robot::Explorer::getIdPath(r.joint("LSP"),r.joint("LWR"));
+//    for(size_t i=0; i<joints.size(); ++i)
+//        std::cout << r.joint(joints[i]).name() << std::endl;
     
     int m = r.addManipulator(r.link("leftPalm"), "leftHandManip");
     if(m < 0)

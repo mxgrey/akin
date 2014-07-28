@@ -35,7 +35,7 @@ public:
     friend class Link;
     friend class Manipulator;
     
-    class Crawler
+    class Explorer
     {
     public:
         
@@ -49,17 +49,32 @@ public:
         } policy;
         
         static std::vector<const Link*> getPath(const Link& startLink, const Link& endLink);
+        static std::vector<const Joint*> getPath(const Joint& startJoint, const Joint& endJoint);
         static std::vector<size_t> getIdPath(const Link& startLink, const Link& endLink);
+        static std::vector<size_t> getIdPath(const Joint& startJoint, const Joint& endJoint);
         
-        Crawler();
-        Crawler(const Link& startLink, policy p=DOWNSTREAM);
-        Crawler(const Link& startLink, const Link& endLink);
+        Explorer();
+        Explorer(const Link& startLink, policy p=DOWNSTREAM);
+        Explorer(const Link& startLink, const Link& endLink);
+        Explorer(const Joint& startJoint, policy p=DOWNSTREAM);
+        Explorer(const Joint& startJoint, const Joint& endJoint);
         
         void reset(const Link& startLink, policy p=DOWNSTREAM);
         void reset(const Link& startLink, const Link& endLink);
+        void reset(const Joint& startJoint, policy p=DOWNSTREAM);
+        void reset(const Joint& startJoint, const Joint& endJoint);
+        
+        const Link* currentLink() const;
+        Link* nonconst_currentLink() const;
+        
+        const Joint* currentJoint() const;
+        Joint* nonconst_currentJoint() const;
         
         const Link* nextLink();
         Link* nonconst_nextLink();
+        
+        const Joint* nextJoint();
+        Joint* nonconst_nextJoint();
         
         bool stopAtRoot;
         
@@ -100,9 +115,9 @@ public:
     
     const KinTranslation& com() const;
     Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(), 
-                    Crawler::policy p = Crawler::DOWNSTREAM) const;
+                    Explorer::policy p = Explorer::DOWNSTREAM) const;
     const double& mass() const;
-    double mass(const Link& startLink, Crawler::policy p = Crawler::DOWNSTREAM) const;
+    double mass(const Link& startLink, Explorer::policy p = Explorer::DOWNSTREAM) const;
 
     void name(std::string newName);
     const std::string& name() const;
@@ -189,7 +204,7 @@ protected:
 
     mutable KinTranslation _com;
     mutable double _mass;
-    mutable Crawler _crawler;
+    mutable Explorer _crawler;
     
     std::string _name;
 

@@ -211,6 +211,8 @@ bool Joint::min(double newMinValue)
     return inBounds;
 }
 
+double Joint::min() const { return _min; }
+
 bool Joint::max(double newMaxValue)
 {
     bool inBounds = true;
@@ -224,6 +226,8 @@ bool Joint::max(double newMaxValue)
     
     return inBounds;
 }
+
+double Joint::max() const { return _max; }
 
 bool Joint::withinLimits() const
 {
