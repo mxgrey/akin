@@ -73,7 +73,7 @@ public:
     typedef enum {
         SILENT=0,
         LOG,
-        INHERIT,
+        INHERIT, // TODO: Make inherit link to a parent verbosity instance
         BRIEF,
         DESCRIPTIVE,
         DEBUG,
