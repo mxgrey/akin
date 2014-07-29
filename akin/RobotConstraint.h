@@ -161,6 +161,8 @@ protected:
          min_limits *= -0.001;  max_limits *= 0.001;
          this->error_clamp = 0.2; this->component_clamp = 0.2;
          this->computeErrorFromCenter = true;
+         error_weights.resize(6); error_weights.setOnes();
+         error_weights[3] = 0.1; error_weights[4] = 0.1; error_weights[5] = 0.1;
          _reconfigure();
     }
     
