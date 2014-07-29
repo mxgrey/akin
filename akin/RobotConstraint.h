@@ -62,7 +62,7 @@ public:
     
     Manipulator* manip();
     bool changeManipulator(Manipulator* manip);
-    Frame target;
+    KinTransform target;
     Screw min_limits;
     Screw max_limits;
     
@@ -164,8 +164,8 @@ public:
                 this->_error[i] = 0;
         }
         
-        if(this->error_weights.size() == Q)
-            for(int i=0; i<Q; ++i)
+        if(this->error_weights.size() == 6)
+            for(int i=0; i<6; ++i)
                 this->_error[i] *= this->error_weights[i];
         
         return this->_error;
@@ -179,7 +179,7 @@ protected:
          this->error_clamp = 0.2; this->component_clamp = 0.2;
          this->computeErrorFromCenter = true;
          error_weights.resize(6); error_weights.setOnes();
-         error_weights[3] = 0.1; error_weights[4] = 0.1; error_weights[5] = 0.1;
+         error_weights[3] = error_weights[4] = error_weights[5] = 0.1;
          _reconfigure();
     }
     

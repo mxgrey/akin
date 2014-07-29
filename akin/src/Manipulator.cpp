@@ -78,11 +78,6 @@ void Manipulator::resetConstraint(Mode mode)
             
         } while(current->numChildJoints()==1 && !current->const_childLink().isAnchor());
         
-        for(size_t i=0; i<joints.size(); ++i)
-        {
-            std::cout << _myRobot->joint(joints[i]).name() << std::endl;
-        }
-        
         constraint = new ManipConstraintX(joints.size(), *this, joints);
     }
     else if(FULLBODY==mode)

@@ -118,7 +118,7 @@ public:
     }
     
     static void clampGradientComponents(VectorQ& gradient, double clamp=0.2) {
-        for(int i=0; i<Q; ++i)
+        for(int i=0; i<gradient.size(); ++i)
             if(fabs(gradient[i]) > clamp)
                 gradient[i] = gradient[i] > 0? clamp : -clamp;
     }
@@ -133,8 +133,8 @@ public:
         clampErrorNorm(_error);
         gradient = _pseudoInverse*_error;
         
-        if(this->gradient_weights.size() == Q)
-            for(int i=0; i<Q; ++i)
+        if(this->gradient_weights.size() == this->_config_size)
+            for(int i=0; i<this->_config_size; ++i)
                 gradient[i] *= this->gradient_weights[i];
         
         clampGradientComponents(gradient, this->component_clamp);

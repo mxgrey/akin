@@ -23,13 +23,15 @@ class CustomNode : public AkinNode
 {
 public:
 
-    inline CustomNode() : manip(NULL), solver(NULL), time(0) { }
+    inline CustomNode() : mode(Manipulator::FREE), manip(NULL), solver(NULL), time(0) { }
+
+    Manipulator::Mode mode;
 
     void setManipulator(Manipulator& new_manip)
     {
-        solver->setMandatoryConstraint(&new_manip.constraint(Manipulator::LINKAGE));
+        solver->setMandatoryConstraint(&new_manip.constraint(mode));
         manip = &new_manip;
-        config = getRobot(0).getConfig(manip->constraint(Manipulator::LINKAGE).getJoints());
+        config = getRobot(0).getConfig(manip->constraint(mode).getJoints());
     }
 
     size_t addRobot(Robot &new_robot)
@@ -54,9 +56,11 @@ public:
 
         if(solver != NULL && manip != NULL)
         {
-            tf = manip->constraint(Manipulator::LINKAGE).target.respectToRef();
-            tf.translate( Vec3(0.5,-0.5,0) * 0.2*sin(time)*0.01 );
-            manip->constraint(Manipulator::LINKAGE).target.respectToRef(tf);
+            tf = manip->constraint(mode).target.respectToRef();
+            tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
+            tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
+            tf.rotate(Rotation(90*DEG*sin(time)/2.0*0.01, Axis(0,1,0)));
+            manip->constraint(mode).target.respectToRef() = tf;
             solver->solve(config);
         }
     
@@ -117,11 +121,6 @@ Robot& build_urdf_robot()
     akinUtils::loadURDF(*rb_ptr, "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
                         "../../../resources/drchubo");
     Robot& robot = *rb_ptr;
-
-//    for(size_t i=0; i<robot.numLinks(); ++i)
-//        if(robot.link(i).peekVisual(0).type == Geometry::MESH_FILE)
-//            std::cout << "Mesh file for Link '" << robot.link(i).name()
-//                  << "': " << robot.link(i).peekVisual(0).mesh_filename << std::endl;
     
     return robot;
 }
@@ -140,100 +139,34 @@ void display_robot(Robot& displaying_robot)
     Robot& r = displaying_robot;
 
     r.joint(DOF_POS_Z).value(-r.link("leftFoot").respectToWorld().translation()[2]);
-    
-////    r.joint(DOF_ROT_Z).value(90*M_PI/180);
-////    r.joint(DOF_ROT_Y).value(90*M_PI/180);
-////    r.joint(DOF_ROT_X).value(90*M_PI/180);
-////    r.joint(DOF_POS_X).value(1);
-////    r.joint(DOF_POS_Y).value(0.5);
-////    r.joint(DOF_POS_Z).value(1);
-//    r.joint(DOF_ROT_X).value(90*DEG);
-////    r.joint(DOF_ROT_Y).value(45*DEG);
-    
-    
-//    r.joint("LSP").value(90*DEG);
-//    r.joint("LSY").value(-90*DEG);
-////    r.joint("LEP").value(90*DEG);
-    
-    
-//    Eigen::Matrix<double, 6, 14> J;
-//    std::vector<std::string> joints;
-//    joints.push_back("LSP");
-//    joints.push_back("LSR");
-//    joints.push_back("LSY");
-//    joints.push_back("LEP");
-//    joints.push_back("LWY");
-//    joints.push_back("LWP");
-//    joints.push_back("LWR");
-//    joints.push_back("DOF_POS_X");
-//    joints.push_back("DOF_POS_Y");
-//    joints.push_back("DOF_POS_Z");
-//    joints.push_back("DOF_ROT_X");
-//    joints.push_back("DOF_ROT_Y");
-//    joints.push_back("DOF_ROT_Z");
-//    joints.push_back("RSP");
-    
-//    KinTranslation manip(Translation(),r.link("leftPalm"));
-//    std::cout << "Robot:" << std::endl;
-//    for(size_t i=0; i<joints.size(); ++i)
-//    {
-//        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, r.frame());
-//    }
-    
-//    std::cout << "wrt Robot:\n";
-//    std::cout << J << std::endl;
-    
-//    std::cout << "World:" << std::endl;
-//    for(size_t i=0; i<joints.size(); ++i)
-//    {
-//        J.block<6,1>(0, i) = r.joint(joints[i]).Jacobian(manip, Frame::World());
-//    }
-    
-//    std::cout << "\nwrt World:\n";
-//    std::cout << J << std::endl;
-    
-    
-//    std::vector<std::string> joint_names;
-//    joint_names.push_back("LSP");
-//    joint_names.push_back("LSR");
-//    joint_names.push_back("LSY");
-//    joint_names.push_back("LEP");
-//    joint_names.push_back("LWY");
-//    joint_names.push_back("LWP");
-//    joint_names.push_back("LWR");
-    
-//    std::vector<size_t> joints;
-//    for(size_t i=0; i<joint_names.size(); ++i)
-//        joints.push_back(r.joint(joint_names[i]).id());
-    
-    std::vector<size_t> joints = Robot::Explorer::getIdPath(r.joint("LSP"),r.joint("LWR"));
-//    std::vector<size_t> joints = Robot::Explorer::getIdPath(r.joint("LWR"),r.joint("LSP"));
-    for(size_t i=0; i<joints.size(); ++i)
-        std::cout << r.joint(joints[i]).name() << std::endl;
+
     
     int m = r.addManipulator(r.joint("LWR").childLink(), "leftHandManip", 
                              r.link("leftPalm").respectToRef());
+    Manipulator::Mode mode = Manipulator::LINKAGE;
+    akinNode->mode = mode;
     if(m < 0)
         std::cout << "something went wrong: " << m << std::endl;
     else
     {
 //        r.manip(m).setConstraint(new ManipConstraint<7>(r.manip(m),joints));
-//        r.manip(m).setConstraint(Manipulator::LINKAGE, new ManipConstraintX(7, r.manip(m), joints));
+//        r.manip(m).setConstraint(Manipulator::FULLBODY, new ManipConstraintX(7, r.manip(m), joints));
     }
 //    ManipConstraintX* mptr = new ManipConstraintX(7, r.manip(m), joints);
 //    delete mptr;
 
     r.joint("LEP").value(-90*DEG);
-    r.manip(m).constraint(Manipulator::LINKAGE).target.respectToRef(r.manip(m).respectToWorld());
-    Transform tf = r.manip(m).constraint(Manipulator::LINKAGE).target.respectToRef();
+    r.manip(m).constraint(mode).target.respectToRef() = r.manip(m).respectToWorld();
+    Transform tf = r.manip(m).constraint(mode).target.respectToRef();
     tf.translate(Vec3(0,0.2,0.2));
-    r.manip(m).constraint(Manipulator::LINKAGE).target.respectToRef(tf);
+    r.manip(m).constraint(mode).target.respectToRef() = tf;
 
     akinNode->setManipulator(r.manip(m));
 
+    std::vector<size_t> joints = r.manip(m).constraint(mode).getJoints();
     Eigen::VectorXd config = r.getConfig(joints);
     RobotSolverX solver(r);
-    solver.setMandatoryConstraint(&r.manip(m).constraint(Manipulator::LINKAGE));
+    solver.setMandatoryConstraint(&r.manip(m).constraint(mode));
     if(solver.solve(config))
     {
         std::cout << "Solved!" << std::endl;

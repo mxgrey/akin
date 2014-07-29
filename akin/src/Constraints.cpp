@@ -157,7 +157,7 @@ ManipConstraintBase::ManipConstraintBase(Manipulator& manipulator) :
     target(Frame::World(), manipulator.name()+"_target"),
     _manip(&manipulator)
 {
-    target.respectToRef(_manip->respectToWorld());
+    target.respectToRef() = _manip->respectToWorld();
 }
 
 Manipulator* ManipConstraintBase::manip()
