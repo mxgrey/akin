@@ -133,6 +133,7 @@ class KinTranslation : public Translation, public KinObject
 public:
     
     KinMacro( KinTranslation, Translation )
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 //    KinTranslation(Frame& referenceFrame,
 //                   std::string translationName="translation",
 //                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
@@ -200,14 +201,7 @@ class KinFreeVector : public FreeVector, public KinObject
 public:
 
     KinMacro( KinFreeVector, FreeVector )
-//    KinFreeVector(Frame& referenceFrame,
-//                  std::string freeVectorName="free_vector",
-//                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-
-//    KinFreeVector(const FreeVector& relativeFreeVector,
-//                  Frame& referenceFrame,
-//                  std::string freeVectorName="free_vector",
-//                  verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     const FreeVector& respectToWorld() const;
     FreeVector withRespectTo(const Frame& someFrame) const;
@@ -268,14 +262,7 @@ class KinAxis : public Axis, public KinObject
 public:
 
     KinMacro( KinAxis, Axis )
-//    KinAxis(Frame& referenceFrame,
-//            std::string axisName="axis",
-//            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-
-//    KinAxis(const Axis& relativeAxis,
-//            Frame& referenceFrame,
-//            std::string axisName="axis",
-//            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     const Axis& respectToWorld() const;
     Axis withRespectTo(const Frame& someFrame) const;

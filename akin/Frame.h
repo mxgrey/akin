@@ -67,6 +67,7 @@ public:
     friend class KinObject;
 
     KinCustomMacro( Frame )
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     /*!
       * \fn Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level)

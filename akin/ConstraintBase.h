@@ -9,6 +9,7 @@ namespace akin {
 class ConstraintBase
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     class Validity
     {
@@ -29,6 +30,8 @@ public:
         
     }; // Definitions are given in Constraint.cpp
     
+    virtual ~ConstraintBase();
+    
     virtual Validity getGradientX(Eigen::VectorXd& gradient, 
                                      const Eigen::VectorXd& configuration) = 0;
     
@@ -47,6 +50,9 @@ public:
 class NullConstraintBase : public virtual ConstraintBase
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
+    virtual ~NullConstraintBase();
     
     Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);
     Validity getValidityX(const Eigen::VectorXd &);

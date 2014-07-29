@@ -134,6 +134,7 @@ class KinTransform : public Transform, public KinObject
 {
 public:
     KinMacro( KinTransform, Transform )
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     const Transform& respectToWorld() const;
     Transform withRespectTo(const Frame& someFrame) const;

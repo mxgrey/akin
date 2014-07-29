@@ -5,6 +5,8 @@
 using namespace akin;
 using namespace std;
 
+ConstraintBase::~ConstraintBase() { }
+
 ConstraintBase::Validity::Validity() :
     valid(false),
     stuck(false),
@@ -66,6 +68,8 @@ std::ostream& operator<<(std::ostream& oStrStream, const ConstraintBase::Validit
     return oStrStream;
 }
 
+NullConstraintBase::~NullConstraintBase() { }
+
 ConstraintBase::Validity NullConstraintBase::getGradientX(Eigen::VectorXd &gradient, 
                                                           const Eigen::VectorXd &configuration)
 {
@@ -90,6 +94,8 @@ int NullConstraintBase::getConfigurationSize()
 }
 
 /////// Robot Constraints
+
+RobotConstraintBase::~RobotConstraintBase() { }
 
 RobotConstraintBase::RobotConstraintBase() :
     _robot(NULL)
@@ -137,6 +143,8 @@ Robot* RobotConstraintBase::getRobot()
 {
     return _robot;
 }
+
+ManipConstraintBase::~ManipConstraintBase() { }
 
 ManipConstraintBase::ManipConstraintBase() :
     target(Frame::World(), "manip_target"),

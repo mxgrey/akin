@@ -15,8 +15,18 @@ public:
     
     friend class Robot;
     
-    ManipConstraintBase& constraint();
-    void setConstraint(ManipConstraintBase* newConstraint, bool giveOwnership=true);
+    typedef enum {
+        
+        FREE=0,
+        LINKAGE,
+        FULLBODY,
+        
+        NUM_MODES
+        
+    } Mode;
+    
+    ManipConstraintBase& constraint(Mode mode);
+    void setConstraint(Mode mode, ManipConstraintBase* newConstraint, bool giveOwnership=true);
     
     const KinTranslation& point() const;
     
@@ -59,8 +69,8 @@ protected:
     Manipulator(Robot* robot, Frame& referenceFrame, const std::string& manipName);
     virtual ~Manipulator();
     
-    bool _ownConstraint;
-    ManipConstraintBase* _constraint;
+    bool _ownConstraint[NUM_MODES];
+    ManipConstraintBase* _constraints[NUM_MODES];
     KinTranslation _point;
     mutable KinTranslation _com;
     mutable double _mass;
