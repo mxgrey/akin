@@ -126,6 +126,9 @@ const std::string& KinObject::type() const { return _type; }
 
 bool KinObject::changeRefFrame(Frame &newRefFrame)
 {
+    if(_referenceFrame == &newRefFrame)
+        return true;
+    
     verb.desc() << "Changing the reference frame of '" << name() << "'' from '"
                 << refFrame().name() << "'' to '" << newRefFrame.name() << "'";
     verb.end();

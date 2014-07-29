@@ -27,9 +27,9 @@ public:
 
     void setManipulator(Manipulator& new_manip)
     {
-        solver->setMandatoryConstraint(&new_manip.constraint());
+        solver->setMandatoryConstraint(&new_manip.constraint(Manipulator::LINKAGE));
         manip = &new_manip;
-        config = getRobot(0).getConfig(manip->constraint().getJoints());
+        config = getRobot(0).getConfig(manip->constraint(Manipulator::LINKAGE).getJoints());
     }
 
     size_t addRobot(Robot &new_robot)
@@ -54,9 +54,9 @@ public:
 
         if(solver != NULL && manip != NULL)
         {
-            tf = manip->constraint().target.respectToRef();
+            tf = manip->constraint(Manipulator::LINKAGE).target.respectToRef();
             tf.translate( Vec3(0.5,-0.5,0) * 0.2*sin(time)*0.01 );
-            manip->constraint().target.respectToRef(tf);
+            manip->constraint(Manipulator::LINKAGE).target.respectToRef(tf);
             solver->solve(config);
         }
     
@@ -211,36 +211,42 @@ void display_robot(Robot& displaying_robot)
     for(size_t i=0; i<joints.size(); ++i)
         std::cout << r.joint(joints[i]).name() << std::endl;
     
-    int m = r.addManipulator(r.link("leftPalm"), "leftHandManip");
+    int m = r.addManipulator(r.joint("LWR").childLink(), "leftHandManip", 
+                             r.link("leftPalm").respectToRef());
     if(m < 0)
         std::cout << "something went wrong: " << m << std::endl;
     else
-        r.manip(m).setConstraint(new ManipConstraint<7>(r.manip(m),joints));
+    {
+//        r.manip(m).setConstraint(new ManipConstraint<7>(r.manip(m),joints));
+//        r.manip(m).setConstraint(Manipulator::LINKAGE, new ManipConstraintX(7, r.manip(m), joints));
+    }
+//    ManipConstraintX* mptr = new ManipConstraintX(7, r.manip(m), joints);
+//    delete mptr;
 
     r.joint("LEP").value(-90*DEG);
-    r.manip(m).constraint().target.respectToRef(r.manip(m).respectToWorld());
-    Transform tf = r.manip(m).constraint().target.respectToRef();
+    r.manip(m).constraint(Manipulator::LINKAGE).target.respectToRef(r.manip(m).respectToWorld());
+    Transform tf = r.manip(m).constraint(Manipulator::LINKAGE).target.respectToRef();
     tf.translate(Vec3(0,0.2,0.2));
-    r.manip(m).constraint().target.respectToRef(tf);
+    r.manip(m).constraint(Manipulator::LINKAGE).target.respectToRef(tf);
 
     akinNode->setManipulator(r.manip(m));
 
-//    Eigen::VectorXd config = r.getConfig(joints);
-//    RobotSolverX solver(r);
-//    solver.setMandatoryConstraint(&r.manip(m).constraint());
-//    if(solver.solve(config))
-//    {
-//        std::cout << "Solved!" << std::endl;
+    Eigen::VectorXd config = r.getConfig(joints);
+    RobotSolverX solver(r);
+    solver.setMandatoryConstraint(&r.manip(m).constraint(Manipulator::LINKAGE));
+    if(solver.solve(config))
+    {
+        std::cout << "Solved!" << std::endl;
 
-//        std::cout << config.transpose() << std::endl;
-//    }
-//    else
-//    {
-//        std::cout << "Failed!" << std::endl;
+        std::cout << config.transpose() << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed!" << std::endl;
 
-//        std::cout << config.transpose() << std::endl;
-//        return;
-//    }
+        std::cout << config.transpose() << std::endl;
+        return;
+    }
 
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));

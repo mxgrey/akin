@@ -7,33 +7,102 @@ using namespace std;
 
 Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &manipName) :
     Frame(referenceFrame, manipName),
-    _ownConstraint(true),
-    _constraint(NULL),
     _point(*this, manipName+"_point"),
     _com(*this, manipName+"_com"),
     _myRobot(robot)
 {
-    _constraint = new NullManipConstraint;
     _findParentLink();
+    if(!const_parentLink().isDummy())
+    {
+        resetConstraints();
+    }
+    else
+    {
+        for(size_t i=0; i<NUM_MODES; ++i)
+        {
+            _constraints[i] = new NullManipConstraint;
+            _ownConstraint[i] = true;
+        }
+    }
 }
 
 Manipulator::~Manipulator()
 {
-    if(_ownConstraint)
-        delete _constraint;
+    for(size_t i=0; i<NUM_MODES; ++i)
+    {
+        if(_ownConstraint[i])
+            delete _constraints[i];
+    }
 }
 
-ManipConstraintBase& Manipulator::constraint()
+ManipConstraintBase& Manipulator::constraint(Mode mode)
 {
-    return *_constraint;
+    if( mode < 0 || NUM_MODES <= mode)
+        return *_constraints[0];
+    return *_constraints[mode];
 }
 
-void Manipulator::setConstraint(ManipConstraintBase *newConstraint, bool giveOwnership)
+void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, bool giveOwnership)
 {
-//    if(_ownConstraint)
-//        delete _constraint;
-    _constraint = newConstraint;
-    _ownConstraint = giveOwnership;
+    if( !_myRobot->verb.Assert(0 <= mode || mode < NUM_MODES, verbosity::ASSERT_CRITICAL,
+                               "Trying to set constraint for invalid mode ("+to_string((int)mode)
+                               +", Max:"+to_string((int)NUM_MODES)+")"))
+        return;
+    
+    if(_ownConstraint[mode])
+        delete _constraints[mode];
+    _constraints[mode] = newConstraint;
+    _ownConstraint[mode] = giveOwnership;
+}
+
+void Manipulator::resetConstraint(Mode mode)
+{
+    if( !_myRobot->verb.Assert(0 <= mode || mode < NUM_MODES, verbosity::ASSERT_CRITICAL,
+                               "Trying to reset constraint for invalid mode ("+to_string((int)mode)
+                               +", Max:"+to_string((int)NUM_MODES)+")"))
+        return;
+    
+    ManipConstraintBase* constraint;
+    if(FREE==mode)
+    {
+        constraint = new NullManipConstraint;
+    }
+    else if(LINKAGE==mode)
+    {
+        std::vector<size_t> joints;
+        const Joint* current = &const_parentLink().const_parentJoint();
+        do {
+            
+            joints.push_back(current->id());
+            current = &current->const_parentJoint();
+            
+        } while(current->numChildJoints()==1 && !current->const_childLink().isAnchor());
+        
+        for(size_t i=0; i<joints.size(); ++i)
+        {
+            std::cout << _myRobot->joint(joints[i]).name() << std::endl;
+        }
+        
+        constraint = new ManipConstraintX(joints.size(), *this, joints);
+    }
+    else if(FULLBODY==mode)
+    {
+        std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->const_joint(DOF_POS_X),
+                                                            const_parentLink().const_parentJoint());
+        constraint = new ManipConstraintX(joints.size(), *this, joints);
+    }
+    else if(CUSTOM==mode)
+    {
+        constraint = new NullManipConstraint;
+    }
+    
+    setConstraint(mode, constraint, true);
+}
+
+void Manipulator::resetConstraints()
+{
+    for(size_t i=0; i<NUM_MODES; ++i)
+        resetConstraint((Mode)i);
 }
 
 const KinTranslation& Manipulator::point() const { return _point; }

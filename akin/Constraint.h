@@ -2,6 +2,7 @@
 #define AKIN_CONSTRAINT_H
 
 #include "akin/ConstraintBase.h"
+#include <iostream>
 
 namespace akin {
 
@@ -9,12 +10,34 @@ template<int Q>
 class Constraint : public virtual ConstraintBase
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~Constraint() { }
     
     typedef Eigen::Matrix<double,Q,1> VectorQ;
     typedef Eigen::Matrix<double,Q,Q> MatrixQ;
     
     Constraint() {
         useNullspace = false;
+        if(Q==-1)
+        {
+            std::cout << "You should not use the default constructor for Dynamically Sized Constraints!"
+                      << "\n -- Use the Constraint constructor with an 'int' argument!" << std::endl;
+        }
+        _config_size = Q;
+    }
+    Constraint(int cspace_size) {
+        useNullspace = false;
+        if(Q==-1 || Q==cspace_size)
+        {
+            _config_size = cspace_size;
+        }
+        else
+        {
+            std::cout << "Mismatch between template argument and constructor argument for " 
+                      << "Dynamically Sized Constraint: \n -- Template:" << Q 
+                      << ", Constructor:" << cspace_size << std::endl;
+            _config_size = 0;
+        }
     }
     
     Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration) {
@@ -37,22 +60,27 @@ public:
     
     virtual bool getNullspace(MatrixQ& Jnull, const VectorQ& configuration, bool update=true) = 0;
     
-    int getConfigurationSize() { return Q; }
+    int getConfigurationSize() { return _config_size; }
     
     bool useNullspace;
     
 protected:
     
+    int _config_size;
     VectorQ _tempGradient;
     
 };
+
+typedef Constraint<Eigen::Dynamic> ConstraintX;
 
 template<int Q, int W>
 class JacobianConstraint : public Constraint<Q>
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~JacobianConstraint() { }
 
-    typedef typename ConstraintBase::Validity Validity;    
+    typedef typename ConstraintBase::Validity Validity;
     typedef typename Constraint<Q>::VectorQ VectorQ;
     typedef Eigen::Matrix<double,W,Q> Jacobian;
     typedef Eigen::Matrix<double,Q,W> PseudoInverse;
@@ -64,10 +92,11 @@ public:
     bool computeErrorFromCenter;
     
     JacobianConstraint() {
-        damp_factor=0.05;
-        computeErrorFromCenter=true;
-        this->error_clamp=0.2;
-        this->component_clamp = 0.2;
+        _initJacobianConstraint();
+    }
+    
+    JacobianConstraint(int cspace_size) : Constraint<Q>(cspace_size) {
+        _initJacobianConstraint();
     }
     
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) = 0;
@@ -135,7 +164,7 @@ public:
             getJacobian(configuration, true);
         
         computeDampedPseudoInverse(_pseudoInverse, _Jacobian, damp_factor);
-        Jnull = MatrixQ::Identity() - _pseudoInverse*_Jacobian;
+        Jnull = MatrixQ::Identity(this->_config_size,this->_config_size) - _pseudoInverse*_Jacobian;
         return true;
     }
     
@@ -152,6 +181,15 @@ protected:
             return Validity::Valid();
         
         return Validity::Invalid();
+    }
+    
+    void _initJacobianConstraint() {
+        damp_factor=0.05;
+        computeErrorFromCenter=true;
+        this->error_clamp=0.2;
+        this->component_clamp = 0.2;
+        _Jacobian.resize(W,this->_config_size);
+        _pseudoInverse.resize(this->_config_size,W);
     }
     
     Jacobian _Jacobian;

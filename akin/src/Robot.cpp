@@ -43,6 +43,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     
     Joint* pos_x_joint = new Joint(this, DOF_POS_X, "DOF_POS_X", pos_x_link, pos_y_link, 
                                    Transform::Identity(), Axis(1,0,0), Joint::PRISMATIC);
+    pos_x_joint->_isDummy = true;
     _root_dummy_joints.push_back(pos_x_joint);
     _jointNameToIndex[pos_x_joint->name()] = DOF_POS_X;
     
@@ -58,6 +59,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     
     Joint* pos_y_joint = new Joint(this, DOF_POS_Y, "DOF_POS_Y", pos_y_link, pos_z_link,
                                    Transform::Identity(), Axis(0,1,0), Joint::PRISMATIC);
+    pos_y_joint->_isDummy = true;
     _root_dummy_joints.push_back(pos_y_joint);
     _jointNameToIndex[pos_y_joint->name()] = DOF_POS_Y;
     
@@ -73,6 +75,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     
     Joint* pos_z_joint = new Joint(this, DOF_POS_Z, "DOF_POS_Z", pos_z_link, rot_x_link,
                                    Transform::Identity(), Axis(0,0,1), Joint::PRISMATIC);
+    pos_z_joint->_isDummy = true;
     _root_dummy_joints.push_back(pos_z_joint);
     _jointNameToIndex[pos_z_joint->name()] = DOF_POS_Z;
     
@@ -88,6 +91,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     
     Joint* rot_x_joint = new Joint(this, DOF_ROT_X, "DOF_ROT_X", rot_x_link, rot_y_link,
                                    Transform::Identity(), Axis(1,0,0), Joint::REVOLUTE);
+    rot_x_joint->_isDummy = true;
     _root_dummy_joints.push_back(rot_x_joint);
     _jointNameToIndex[rot_x_joint->name()] = DOF_ROT_X;
     
@@ -103,6 +107,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     
     Joint* rot_y_joint = new Joint(this, DOF_ROT_Y, "DOF_ROT_Y", rot_y_link, rot_z_link,
                                    Transform::Identity(), Axis(0,1,0), Joint::REVOLUTE);
+    rot_y_joint->_isDummy = true;
     _root_dummy_joints.push_back(rot_y_joint);
     _jointNameToIndex[rot_y_joint->name()] = DOF_ROT_Y;
     
@@ -268,6 +273,7 @@ bool Robot::createRootLink(string rootLinkName)
     Joint* rot_z_joint = new Joint(this, DOF_ROT_Z, "DOF_ROT_Z",
                                    _root_dummy_links.back(), rootLink,
                                    Transform::Identity(), Axis(0,0,1), Joint::REVOLUTE);
+    rot_z_joint->_isDummy = true;
     _root_dummy_joints.push_back(rot_z_joint);
     _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
     
