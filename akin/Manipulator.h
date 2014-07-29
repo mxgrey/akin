@@ -20,6 +20,7 @@ public:
         FREE=0,
         LINKAGE,
         FULLBODY,
+        CUSTOM,
         
         NUM_MODES
         
@@ -27,6 +28,8 @@ public:
     
     ManipConstraintBase& constraint(Mode mode);
     void setConstraint(Mode mode, ManipConstraintBase* newConstraint, bool giveOwnership=true);
+    void resetConstraint(Mode mode);
+    void resetConstraints();
     
     const KinTranslation& point() const;
     

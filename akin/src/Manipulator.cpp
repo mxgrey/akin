@@ -11,12 +11,19 @@ Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &mani
     _com(*this, manipName+"_com"),
     _myRobot(robot)
 {
-    for(size_t i=0; i<NUM_MODES; ++i)
-    {
-        _constraints[i] = new NullManipConstraint;
-        _ownConstraint[i] = true;
-    }
     _findParentLink();
+    if(!const_parentLink().isDummy())
+    {
+        resetConstraints();
+    }
+    else
+    {
+        for(size_t i=0; i<NUM_MODES; ++i)
+        {
+            _constraints[i] = new NullManipConstraint;
+            _ownConstraint[i] = true;
+        }
+    }
 }
 
 Manipulator::~Manipulator()
@@ -46,6 +53,56 @@ void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, b
         delete _constraints[mode];
     _constraints[mode] = newConstraint;
     _ownConstraint[mode] = giveOwnership;
+}
+
+void Manipulator::resetConstraint(Mode mode)
+{
+    if( !_myRobot->verb.Assert(0 <= mode || mode < NUM_MODES, verbosity::ASSERT_CRITICAL,
+                               "Trying to reset constraint for invalid mode ("+to_string((int)mode)
+                               +", Max:"+to_string((int)NUM_MODES)+")"))
+        return;
+    
+    ManipConstraintBase* constraint;
+    if(FREE==mode)
+    {
+        constraint = new NullManipConstraint;
+    }
+    else if(LINKAGE==mode)
+    {
+        std::vector<size_t> joints;
+        const Joint* current = &const_parentLink().const_parentJoint();
+        do {
+            
+            joints.push_back(current->id());
+            current = &current->const_parentJoint();
+            
+        } while(current->numChildJoints()==1 && !current->const_childLink().isAnchor());
+        
+        for(size_t i=0; i<joints.size(); ++i)
+        {
+            std::cout << _myRobot->joint(joints[i]).name() << std::endl;
+        }
+        
+        constraint = new ManipConstraintX(joints.size(), *this, joints);
+    }
+    else if(FULLBODY==mode)
+    {
+        std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->const_joint(DOF_POS_X),
+                                                            const_parentLink().const_parentJoint());
+        constraint = new ManipConstraintX(joints.size(), *this, joints);
+    }
+    else if(CUSTOM==mode)
+    {
+        constraint = new NullManipConstraint;
+    }
+    
+    setConstraint(mode, constraint, true);
+}
+
+void Manipulator::resetConstraints()
+{
+    for(size_t i=0; i<NUM_MODES; ++i)
+        resetConstraint((Mode)i);
 }
 
 const KinTranslation& Manipulator::point() const { return _point; }

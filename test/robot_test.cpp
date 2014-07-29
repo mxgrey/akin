@@ -211,13 +211,14 @@ void display_robot(Robot& displaying_robot)
     for(size_t i=0; i<joints.size(); ++i)
         std::cout << r.joint(joints[i]).name() << std::endl;
     
-    int m = r.addManipulator(r.link("leftPalm"), "leftHandManip");
+    int m = r.addManipulator(r.joint("LWR").childLink(), "leftHandManip", 
+                             r.link("leftPalm").respectToRef());
     if(m < 0)
         std::cout << "something went wrong: " << m << std::endl;
     else
     {
 //        r.manip(m).setConstraint(new ManipConstraint<7>(r.manip(m),joints));
-        r.manip(m).setConstraint(Manipulator::LINKAGE, new ManipConstraintX(7, r.manip(m), joints));
+//        r.manip(m).setConstraint(Manipulator::LINKAGE, new ManipConstraintX(7, r.manip(m), joints));
     }
 //    ManipConstraintX* mptr = new ManipConstraintX(7, r.manip(m), joints);
 //    delete mptr;
