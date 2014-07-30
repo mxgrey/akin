@@ -8,6 +8,7 @@ namespace akin {
 class Robot;
 class Link;
 class ManipConstraintBase;
+class AnalyticalIKBase;
 
 class Manipulator : public Frame
 {
@@ -20,6 +21,7 @@ public:
         FREE=0,
         LINKAGE,
         FULLBODY,
+        ANALYTICAL,
         CUSTOM,
         
         NUM_MODES
@@ -27,6 +29,7 @@ public:
     } Mode;
     
     ManipConstraintBase& constraint(Mode mode);
+    AnalyticalIKBase& analyticalIK();
     void setConstraint(Mode mode, ManipConstraintBase* newConstraint, bool giveOwnership=true);
     void resetConstraint(Mode mode);
     void resetConstraints();
@@ -74,6 +77,7 @@ protected:
     
     bool _ownConstraint[NUM_MODES];
     ManipConstraintBase* _constraints[NUM_MODES];
+    AnalyticalIKBase* _analytical;
     KinTranslation _point;
     mutable KinTranslation _com;
     mutable double _mass;

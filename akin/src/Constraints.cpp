@@ -1,5 +1,6 @@
 
 #include "akin/RobotConstraint.h"
+#include "../AnalyticalIKBase.h"
 #include "sstream"
 
 using namespace akin;
@@ -218,3 +219,31 @@ bool ManipConstraintBase::_reconfigure() {
 }
 
 
+///////////// Analytical IK
+
+AnalyticalIKBase::~AnalyticalIKBase() { }
+
+AnalyticalIKBase::AnalyticalIKBase() : options(0) { }
+
+AnalyticalIKBase::AnalyticalIKBase(Manipulator &manipulator) :
+    ManipConstraintBase(manipulator),
+    options(0)
+{
+    
+}
+
+void NullAnalyticalIK::getSolutions(std::vector<Eigen::VectorXd>& solutions, 
+                                    bool )
+{
+    solutions.clear();
+}
+
+ConstraintBase::Validity NullAnalyticalIK::getBestSolution(Eigen::VectorXd &)
+{
+    return Validity::Stuck();
+}
+
+void NullAnalyticalIK::selectBestSolution(Eigen::VectorXd &, std::vector<Eigen::VectorXd> &)
+{
+    
+}

@@ -1,6 +1,7 @@
 
 #include "akin/Robot.h"
 #include "akin/RobotConstraint.h"
+#include "akin/AnalyticalIKBase.h"
 
 using namespace akin;
 using namespace std;
@@ -12,6 +13,9 @@ Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &mani
     _myRobot(robot)
 {
     _findParentLink();
+    for(size_t i=0; i<NUM_MODES; ++i)
+        _ownConstraint[i] = false;
+    
     if(!const_parentLink().isDummy())
     {
         resetConstraints();
@@ -42,12 +46,36 @@ ManipConstraintBase& Manipulator::constraint(Mode mode)
     return *_constraints[mode];
 }
 
+AnalyticalIKBase& Manipulator::analyticalIK()
+{
+    return *_analytical;
+}
+
 void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, bool giveOwnership)
 {
     if( !_myRobot->verb.Assert(0 <= mode || mode < NUM_MODES, verbosity::ASSERT_CRITICAL,
                                "Trying to set constraint for invalid mode ("+to_string((int)mode)
                                +", Max:"+to_string((int)NUM_MODES)+")"))
+    {
+        if(giveOwnership)
+            delete newConstraint;
         return;
+    }
+    
+    if(ANALYTICAL==mode)
+    {
+        AnalyticalIKBase* check = dynamic_cast<AnalyticalIKBase*>(newConstraint);
+        if( !_myRobot->verb.Assert(check != NULL, verbosity::ASSERT_CRITICAL,
+                                   "Trying to set the manipulator's Analytical mode to a constraint"
+                                   " class which does not derive from AnalyticalIKBase!"))
+        {
+            if(giveOwnership)
+                delete newConstraint;
+            return;
+        }
+        
+        _analytical = check;
+    }
     
     if(_ownConstraint[mode])
         delete _constraints[mode];
@@ -90,6 +118,10 @@ void Manipulator::resetConstraint(Mode mode)
         std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->const_joint(DOF_POS_X),
                                                             const_parentLink().const_parentJoint());
         constraint = new ManipConstraintX(joints.size(), *this, joints);
+    }
+    else if(ANALYTICAL==mode)
+    {
+        constraint = new NullAnalyticalIK;
     }
     else if(CUSTOM==mode)
     {
