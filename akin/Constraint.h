@@ -87,9 +87,6 @@ public:
     typedef Eigen::Matrix<double,W,1> Error;
     typedef Eigen::Matrix<double,W,W> MatrixW;
     typedef typename Constraint<Q>::MatrixQ MatrixQ;
-
-    double damp_factor;
-    bool computeErrorFromCenter;
     
     JacobianConstraint() {
         _initJacobianConstraint();
@@ -126,9 +123,9 @@ public:
     virtual Validity getGradient(VectorQ &gradient, const VectorQ &configuration) {
         _update(configuration);
         
-        getError(configuration, computeErrorFromCenter, false);
+        getError(configuration, this->computeErrorFromCenter, false);
         getJacobian(configuration, false);
-        computeDampedPseudoInverse(_pseudoInverse, _Jacobian, damp_factor);
+        computeDampedPseudoInverse(_pseudoInverse, _Jacobian, this->damp_factor);
         
         clampErrorNorm(_error);
         gradient = _pseudoInverse*_error;
@@ -145,13 +142,13 @@ public:
     Validity getValidity(const VectorQ &configuration) {
         _update(configuration);
         
-        getError(configuration, computeErrorFromCenter);
+        getError(configuration, this->computeErrorFromCenter);
         return _computeCurrentValidity();
     }
     
     double getErrorNorm(const VectorQ &configuration, bool update) {
         if(update)
-            getError(configuration, computeErrorFromCenter, true);
+            getError(configuration, this->computeErrorFromCenter, true);
         
         return _error.norm();
     }
@@ -163,7 +160,7 @@ public:
         if(update)
             getJacobian(configuration, true);
         
-        computeDampedPseudoInverse(_pseudoInverse, _Jacobian, damp_factor);
+        computeDampedPseudoInverse(_pseudoInverse, _Jacobian, this->damp_factor);
         Jnull = MatrixQ::Identity(this->_config_size,this->_config_size) - _pseudoInverse*_Jacobian;
         return true;
     }
@@ -184,8 +181,8 @@ protected:
     }
     
     void _initJacobianConstraint() {
-        damp_factor=0.05;
-        computeErrorFromCenter=true;
+        this->damp_factor=0.05;
+        this->computeErrorFromCenter=true;
         this->error_clamp=0.2;
         this->component_clamp = 0.2;
         _Jacobian.resize(W,this->_config_size);

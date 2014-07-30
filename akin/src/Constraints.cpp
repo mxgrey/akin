@@ -104,7 +104,7 @@ RobotConstraintBase::RobotConstraintBase() :
     
 }
 
-RobotConstraintBase::RobotConstraintBase(Robot& robot, const std::vector<size_t> &joints) :
+RobotConstraintBase::RobotConstraintBase(Robot& robot, const std::vector<size_t>& joints) :
     _robot(&robot),
     _joints(joints)
 {
@@ -225,25 +225,14 @@ AnalyticalIKBase::~AnalyticalIKBase() { }
 
 AnalyticalIKBase::AnalyticalIKBase() : options(0) { }
 
-AnalyticalIKBase::AnalyticalIKBase(Manipulator &manipulator) :
-    ManipConstraintBase(manipulator),
-    options(0)
-{
-    
-}
-
-void NullAnalyticalIK::getSolutions(std::vector<Eigen::VectorXd>& solutions, 
-                                    bool )
+void NullAnalyticalIK::getSolutionsX(std::vector<Eigen::VectorXd>& solutions,
+                                    std::vector<bool>& valid )
 {
     solutions.clear();
+    valid.clear();
 }
 
-ConstraintBase::Validity NullAnalyticalIK::getBestSolution(Eigen::VectorXd &)
+ConstraintBase::Validity NullAnalyticalIK::getBestSolutionX(Eigen::VectorXd &)
 {
     return Validity::Stuck();
-}
-
-void NullAnalyticalIK::selectBestSolution(Eigen::VectorXd &, const std::vector<Eigen::VectorXd>&)
-{
-    
 }

@@ -45,6 +45,9 @@ public:
     Eigen::VectorXd error_weights;
     double error_clamp;
     double component_clamp;
+    double damp_factor;
+    bool computeErrorFromCenter;
+
 };
 
 class NullConstraintBase : public virtual ConstraintBase

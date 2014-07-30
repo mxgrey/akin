@@ -84,7 +84,7 @@ public:
 };
 
 template<int Q>
-class ManipConstraint : public RobotJacobianConstraint<Q,6>, public ManipConstraintBase
+class ManipConstraint : public RobotJacobianConstraint<Q,6>, public virtual ManipConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -94,18 +94,16 @@ public:
     typedef typename JacobianConstraint<Q,6>::Error Error;
     typedef typename JacobianConstraint<Q,6>::Jacobian Jacobian;
     
-    ManipConstraint() :
-        RobotConstraintBase(), ManipConstraintBase() 
-    { _initializeDefaults(); }
+    ManipConstraint() { _initializeDefaults(); }
     ManipConstraint(int cspace_size) :
-        RobotConstraintBase(), RobotJacobianConstraint<Q,6>(cspace_size), ManipConstraintBase()
+        RobotConstraintBase(), RobotJacobianConstraint<Q,6>(cspace_size)
     { _initializeDefaults(); }
-    ManipConstraint(Manipulator& manipulator, const std::vector<size_t> joints):
+    ManipConstraint(Manipulator& manipulator, const std::vector<size_t>& joints) :
         RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator)
     { _initializeDefaults(); }
-    ManipConstraint(int cspace_size, Manipulator &manipulator, const std::vector<size_t> joints) :
-        RobotConstraintBase(manipulator.parentRobot(), joints), 
-        RobotJacobianConstraint<Q,6>(cspace_size), ManipConstraintBase(manipulator)
+    ManipConstraint(int cspace_size, Manipulator& manipulator, const std::vector<size_t>& joints) :
+        RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator),
+        RobotJacobianConstraint<Q,6>(cspace_size)
     { _initializeDefaults(); }
     
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {

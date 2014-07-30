@@ -13,6 +13,7 @@
 #include "../akinUtils/urdfParsing.h"
 
 #include "../akin/RobotConstraint.h"
+#include "../akin/AnalyticalIKBase.h"
 #include "../akin/Solver.h"
 
 using namespace akin;
@@ -163,6 +164,7 @@ void display_robot(Robot& displaying_robot)
 
     akinNode->setManipulator(r.manip(m));
 
+//    r.manip(m).setConstraint(Manipulator::ANALYTICAL, new AnalyticalIKSupport<7>);
     std::vector<size_t> joints = r.manip(m).constraint(mode).getJoints();
     Eigen::VectorXd config = r.getConfig(joints);
     RobotSolverX solver(r);
