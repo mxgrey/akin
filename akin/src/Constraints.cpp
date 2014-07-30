@@ -243,7 +243,7 @@ ConstraintBase::Validity NullAnalyticalIK::getBestSolution(Eigen::VectorXd &)
     return Validity::Stuck();
 }
 
-void NullAnalyticalIK::selectBestSolution(Eigen::VectorXd &, std::vector<Eigen::VectorXd> &)
+void NullAnalyticalIK::selectBestSolution(Eigen::VectorXd &, const std::vector<Eigen::VectorXd>&)
 {
     
 }

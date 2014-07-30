@@ -19,7 +19,7 @@ public:
                               bool exclude_invalid_solutions=true)=0;
     virtual Validity getBestSolution(Eigen::VectorXd& solution) = 0;
     virtual void selectBestSolution(Eigen::VectorXd& best, 
-                                    std::vector<Eigen::VectorXd>& solutions) = 0;
+                                    const std::vector<Eigen::VectorXd>& solutions) = 0;
     
     int options;
     
@@ -33,7 +33,7 @@ public:
     void getSolutions(std::vector<Eigen::VectorXd>& solutions, bool );
     Validity getBestSolution(Eigen::VectorXd& );
     virtual void selectBestSolution(Eigen::VectorXd& ,
-                                    std::vector<Eigen::VectorXd>& );
+                                    const std::vector<Eigen::VectorXd>& );
     
 };
 
