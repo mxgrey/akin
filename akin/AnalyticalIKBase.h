@@ -42,6 +42,7 @@ public:
     virtual ~AnalyticalIKTemplate() { }
 
     typedef typename ManipConstraint<Q>::VectorQ VectorQ;
+    typedef typename ManipConstraint<Q>::Error Error;
 
     AnalyticalIKTemplate() : _goalTf(Frame::World(), "ik_goal") { _analyticalIKDefaults(); }
     AnalyticalIKTemplate(int cspace_size) :
@@ -134,11 +135,24 @@ public:
     const KinTransform& getGoalTransform(const VectorQ& config) {
         getError(config, this->computeErrorFromCenter);
         _goalTf.changeRefFrame(this->target.refFrame());
-        _goalTf = _manip->withRespectTo(target.refFrame());
+//        _goalTf = _manip->withRespectTo(target.refFrame());
         std::cout << "Error: " << this->_error.transpose() << std::endl;
         
-        
-        _goalTf.pretranslate(-this->_error.template block<3,1>(0,0));
+        Error _target_disp = this->_displacement - this->_error;
+        std::cout << "disp:  " << _target_disp.transpose() << std::endl;
+
+        Transform tf_target_disp;
+
+        tf_target_disp.translate(_target_disp.template block<3,1>(0,0));
+        tf_target_disp.rotate(Rotation(_target_disp[3], Vec3(1,0,0)));
+        tf_target_disp.rotate(Rotation(_target_disp[4], Vec3(0,1,0)));
+        tf_target_disp.rotate(Rotation(_target_disp[5], Vec3(0,0,1)));
+
+//        _goalTf = /*this->target.respectToRef() **/ _goalTf * tf_goal_t0.inverse();
+        _goalTf = tf_target_disp * target.respectToRef();
+
+
+//        _goalTf.pretranslate(-this->_error.template block<3,1>(0,0));
         
         
 //        _goalTf.prerotate(Rotation(-this->_error[5], Vec3(0,0,1)));

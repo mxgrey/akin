@@ -134,30 +134,36 @@ public:
         
         Transform tf_error = _manip->withRespectTo(target.refFrame())
                              *target.respectToRef().inverse();
+
+//        Transform tf_error = target.respectToRef().inverse()
+//                            *_manip->withRespectTo(target.refFrame());
+
         const Eigen::Vector3d& v = tf_error.translation();
         const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
+
+        std::cout << "Tf Error\n" << tf_error.matrix() << std::endl;
         
         for(size_t i=0; i<3; ++i)
-            this->_error[i] = v[i];
-        this->_error[3] =  atan2(rot(2,1), rot(2,2));
-        this->_error[4] = -asin(rot(2,0));
-        this->_error[5] =  atan2(rot(1,0), rot(0,0));
+            this->_displacement[i] = v[i];
+        this->_displacement[3] =  atan2(rot(2,1), rot(2,2));
+        this->_displacement[4] = -asin(rot(2,0));
+        this->_displacement[5] =  atan2(rot(1,0), rot(0,0));
         for(int i=0; i<6; ++i)
         {
             // Translational Error
-            if( this->_error[i] < min_limits[i] )
+            if( this->_displacement[i] < min_limits[i] )
             {
-                if(fromCenter)
-                    this->_error[i] = this->_error[i] - (min_limits[i]+max_limits[i])/2.0;
+                if(fromCenter && !std::isinf(max_limits[i]))
+                    this->_error[i] = this->_displacement[i] - (min_limits[i]+max_limits[i])/2.0;
                 else
-                    this->_error[i] = this->_error[i] - min_limits[i];
+                    this->_error[i] = this->_displacement[i] - min_limits[i];
             }
-            else if( max_limits[i] < this->_error[i] )
+            else if( max_limits[i] < this->_displacement[i] )
             {
-                if(fromCenter)
-                    this->_error[i] = this->_error[i] - (min_limits[i]+max_limits[i])/2.0;
+                if(fromCenter && !std::isinf(min_limits[i]))
+                    this->_error[i] = this->_displacement[i] - (min_limits[i]+max_limits[i])/2.0;
                 else
-                    this->_error[i] = this->_error[i] - max_limits[i];
+                    this->_error[i] = this->_displacement[i] - max_limits[i];
             }
             else
                 this->_error[i] = 0;
@@ -167,6 +173,7 @@ public:
             for(int i=0; i<6; ++i)
                 this->_error[i] *= this->error_weights[i];
         
+        std::cout << "Vector: " << this->_displacement.transpose() << std::endl;
         
 //        this->_error.template block<3,1>(0,0) = 
 //                target.respectToWorld().rotation()
@@ -180,6 +187,8 @@ public:
     
 protected:
     
+    Error _displacement;
+
     void _initializeDefaults() {
          min_limits.setOnes(); max_limits.setOnes();
          min_limits *= -0.001;  max_limits *= 0.001;

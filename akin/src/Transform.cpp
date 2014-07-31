@@ -50,7 +50,7 @@ using namespace std;
 
 const Transform& KinTransform::respectToWorld() const
 {
-    if(_needsUpdate)
+//    if(_needsUpdate)
         _update();
 
     return _respectToWorld;

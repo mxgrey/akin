@@ -50,7 +50,7 @@ using namespace akin;
 
 const Translation& KinTranslation::respectToWorld() const
 {
-    if(_needsUpdate)
+//    if(_needsUpdate)
         _update();
 
     return _respectToWorld;
@@ -77,7 +77,7 @@ void KinTranslation::_update() const
 
 const FreeVector& KinFreeVector::respectToWorld() const
 {
-    if(_needsUpdate)
+//    if(_needsUpdate)
         _update();
 
     return _respectToWorld;
@@ -105,7 +105,7 @@ void KinFreeVector::_update() const
 
 const Axis& KinAxis::respectToWorld() const
 {
-    if(_needsUpdate)
+//    if(_needsUpdate)
         _update();
 
     return _respectToWorld;

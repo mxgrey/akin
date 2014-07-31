@@ -160,6 +160,7 @@ void display_robot(Robot& displaying_robot)
     r.manip(m).constraint(mode).target = r.manip(m).respectToWorld();
     Transform tf = r.manip(m).constraint(mode).target.respectToRef();
     tf.translate(Vec3(0,0.2,0.2));
+//    tf.rotate(Rotation(1*DEG,Vec3(0,0,1)));
     r.manip(m).constraint(mode).target = tf;
 
     akinNode->setManipulator(r.manip(m));
@@ -184,18 +185,21 @@ void display_robot(Robot& displaying_robot)
     
     
     AnalyticalIKTemplate<7> anal(r.manip(m), joints);
+    anal.min_limits[0] = -INFINITY; anal.max_limits[0] = INFINITY;
+    anal.min_limits[1] = -INFINITY; anal.max_limits[1] = INFINITY;
+    anal.min_limits[2] = -INFINITY; anal.max_limits[2] = INFINITY;
     anal.target = r.manip(m).respectToWorld();
-//    anal.target.translate(Translation(0.5,0.1,0));
+    anal.target.translate(Translation(0.5,0.1,0));
     anal.target.rotate(Rotation(90*DEG, Vec3(1,0,0)));
     std::cout << "Manip\n" << r.manip(m).respectToWorld() << std::endl;
     std::cout << "Target\n" << anal.target.respectToWorld() << std::endl;
     std::cout << "Goal\n" << anal.getGoalTransform(config).respectToWorld() << std::endl;
     
 
-    osgViewer::Viewer viewer;
-    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
-    viewer.setSceneData(root);
-    viewer.run();
+//    osgViewer::Viewer viewer;
+//    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
+//    viewer.setSceneData(root);
+//    viewer.run();
 }
 
 
