@@ -99,8 +99,7 @@ const double DEG = M_PI/180.0;
                       {   ( X & )(*this) = copy ## X ;                                             \
                           notifyUpdate(); return *this; }                                          \
                                                                                                    \
-                      inline X & respectToRef() { return ( X & )(*this); }                         \
-                      inline const X & const_respectToRef() const { return ( X & )(*this); }       
+                      inline const X & respectToRef() const { return ( X & )(*this); }             
 
 /*!
  * \fn _kinitialize( const DerivedClass& otherDerivedClass );

@@ -63,6 +63,8 @@ namespace akin {
 class Translation : public Eigen::Vector3d
 {
 public:
+    
+    typedef Eigen::Vector3d Base;
 
     inline Translation(double x=0, double y=0, double z=0) :
         Eigen::Vector3d(x, y, z)
@@ -70,30 +72,41 @@ public:
 
     }
     
-    inline Translation(const Eigen::Vector3d::ScalarMultipleReturnType& vec) :
-        Eigen::Vector3d(vec)
+    // This constructor allows you to construct MyVectorType from Eigen expressions
+    template<typename OtherDerived>
+    Translation(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Vector3d(other) { }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Translation & operator= (const Eigen::MatrixBase <OtherDerived>& other)
     {
+        this->Base::operator=(other);
+        return *this;
+    }
+    
+//    inline Translation(const Eigen::Vector3d::ScalarMultipleReturnType& vec) :
+//        Eigen::Vector3d(vec)
+//    {
         
-    }
+//    }
 
-    inline Translation(const Eigen::Vector3d& vec) :
-        Eigen::Vector3d(vec)
-    {
+//    inline Translation(const Eigen::Vector3d& vec) :
+//        Eigen::Vector3d(vec)
+//    {
 
-    }
+//    }
 
-    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false>& vec) :
-        Eigen::Vector3d(vec)
-    {
+//    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false>& vec) :
+//        Eigen::Vector3d(vec)
+//    {
 
-    }
+//    }
 
-    // Returned by Transform operations
-    inline Translation(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec) :
-        Eigen::Vector3d(vec)
-    {
+//    // Returned by Transform operations
+//    inline Translation(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec) :
+//        Eigen::Vector3d(vec)
+//    {
 
-    }
+//    }
     
     // Returned by Rotation operations, but conflicts with the one below
 //    inline Translation(const Eigen::CoeffBasedProduct<const Eigen::Matrix<double,3,3>&,
@@ -104,21 +117,21 @@ public:
 //    }
     
     // Returned when a negative is put in front of a rotation
-    inline Translation(const Eigen::CoeffBasedProduct<
-                       const Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<double>,
-                       const Eigen::Matrix<double,3,3> >,
-                       const Eigen::Matrix<double,3,1>&, 6 >& vec) :
-        Eigen::Vector3d(vec)
-    {
+//    inline Translation(const Eigen::CoeffBasedProduct<
+//                       const Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<double>,
+//                       const Eigen::Matrix<double,3,3> >,
+//                       const Eigen::Matrix<double,3,1>&, 6 >& vec) :
+//        Eigen::Vector3d(vec)
+//    {
         
-    }
+//    }
     
     
-    inline Translation& operator=(const Eigen::Vector3d& vec)
-    {
-        (Eigen::Vector3d&)(*this) = vec;
-        return *this;
-    }
+//    inline Translation& operator=(const Eigen::Vector3d& vec)
+//    {
+//        (Eigen::Vector3d&)(*this) = vec;
+//        return *this;
+//    }
 };
 
 /*!
@@ -233,21 +246,11 @@ public:
     {
         (Eigen::Vector3d&)(*this) = Eigen::Vector3d(x,y,z).normalized();
     }
-
-//    inline Axis(const Eigen::Vector3d& vec)
-//    {
-//        (Eigen::Vector3d&)(*this) = vec.normalized();
-//    }
     
     inline Axis(const Translation& vec)
     {
         (Eigen::Vector3d&)(*this) = vec.normalized();
     }
-    
-//    inline Axis(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec)
-//    {
-//        (Eigen::Vector3d&)(*this) = vec.normalized();
-//    }
     
     inline Axis& operator=(const Eigen::Vector3d& vec)
     {

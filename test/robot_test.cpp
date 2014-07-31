@@ -61,7 +61,7 @@ public:
             tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
             tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
             tf.rotate(Rotation(90*DEG*sin(time)/2.0*0.01, Axis(0,1,0)));
-            manip->constraint(mode).target.respectToRef() = tf;
+            manip->constraint(mode).target = tf;
             solver->solve(config);
         }
     
@@ -157,31 +157,40 @@ void display_robot(Robot& displaying_robot)
 //    delete mptr;
 
     r.joint("LEP").value(-90*DEG);
-    r.manip(m).constraint(mode).target.respectToRef() = r.manip(m).respectToWorld();
+    r.manip(m).constraint(mode).target = r.manip(m).respectToWorld();
     Transform tf = r.manip(m).constraint(mode).target.respectToRef();
     tf.translate(Vec3(0,0.2,0.2));
-    r.manip(m).constraint(mode).target.respectToRef() = tf;
+    r.manip(m).constraint(mode).target = tf;
 
     akinNode->setManipulator(r.manip(m));
 
-//    r.manip(m).setConstraint(Manipulator::ANALYTICAL, new AnalyticalIKSupport<7>);
     std::vector<size_t> joints = r.manip(m).constraint(mode).getJoints();
     Eigen::VectorXd config = r.getConfig(joints);
     RobotSolverX solver(r);
     solver.setMandatoryConstraint(&r.manip(m).constraint(mode));
-    if(solver.solve(config))
-    {
-        std::cout << "Solved!" << std::endl;
+//    if(solver.solve(config))
+//    {
+//        std::cout << "Solved!" << std::endl;
 
-        std::cout << config.transpose() << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed!" << std::endl;
+////        std::cout << config.transpose() << std::endl;
+//    }
+//    else
+//    {
+//        std::cout << "Failed!" << std::endl;
 
-        std::cout << config.transpose() << std::endl;
-        return;
-    }
+//        std::cout << config.transpose() << std::endl;
+//        return;
+//    }
+    
+    
+    AnalyticalIKTemplate<7> anal(r.manip(m), joints);
+    anal.target = r.manip(m).respectToWorld();
+//    anal.target.translate(Translation(0.5,0.1,0));
+    anal.target.rotate(Rotation(90*DEG, Vec3(1,0,0)));
+    std::cout << "Manip\n" << r.manip(m).respectToWorld() << std::endl;
+    std::cout << "Target\n" << anal.target.respectToWorld() << std::endl;
+    std::cout << "Goal\n" << anal.getGoalTransform(config).respectToWorld() << std::endl;
+    
 
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));

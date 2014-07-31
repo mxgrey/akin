@@ -46,6 +46,7 @@
 #define AKIN_ROTATION_H
 
 #include "KinObject.h"
+#include "Translation.h"
 
 namespace akin {
 
@@ -86,7 +87,7 @@ public:
 
     }
     
-    inline Rotation(double w, double x, double y, double z) :
+    inline Rotation(double w=1, double x=0, double y=0, double z=0) :
         Eigen::Quaterniond(w, x, y, z)
     {
         

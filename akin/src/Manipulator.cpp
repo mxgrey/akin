@@ -323,7 +323,7 @@ const KinTranslation& Manipulator::com() const
     }
     
     if(_mass>0)
-        _com.respectToRef() = _com.respectToRef()/_mass;
+        _com = _com.respectToRef()/_mass;
     
     return _com;
 }

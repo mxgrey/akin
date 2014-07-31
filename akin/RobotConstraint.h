@@ -132,7 +132,8 @@ public:
         if(update)
             _update(config);
         
-        Transform tf_error = _manip->withRespectTo(target.refFrame())*target.respectToRef().inverse();
+        Transform tf_error = _manip->withRespectTo(target.refFrame())
+                             *target.respectToRef().inverse();
         const Eigen::Vector3d& v = tf_error.translation();
         const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
         
@@ -165,6 +166,14 @@ public:
         if(this->error_weights.size() == 6)
             for(int i=0; i<6; ++i)
                 this->_error[i] *= this->error_weights[i];
+        
+        
+//        this->_error.template block<3,1>(0,0) = 
+//                target.respectToWorld().rotation()
+//                                          *this->_error.template block<3,1>(0,0);
+//        this->_error.template block<3,1>(3,0) = 
+//                target.respectToWorld().rotation()
+//                                          *this->_error.template block<3,1>(3,0);
         
         return this->_error;
     }

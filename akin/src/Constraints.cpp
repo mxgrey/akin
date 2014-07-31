@@ -158,7 +158,7 @@ ManipConstraintBase::ManipConstraintBase(Manipulator& manipulator) :
     target(Frame::World(), manipulator.name()+"_target"),
     _manip(&manipulator)
 {
-    target.respectToRef() = _manip->respectToWorld();
+    target = _manip->respectToWorld();
 }
 
 Manipulator* ManipConstraintBase::manip()
@@ -223,7 +223,7 @@ bool ManipConstraintBase::_reconfigure() {
 
 AnalyticalIKBase::~AnalyticalIKBase() { }
 
-AnalyticalIKBase::AnalyticalIKBase() : options(0) { }
+AnalyticalIKBase::AnalyticalIKBase() : options(0), ignore_joint_limits(false) { }
 
 void NullAnalyticalIK::getSolutionsX(std::vector<Eigen::VectorXd>& solutions,
                                     std::vector<bool>& valid )

@@ -19,6 +19,7 @@ public:
     virtual Validity getBestSolutionX(Eigen::VectorXd& solution) = 0;
     
     int options;
+    bool ignore_joint_limits;
     
 };
 
@@ -34,24 +35,33 @@ public:
 
 
 template<int Q>
-class AnalyticalIKSupport : public ManipConstraint<Q>, public virtual AnalyticalIKBase
+class AnalyticalIKTemplate : public ManipConstraint<Q>, public virtual AnalyticalIKBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    virtual ~AnalyticalIKSupport() { }
+    virtual ~AnalyticalIKTemplate() { }
 
     typedef typename ManipConstraint<Q>::VectorQ VectorQ;
 
-    AnalyticalIKSupport() { }
-    AnalyticalIKSupport(int cspace_size) :
-        RobotConstraintBase(), AnalyticalIKBase(), ManipConstraint<Q>(cspace_size) { }
-    AnalyticalIKSupport(Manipulator& manipulator, const std::vector<size_t> joints) :
-        RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator) { }
-    AnalyticalIKSupport(int cspace_size, Manipulator& manipulator,
+    AnalyticalIKTemplate() : _goalTf(Frame::World(), "ik_goal") { _analyticalIKDefaults(); }
+    AnalyticalIKTemplate(int cspace_size) :
+        RobotConstraintBase(), AnalyticalIKBase(), ManipConstraint<Q>(cspace_size), 
+        _goalTf(Frame::World(), "ik_goal") { _analyticalIKDefaults(); }
+    AnalyticalIKTemplate(Manipulator& manipulator, const std::vector<size_t> joints) :
+        RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator),
+        _goalTf(Frame::World(), manipulator.name()+"_ik_goal") { _analyticalIKDefaults(); }
+    AnalyticalIKTemplate(int cspace_size, Manipulator& manipulator,
                         const std::vector<size_t>& joints) :
         RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator),
-        ManipConstraint<Q>(cspace_size, manipulator, joints) { }
+        ManipConstraint<Q>(cspace_size, manipulator, joints),
+        _goalTf(Frame::World(), manipulator.name()+"_ik_goal") { _analyticalIKDefaults(); }
 
+    virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) {
+        _tempBest = configuration;
+        Validity v = getBestSolution(_tempBest);
+        gradient = configuration - _tempBest;
+        return v;
+    }
 
     virtual Validity getBestSolutionX(Eigen::VectorXd& best) {
         _tempBest = VectorQ(best);
@@ -74,15 +84,15 @@ public:
         getSolutions(_solutions, valid);
         solutions.resize(_solutions.size());
         for(size_t i=0; i<_solutions.size(); ++i)
-            solutions[i] = Eigen::VectorXd(_solutions);
+            solutions[i] = Eigen::VectorXd(_solutions[i]);
     }
 
     virtual void getSolutions(std::vector<VectorQ>& solutions,
-                              std::vector<bool>& valid) = 0;
+                              std::vector<bool>& valid) { }// = 0;
 
     virtual size_t selectBestSolution(VectorQ& best, const VectorQ& lastConfig,
                                       const std::vector<VectorQ>& solutions,
-                                      const std::vector<bool>& valid) const {
+                                      const std::vector<bool>& valid) {
         _validChoices.clear();
         for(size_t i=0; i<valid.size(); ++i)
             if(valid[i])
@@ -117,22 +127,51 @@ public:
             }
         }
 
+        best = solutions[result];
         return result;
+    }
+    
+    const KinTransform& getGoalTransform(const VectorQ& config) {
+        getError(config, this->computeErrorFromCenter);
+        _goalTf.changeRefFrame(this->target.refFrame());
+        _goalTf = _manip->withRespectTo(target.refFrame());
+        std::cout << "Error: " << this->_error.transpose() << std::endl;
+        
+        
+        _goalTf.pretranslate(-this->_error.template block<3,1>(0,0));
+        
+        
+//        _goalTf.prerotate(Rotation(-this->_error[5], Vec3(0,0,1)));
+//        _goalTf.prerotate(Rotation(-this->_error[4], Vec3(0,1,0)));
+//        _goalTf.prerotate(Rotation(-this->_error[3], Vec3(1,0,0)));
+        
+//        _goalTf.rotate(Rotation(-this->_error[3], Vec3(1,0,0)));
+//        _goalTf.rotate(Rotation(-this->_error[4], Vec3(0,1,0)));
+//        _goalTf.rotate(Rotation(-this->_error[5], Vec3(0,0,1)));
+        return _goalTf;
     }
 
     // TODO: Decide on a variety of criteria for deciding what is the best solution
-    virtual double rateConfigCost(const VectorQ& config, const VectorQ& lastConfig) = 0;
+    virtual double rateConfigCost(const VectorQ& config, const VectorQ& lastConfig) {
+        return (config-lastConfig).norm();
+    }
 
 protected:
+
+    void _analyticalIKDefaults() {
+        this->error_weights.resize(6); error_weights.setOnes();
+    }
 
     VectorQ _tempBest;
     std::vector<VectorQ> _solutions;
     std::vector<bool> _valid;
     std::vector<size_t> _validChoices;
+    KinTransform _goalTf;
+    Rotation _errorRot;
 
 };
 
-typedef AnalyticalIKSupport<Eigen::Dynamic> AnalyticalIKSupportX;
+typedef AnalyticalIKTemplate<Eigen::Dynamic> AnalyticalIKSupportX;
 
 } // namespace akin
 
