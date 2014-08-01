@@ -238,7 +238,7 @@ Transform Frame::withRespectTo(const Frame &otherFrame) const
         return respectToWorld();
     else if(&otherFrame == &refFrame())
         return respectToRef();
-    
+
     return otherFrame.respectToWorld().inverse() * respectToWorld();
 }
 

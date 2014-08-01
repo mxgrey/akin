@@ -135,33 +135,31 @@ public:
     const KinTransform& getGoalTransform(const VectorQ& config) {
         getError(config, this->computeErrorFromCenter);
         _goalTf.changeRefFrame(this->target.refFrame());
-//        _goalTf = _manip->withRespectTo(target.refFrame());
-        std::cout << "Error: " << this->_error.transpose() << std::endl;
         
         Error _target_disp = this->_displacement - this->_error;
-        std::cout << "disp:  " << _target_disp.transpose() << std::endl;
 
-        Transform tf_target_disp;
+        std::cout << "Disp:  " << this->_displacement.transpose() << std::endl;
+        std::cout << "Error: " << this->_error.transpose() << std::endl;
+        std::cout << "Diff:  " << _target_disp.transpose() << std::endl;
 
-        tf_target_disp.translate(_target_disp.template block<3,1>(0,0));
-        tf_target_disp.rotate(Rotation(_target_disp[3], Vec3(1,0,0)));
-        tf_target_disp.rotate(Rotation(_target_disp[4], Vec3(0,1,0)));
-        tf_target_disp.rotate(Rotation(_target_disp[5], Vec3(0,0,1)));
+//        _tf_target_disp = Eigen::Isometry3d::Identity();
+//        _tf_target_disp.translate(_target_disp.template block<3,1>(0,0));
+//        _tf_target_disp.rotate(Rotation(_target_disp[3], Vec3(1,0,0)));
+//        _tf_target_disp.rotate(Rotation(_target_disp[4], Vec3(0,1,0)));
+//        _tf_target_disp.rotate(Rotation(_target_disp[5], Vec3(0,0,1)));
 
-//        _goalTf = /*this->target.respectToRef() **/ _goalTf * tf_goal_t0.inverse();
-        _goalTf = tf_target_disp * target.respectToRef();
+//        _goalTf = _tf_target_disp * target.respectToRef();
 
 
-//        _goalTf.pretranslate(-this->_error.template block<3,1>(0,0));
-        
-        
-//        _goalTf.prerotate(Rotation(-this->_error[5], Vec3(0,0,1)));
-//        _goalTf.prerotate(Rotation(-this->_error[4], Vec3(0,1,0)));
-//        _goalTf.prerotate(Rotation(-this->_error[3], Vec3(1,0,0)));
-        
-//        _goalTf.rotate(Rotation(-this->_error[3], Vec3(1,0,0)));
-//        _goalTf.rotate(Rotation(-this->_error[4], Vec3(0,1,0)));
-//        _goalTf.rotate(Rotation(-this->_error[5], Vec3(0,0,1)));
+
+        _goalTf = Eigen::Isometry3d::Identity();
+        _goalTf.translate(_target_disp.template block<3,1>(0,0));
+        _goalTf.translate(target.respectToRef().translation());
+        _goalTf.rotate(Rotation(_target_disp[3], Vec3(1,0,0)));
+        _goalTf.rotate(Rotation(_target_disp[4], Vec3(0,1,0)));
+        _goalTf.rotate(Rotation(_target_disp[5], Vec3(0,0,1)));
+        _goalTf.rotate(target.respectToRef().rotation());
+
         return _goalTf;
     }
 
@@ -174,6 +172,8 @@ protected:
 
     void _analyticalIKDefaults() {
         this->error_weights.resize(6); error_weights.setOnes();
+        this->min_limits.setZero(); this->max_limits.setZero();
+        this->computeErrorFromCenter = false;
     }
 
     VectorQ _tempBest;
@@ -181,7 +181,7 @@ protected:
     std::vector<bool> _valid;
     std::vector<size_t> _validChoices;
     KinTransform _goalTf;
-    Rotation _errorRot;
+    Transform _tf_target_disp;
 
 };
 

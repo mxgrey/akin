@@ -131,22 +131,11 @@ public:
 
         if(update)
             _update(config);
-        
+
         Transform tf_error = _manip->withRespectTo(target.refFrame())
                              *target.respectToRef().inverse();
-
-//        Transform tf_error = target.respectToRef().inverse()
-//                            *_manip->withRespectTo(target.refFrame());
-
-        const Eigen::Vector3d& v = tf_error.translation();
         const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
 
-        std::cout << "T^w_s\n" << _manip->withRespectTo(target.refFrame()).matrix() << std::endl;
-        std::cout << "T^w_e\n" << target.respectToRef().matrix() << std::endl;
-        std::cout << "Tf Error\n" << tf_error.matrix() << std::endl;
-        
-//        for(size_t i=0; i<3; ++i)
-//            this->_displacement[i] = v[i];
         this->_displacement.template block<3,1>(0,0) =
                                         _manip->withRespectTo(target.refFrame()).translation()
                                             - target.respectToRef().translation();
@@ -155,7 +144,6 @@ public:
         this->_displacement[5] =  atan2(rot(1,0), rot(0,0));
         for(int i=0; i<6; ++i)
         {
-            // Translational Error
             if( this->_displacement[i] < min_limits[i] )
             {
                 if(fromCenter && !std::isinf(max_limits[i]))
@@ -177,17 +165,6 @@ public:
         if(this->error_weights.size() == 6)
             for(int i=0; i<6; ++i)
                 this->_error[i] *= this->error_weights[i];
-        
-        std::cout << "Vector: " << this->_displacement.transpose() << std::endl;
-        std::cout << "Error:  " << this->_error.transpose() << std::endl;
-        std::cout << "___________________" << std::endl;
-        
-//        this->_error.template block<3,1>(0,0) = 
-//                target.respectToWorld().rotation()
-//                                          *this->_error.template block<3,1>(0,0);
-//        this->_error.template block<3,1>(3,0) = 
-//                target.respectToWorld().rotation()
-//                                          *this->_error.template block<3,1>(3,0);
         
         return this->_error;
     }

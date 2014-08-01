@@ -44,7 +44,7 @@ public:
             solver = new RobotSolverX(new_robot);
 //            solver->max_steps = 10;
             solver->max_steps = 1;
-            solver->step_size = 0.01;
+            solver->step_size = 0.1;
         }
 
         return r;
@@ -139,7 +139,7 @@ void display_robot(Robot& displaying_robot)
     akinNode->addRobot(displaying_robot);
     akinNode->addRootFrame(akin::Frame::World());
     
-    
+    Frame w(Frame::World(),"w");
     
     Robot& r = displaying_robot;
 
@@ -161,10 +161,12 @@ void display_robot(Robot& displaying_robot)
 //    delete mptr;
 
     r.joint("LEP").value(-90*DEG);
-    r.manip(m).constraint(mode).target = r.manip(m).respectToWorld();
+    w.respectToRef(r.manip(m).respectToWorld());
+    r.manip(m).constraint(mode).target.changeRefFrame(w);
+    r.manip(m).constraint(mode).target = r.manip(m).withRespectTo(w);
     Transform tf = r.manip(m).constraint(mode).target.respectToRef();
 //    tf.translate(Vec3(0.2,0,0.2));
-//    tf.translate(Vec3(0,0.05,0));
+    tf.translate(Vec3(0,0.05,0.1));
     tf.rotate(Rotation(-90*DEG, Vec3(1,0,0)));
 //    tf.rotate(Rotation(1*DEG,Vec3(0,0,1)));
     r.manip(m).constraint(mode).target = tf;
@@ -191,21 +193,43 @@ void display_robot(Robot& displaying_robot)
     
     
     AnalyticalIKTemplate<7> anal(r.manip(m), joints);
+    anal.target.changeRefFrame(w);
+    anal.target = r.manip(m).withRespectTo(w);
+
 //    anal.min_limits[0] = -INFINITY; anal.max_limits[0] = INFINITY;
+//    anal.min_limits[0] = -0.1; anal.min_limits[0] = 0.1;
 //    anal.min_limits[1] = -INFINITY; anal.max_limits[1] = INFINITY;
-    anal.min_limits[2] = -INFINITY; anal.max_limits[2] = INFINITY;
-    anal.target = r.manip(m).respectToWorld();
-    anal.target.translate(Translation(0.5,0.1,0));
-    anal.target.rotate(Rotation(90*DEG, Vec3(1,0,0)));
+    anal.min_limits[1] = -0.1; anal.max_limits[1] = 0.1;
+    //    anal.min_limits[2] = -INFINITY; anal.max_limits[2] = INFINITY;
+    anal.min_limits[2] = -0.1; anal.max_limits[2] = 0.1;
+
+    anal.min_limits[3] = -10*DEG; anal.max_limits[3] = 10*DEG;
+
+    anal.target.rotate(Rotation(45*DEG, Vec3(1,0,0)));
+    anal.target.translate(Translation(0.0,0.0,-0.4));
+
+    const KinTransform& goalTf = anal.getGoalTransform(config);
     std::cout << "Manip\n" << r.manip(m).respectToWorld() << std::endl;
     std::cout << "Target\n" << anal.target.respectToWorld() << std::endl;
-    std::cout << "Goal\n" << anal.getGoalTransform(config).respectToWorld() << std::endl;
-    
+    std::cout << "Goal\n" << goalTf.respectToWorld() << std::endl;
+    std::cout << "Manip\n" << r.manip(m).withRespectTo(w) << std::endl;
+    std::cout << "Target\n" << anal.target.withRespectTo(w) << std::endl;
+    std::cout << "Goal\n" << goalTf.withRespectTo(w) << std::endl;
+    Eigen::AngleAxisd aaM(r.manip(m).withRespectTo(w).rotation());
+    std::cout << "Mrot " << aaM.angle()/DEG << " <" << aaM.axis().transpose() << ">" << std::endl;
+    Eigen::AngleAxisd aaT(anal.target.withRespectTo(w).rotation());
+    std::cout << "Trot " << aaT.angle()/DEG << " <" << aaT.axis().transpose() << ">" << std::endl;
+    Eigen::AngleAxisd aaG(goalTf.withRespectTo(w).rotation());
+    std::cout << "Grot " << aaG.angle()/DEG << " <" << aaG.axis().transpose() << ">" << std::endl;
+//    Eigen::AngleAxisd aa((r.manip(m).respectToWorld()*goalTf.respectToWorld().inverse()).rotation());
+//    std::cout << "Diff " << aa.angle()/DEG << " <" << aa.axis().transpose() << ">" << std::endl;
 
-//    osgViewer::Viewer viewer;
-//    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
-//    viewer.setSceneData(root);
-//    viewer.run();
+
+
+    osgViewer::Viewer viewer;
+    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
+    viewer.setSceneData(root);
+    viewer.run();
 }
 
 
