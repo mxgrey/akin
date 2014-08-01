@@ -141,10 +141,15 @@ public:
         const Eigen::Vector3d& v = tf_error.translation();
         const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
 
+        std::cout << "T^w_s\n" << _manip->withRespectTo(target.refFrame()).matrix() << std::endl;
+        std::cout << "T^w_e\n" << target.respectToRef().matrix() << std::endl;
         std::cout << "Tf Error\n" << tf_error.matrix() << std::endl;
         
-        for(size_t i=0; i<3; ++i)
-            this->_displacement[i] = v[i];
+//        for(size_t i=0; i<3; ++i)
+//            this->_displacement[i] = v[i];
+        this->_displacement.template block<3,1>(0,0) =
+                                        _manip->withRespectTo(target.refFrame()).translation()
+                                            - target.respectToRef().translation();
         this->_displacement[3] =  atan2(rot(2,1), rot(2,2));
         this->_displacement[4] = -asin(rot(2,0));
         this->_displacement[5] =  atan2(rot(1,0), rot(0,0));
@@ -174,6 +179,8 @@ public:
                 this->_error[i] *= this->error_weights[i];
         
         std::cout << "Vector: " << this->_displacement.transpose() << std::endl;
+        std::cout << "Error:  " << this->_error.transpose() << std::endl;
+        std::cout << "___________________" << std::endl;
         
 //        this->_error.template block<3,1>(0,0) = 
 //                target.respectToWorld().rotation()

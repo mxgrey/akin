@@ -42,7 +42,9 @@ public:
         if(solver == NULL)
         {
             solver = new RobotSolverX(new_robot);
-            solver->max_steps = 10;
+//            solver->max_steps = 10;
+            solver->max_steps = 1;
+            solver->step_size = 0.01;
         }
 
         return r;
@@ -57,12 +59,14 @@ public:
 
         if(solver != NULL && manip != NULL)
         {
-            tf = manip->constraint(mode).target.respectToRef();
-            tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
-            tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
-            tf.rotate(Rotation(90*DEG*sin(time)/2.0*0.01, Axis(0,1,0)));
-            manip->constraint(mode).target = tf;
             solver->solve(config);
+//            tf = manip->constraint(mode).target.respectToRef();
+//            tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
+//            tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
+//            tf.rotate(Rotation(90*DEG*sin(time)/2.0*0.01, Axis(0,1,0)));
+//            manip->constraint(mode).target = tf;
+//            solver->solve(config);
+
         }
     
         AkinNode::update();
@@ -159,7 +163,9 @@ void display_robot(Robot& displaying_robot)
     r.joint("LEP").value(-90*DEG);
     r.manip(m).constraint(mode).target = r.manip(m).respectToWorld();
     Transform tf = r.manip(m).constraint(mode).target.respectToRef();
-    tf.translate(Vec3(0,0.2,0.2));
+//    tf.translate(Vec3(0.2,0,0.2));
+//    tf.translate(Vec3(0,0.05,0));
+    tf.rotate(Rotation(-90*DEG, Vec3(1,0,0)));
 //    tf.rotate(Rotation(1*DEG,Vec3(0,0,1)));
     r.manip(m).constraint(mode).target = tf;
 
@@ -185,8 +191,8 @@ void display_robot(Robot& displaying_robot)
     
     
     AnalyticalIKTemplate<7> anal(r.manip(m), joints);
-    anal.min_limits[0] = -INFINITY; anal.max_limits[0] = INFINITY;
-    anal.min_limits[1] = -INFINITY; anal.max_limits[1] = INFINITY;
+//    anal.min_limits[0] = -INFINITY; anal.max_limits[0] = INFINITY;
+//    anal.min_limits[1] = -INFINITY; anal.max_limits[1] = INFINITY;
     anal.min_limits[2] = -INFINITY; anal.max_limits[2] = INFINITY;
     anal.target = r.manip(m).respectToWorld();
     anal.target.translate(Translation(0.5,0.1,0));
