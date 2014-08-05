@@ -8,6 +8,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 add_definitions("-Wall -Wextra -std=c++0x")
 
+set(COMPILE_EVERYTHING ON)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(Eigen REQUIRED)
@@ -54,41 +56,51 @@ if(URDF_PARSING)
 
     else(urdfdom_headers_FOUND)
       MESSAGE(STATUS "Could NOT find urdfdom *headers* -- We will NOT compile a URDF parser")
+      set(COMPILE_EVERYTHING OFF)
     endif(urdfdom_headers_FOUND)
   else( urdfdom_FOUND)
     MESSAGE(STATUS "Could NOT find urdfdom -- We will NOT compile a URDF parser")
+    set(COMPILE_EVERYTHING OFF)
   endif(urdfdom_FOUND)
 
 endif(URDF_PARSING)
 
+if(COMPILE_EVERYTHING)
 
-set(exec_dependencies ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES})
+    add_subdirectory(HuboKin)
 
-enable_testing()
+    set(exec_dependencies ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES} HuboKin)
 
-file(GLOB unit_tests_source "test/*.cpp")
-LIST(SORT unit_tests_source)
+    enable_testing()
 
-message(STATUS "\n -- UNIT TEST: ")
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
-foreach(utest_src_file ${unit_tests_source})
-    get_filename_component(test_base ${utest_src_file} NAME_WE)
-    message(STATUS "Adding test ${test_base}")
-    add_executable(${test_base} ${utest_src_file})
-    target_link_libraries(${test_base} ${exec_dependencies})
-    add_test(${test_base} ${EXECUTABLE_OUTPUT_PATH}/${test_base})
-    add_custom_target(${test_base}.run ${test_base} ${ARGN})
-    add_dependencies(check ${test_base})
-endforeach(utest_src_file)
+    file(GLOB unit_tests_source "test/*.cpp")
+    LIST(SORT unit_tests_source)
 
-file(GLOB apps_source "apps/*.cpp")
-LIST(SORT apps_source)
+    message(STATUS "\n    Unit Tests: ")
+    add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+    foreach(utest_src_file ${unit_tests_source})
+        get_filename_component(test_base ${utest_src_file} NAME_WE)
+        message(STATUS "Adding test ${test_base}")
+        add_executable(${test_base} ${utest_src_file})
+        target_link_libraries(${test_base} ${exec_dependencies})
+        add_test(${test_base} ${EXECUTABLE_OUTPUT_PATH}/${test_base})
+        add_custom_target(${test_base}.run ${test_base} ${ARGN})
+        add_dependencies(check ${test_base})
+    endforeach(utest_src_file)
 
-message(STATUS "\n -- Applications: ")
-foreach(app_src_file ${apps_source})
-    get_filename_component(app_base ${app_src_file} NAME_WE)
-    message(STATUS "Adding application ${app_base}")
-    add_executable(${app_base} ${app_src_file})
-    target_link_libraries(${app_base} ${exec_dependencies})
-endforeach(app_src_file)
+    file(GLOB apps_source "apps/*.cpp")
+    LIST(SORT apps_source)
 
+    message(STATUS "\n    Applications: ")
+    foreach(app_src_file ${apps_source})
+        get_filename_component(app_base ${app_src_file} NAME_WE)
+        message(STATUS "Adding application ${app_base}")
+        add_executable(${app_base} ${app_src_file})
+        target_link_libraries(${app_base} ${exec_dependencies})
+    endforeach(app_src_file)
+
+else(COMPILE_EVERYTHING)
+
+    message(STATUS "\n The entire package was not compiled, so we will not generate apps and tests!")
+
+endif(COMPILE_EVERYTHING)

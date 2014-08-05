@@ -231,14 +231,15 @@ AnalyticalIKBase::~AnalyticalIKBase() { }
 
 AnalyticalIKBase::AnalyticalIKBase() : options(0), ignore_joint_limits(false) { }
 
-void NullAnalyticalIK::getSolutionsX(std::vector<Eigen::VectorXd>& solutions,
-                                    std::vector<bool>& valid )
+void NullAnalyticalIK::getSolutionsX(const Eigen::VectorXd& ,
+                                     std::vector<Eigen::VectorXd>& solutions,
+                                     std::vector<bool>& valid )
 {
     solutions.clear();
     valid.clear();
 }
 
-Validity NullAnalyticalIK::getBestSolutionX(Eigen::VectorXd &)
+Validity NullAnalyticalIK::getBestSolutionX(Eigen::VectorXd &, const Eigen::VectorXd& )
 {
     return Validity::Stuck();
 }

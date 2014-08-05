@@ -56,6 +56,8 @@
 namespace akin {
 
 const double DEG = M_PI/180.0;
+double mod(double x, double y);
+double wrapToPi(double angle);
 
 /*!
   * \def KinMacro( KinDerivedClass , DerivedClass )

@@ -46,6 +46,19 @@
 
 using namespace akin;
 
+double akin::mod(double x, double y)
+{
+    if( 0 == y )
+        return x;
+
+    return x - y * floor(x/y);
+}
+
+double akin::wrapToPi(double angle)
+{
+    return mod(angle+M_PI, 2*M_PI) - M_PI;
+}
+
 KinObject::KinObject(Frame& referenceFrame,
                      const std::string& myName,
                      verbosity::verbosity_level_t report_level,

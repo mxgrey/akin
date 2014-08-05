@@ -72,7 +72,7 @@ protected:
     
     Manipulator* _manip;
     std::vector<bool> _dependency;
-    bool _reconfigure();
+    virtual bool _reconfigure();
     
 };
 
