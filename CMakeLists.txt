@@ -21,9 +21,6 @@ include_directories(${PROJECT_SOURCE_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-file(GLOB unit_tests_source "test/*.cpp")
-LIST(SORT unit_tests_source)
-
 add_subdirectory(akin)
 
 find_package(OpenSceneGraph)
@@ -65,7 +62,12 @@ if(URDF_PARSING)
 endif(URDF_PARSING)
 
 
+set(exec_dependencies ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES})
+
 enable_testing()
+
+file(GLOB unit_tests_source "test/*.cpp")
+LIST(SORT unit_tests_source)
 
 message(STATUS "\n -- UNIT TEST: ")
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
@@ -73,9 +75,20 @@ foreach(utest_src_file ${unit_tests_source})
     get_filename_component(test_base ${utest_src_file} NAME_WE)
     message(STATUS "Adding test ${test_base}")
     add_executable(${test_base} ${utest_src_file})
-    target_link_libraries(${test_base} ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES})
+    target_link_libraries(${test_base} ${exec_dependencies})
     add_test(${test_base} ${EXECUTABLE_OUTPUT_PATH}/${test_base})
     add_custom_target(${test_base}.run ${test_base} ${ARGN})
     add_dependencies(check ${test_base})
 endforeach(utest_src_file)
+
+file(GLOB apps_source "apps/*.cpp")
+LIST(SORT apps_source)
+
+message(STATUS "\n -- Applications: ")
+foreach(app_src_file ${apps_source})
+    get_filename_component(app_base ${app_src_file} NAME_WE)
+    message(STATUS "Adding application ${app_base}")
+    add_executable(${app_base} ${app_src_file})
+    target_link_libraries(${app_base} ${exec_dependencies})
+endforeach(app_src_file)
 

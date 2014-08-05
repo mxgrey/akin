@@ -8,7 +8,7 @@ using namespace std;
 
 ConstraintBase::~ConstraintBase() { }
 
-ConstraintBase::Validity::Validity() :
+Validity::Validity() :
     valid(false),
     stuck(false),
     near_edge(false)
@@ -16,27 +16,27 @@ ConstraintBase::Validity::Validity() :
     
 }
 
-ConstraintBase::Validity ConstraintBase::Validity::Valid()
+Validity Validity::Valid()
 {
     Validity v;
     v.valid = true;
     return v;
 }
 
-ConstraintBase::Validity ConstraintBase::Validity::Stuck()
+Validity Validity::Stuck()
 {
     Validity v;
     v.stuck = true;
     return v;
 }
 
-ConstraintBase::Validity ConstraintBase::Validity::Invalid()
+Validity Validity::Invalid()
 {
     Validity v;
     return v;
 }
 
-bool operator==(const ConstraintBase::Validity& v1, const ConstraintBase::Validity& v2)
+bool operator==(const Validity& v1, const Validity& v2)
 {
     if( (v1.valid == v2.valid) 
             && (v1.stuck == v2.stuck) 
@@ -46,7 +46,7 @@ bool operator==(const ConstraintBase::Validity& v1, const ConstraintBase::Validi
     return false;
 }
 
-std::string ConstraintBase::Validity::toString() const
+std::string Validity::toString() const
 {
     stringstream str;
     if(valid)
@@ -63,7 +63,7 @@ std::string ConstraintBase::Validity::toString() const
     return str.str();
 }
 
-std::ostream& operator<<(std::ostream& oStrStream, const ConstraintBase::Validity& v)
+std::ostream& operator<<(std::ostream& oStrStream, const Validity& v)
 {
     oStrStream << v.toString();
     return oStrStream;
@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& oStrStream, const ConstraintBase::Validit
 
 NullConstraintBase::~NullConstraintBase() { }
 
-ConstraintBase::Validity NullConstraintBase::getGradientX(Eigen::VectorXd &gradient, 
+Validity NullConstraintBase::getGradientX(Eigen::VectorXd &gradient,
                                                           const Eigen::VectorXd &configuration)
 {
     gradient.resize(configuration.size());
@@ -79,7 +79,7 @@ ConstraintBase::Validity NullConstraintBase::getGradientX(Eigen::VectorXd &gradi
     return Validity::Valid();
 }
 
-ConstraintBase::Validity NullConstraintBase::getValidityX(const Eigen::VectorXd &)
+Validity NullConstraintBase::getValidityX(const Eigen::VectorXd &)
 {
     return Validity::Valid();
 }
@@ -218,6 +218,12 @@ bool ManipConstraintBase::_reconfigure() {
     return true;
 }
 
+NullManipConstraint::NullManipConstraint() { }
+
+NullManipConstraint::NullManipConstraint(Robot &robot)
+{
+    _robot = &robot;
+}
 
 ///////////// Analytical IK
 
@@ -232,7 +238,7 @@ void NullAnalyticalIK::getSolutionsX(std::vector<Eigen::VectorXd>& solutions,
     valid.clear();
 }
 
-ConstraintBase::Validity NullAnalyticalIK::getBestSolutionX(Eigen::VectorXd &)
+Validity NullAnalyticalIK::getBestSolutionX(Eigen::VectorXd &)
 {
     return Validity::Stuck();
 }

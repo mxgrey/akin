@@ -6,29 +6,29 @@
 
 namespace akin {
 
+class Validity
+{
+public:
+
+    static Validity Valid();
+    static Validity Stuck();
+    static Validity Invalid();
+
+    friend bool operator==(const Validity& v1, const Validity& v2);
+
+    Validity();
+    bool valid;
+    bool stuck;
+    bool near_edge;
+
+    std::string toString() const;
+
+}; // Definitions are given in Constraint.cpp
+
 class ConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    
-    class Validity
-    {
-    public:
-        
-        static Validity Valid();
-        static Validity Stuck();
-        static Validity Invalid();
-        
-        friend bool operator==(const Validity& v1, const Validity& v2);
-        
-        Validity();
-        bool valid;
-        bool stuck;
-        bool near_edge;
-        
-        std::string toString() const;
-        
-    }; // Definitions are given in Constraint.cpp
     
     virtual ~ConstraintBase();
     
@@ -69,6 +69,6 @@ protected:
 }
 
 // Definition in Constraint.cpp
-std::ostream& operator<<(std::ostream& oStrStream, const akin::ConstraintBase::Validity& v);
+std::ostream& operator<<(std::ostream& oStrStream, const akin::Validity& v);
 
 #endif // CONSTRAINTBASE_H

@@ -80,7 +80,6 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     virtual ~JacobianConstraint() { }
 
-    typedef typename ConstraintBase::Validity Validity;
     typedef typename Constraint<Q>::VectorQ VectorQ;
     typedef Eigen::Matrix<double,W,Q> Jacobian;
     typedef Eigen::Matrix<double,Q,W> PseudoInverse;

@@ -89,7 +89,7 @@ public:
     }
 
     virtual void getSolutions(std::vector<VectorQ>& solutions,
-                              std::vector<bool>& valid) { }// = 0;
+                              std::vector<bool>& valid) = 0;
 
     virtual size_t selectBestSolution(VectorQ& best, const VectorQ& lastConfig,
                                       const std::vector<VectorQ>& solutions,
@@ -138,9 +138,9 @@ public:
         
         Error _target_disp = this->_displacement - this->_error;
 
-        std::cout << "Disp:  " << this->_displacement.transpose() << std::endl;
-        std::cout << "Error: " << this->_error.transpose() << std::endl;
-        std::cout << "Diff:  " << _target_disp.transpose() << std::endl;
+//        std::cout << "Disp:  " << this->_displacement.transpose() << std::endl;
+//        std::cout << "Error: " << this->_error.transpose() << std::endl;
+//        std::cout << "Diff:  " << _target_disp.transpose() << std::endl;
 
 //        _tf_target_disp = Eigen::Isometry3d::Identity();
 //        _tf_target_disp.translate(_target_disp.template block<3,1>(0,0));

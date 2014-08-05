@@ -80,7 +80,8 @@ class NullManipConstraint : public ManipConstraintBase, public NullConstraintBas
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    
+    NullManipConstraint();
+    NullManipConstraint(Robot& robot);
 };
 
 template<int Q>

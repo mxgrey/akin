@@ -57,17 +57,25 @@ public:
         Robot& robot = getRobot(0);
         robot.joint("NK2").value( 45*M_PI/180 * sin(time) );
 
-        if(solver != NULL && manip != NULL)
+        if( manip != NULL )
         {
-            solver->solve(config);
-//            tf = manip->constraint(mode).target.respectToRef();
-//            tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
-//            tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
-//            tf.rotate(Rotation(90*DEG*sin(time)/2.0*0.01, Axis(0,1,0)));
-//            manip->constraint(mode).target = tf;
-//            solver->solve(config);
-
+            tf = manip->constraint(mode).target.respectToRef();
+            tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
+            tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
+            manip->ik(config, tf, manip->constraint(mode).target.refFrame());
         }
+
+//        if(solver != NULL && manip != NULL)
+//        {
+//            solver->solve(config);
+////            tf = manip->constraint(mode).target.respectToRef();
+////            tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
+////            tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
+////            tf.rotate(Rotation(90*DEG*sin(time)/2.0*0.01, Axis(0,1,0)));
+////            manip->constraint(mode).target = tf;
+////            solver->solve(config);
+
+//        }
     
         AkinNode::update();
     }
@@ -167,7 +175,7 @@ void display_robot(Robot& displaying_robot)
     Transform tf = r.manip(m).constraint(mode).target.respectToRef();
 //    tf.translate(Vec3(0.2,0,0.2));
     tf.translate(Vec3(0,0.05,0.1));
-    tf.rotate(Rotation(-90*DEG, Vec3(1,0,0)));
+//    tf.rotate(Rotation(-90*DEG, Vec3(1,0,0)));
 //    tf.rotate(Rotation(1*DEG,Vec3(0,0,1)));
     r.manip(m).constraint(mode).target = tf;
 
@@ -177,52 +185,52 @@ void display_robot(Robot& displaying_robot)
     Eigen::VectorXd config = r.getConfig(joints);
     RobotSolverX solver(r);
     solver.setMandatoryConstraint(&r.manip(m).constraint(mode));
-//    if(solver.solve(config))
-//    {
-//        std::cout << "Solved!" << std::endl;
-
-////        std::cout << config.transpose() << std::endl;
-//    }
-//    else
-//    {
-//        std::cout << "Failed!" << std::endl;
+    if(solver.solve(config))
+    {
+        std::cout << "Solved!" << std::endl;
 
 //        std::cout << config.transpose() << std::endl;
-//        return;
-//    }
+    }
+    else
+    {
+        std::cout << "Failed!" << std::endl;
+
+        std::cout << config.transpose() << std::endl;
+        return;
+    }
     
     
-    AnalyticalIKTemplate<7> anal(r.manip(m), joints);
-    anal.target.changeRefFrame(w);
-    anal.target = r.manip(m).withRespectTo(w);
+//    AnalyticalIKTemplate<7> anal(r.manip(m), joints);
+//    anal.target.changeRefFrame(w);
+//    anal.target = r.manip(m).withRespectTo(w);
 
-//    anal.min_limits[0] = -INFINITY; anal.max_limits[0] = INFINITY;
-//    anal.min_limits[0] = -0.1; anal.min_limits[0] = 0.1;
-//    anal.min_limits[1] = -INFINITY; anal.max_limits[1] = INFINITY;
-    anal.min_limits[1] = -0.1; anal.max_limits[1] = 0.1;
-    //    anal.min_limits[2] = -INFINITY; anal.max_limits[2] = INFINITY;
-    anal.min_limits[2] = -0.1; anal.max_limits[2] = 0.1;
+////    anal.min_limits[0] = -INFINITY; anal.max_limits[0] = INFINITY;
+////    anal.min_limits[0] = -0.1; anal.min_limits[0] = 0.1;
+////    anal.min_limits[1] = -INFINITY; anal.max_limits[1] = INFINITY;
+//    anal.min_limits[1] = -0.1; anal.max_limits[1] = 0.1;
+//    //    anal.min_limits[2] = -INFINITY; anal.max_limits[2] = INFINITY;
+//    anal.min_limits[2] = -0.1; anal.max_limits[2] = 0.1;
 
-    anal.min_limits[3] = -10*DEG; anal.max_limits[3] = 10*DEG;
+//    anal.min_limits[3] = -10*DEG; anal.max_limits[3] = 10*DEG;
 
-    anal.target.rotate(Rotation(45*DEG, Vec3(1,0,0)));
-    anal.target.translate(Translation(0.0,0.0,-0.4));
+//    anal.target.rotate(Rotation(45*DEG, Vec3(1,0,0)));
+//    anal.target.translate(Translation(0.0,0.0,-0.4));
 
-    const KinTransform& goalTf = anal.getGoalTransform(config);
-    std::cout << "Manip\n" << r.manip(m).respectToWorld() << std::endl;
-    std::cout << "Target\n" << anal.target.respectToWorld() << std::endl;
-    std::cout << "Goal\n" << goalTf.respectToWorld() << std::endl;
-    std::cout << "Manip\n" << r.manip(m).withRespectTo(w) << std::endl;
-    std::cout << "Target\n" << anal.target.withRespectTo(w) << std::endl;
-    std::cout << "Goal\n" << goalTf.withRespectTo(w) << std::endl;
-    Eigen::AngleAxisd aaM(r.manip(m).withRespectTo(w).rotation());
-    std::cout << "Mrot " << aaM.angle()/DEG << " <" << aaM.axis().transpose() << ">" << std::endl;
-    Eigen::AngleAxisd aaT(anal.target.withRespectTo(w).rotation());
-    std::cout << "Trot " << aaT.angle()/DEG << " <" << aaT.axis().transpose() << ">" << std::endl;
-    Eigen::AngleAxisd aaG(goalTf.withRespectTo(w).rotation());
-    std::cout << "Grot " << aaG.angle()/DEG << " <" << aaG.axis().transpose() << ">" << std::endl;
-//    Eigen::AngleAxisd aa((r.manip(m).respectToWorld()*goalTf.respectToWorld().inverse()).rotation());
-//    std::cout << "Diff " << aa.angle()/DEG << " <" << aa.axis().transpose() << ">" << std::endl;
+//    const KinTransform& goalTf = anal.getGoalTransform(config);
+//    std::cout << "Manip\n" << r.manip(m).respectToWorld() << std::endl;
+//    std::cout << "Target\n" << anal.target.respectToWorld() << std::endl;
+//    std::cout << "Goal\n" << goalTf.respectToWorld() << std::endl;
+//    std::cout << "Manip\n" << r.manip(m).withRespectTo(w) << std::endl;
+//    std::cout << "Target\n" << anal.target.withRespectTo(w) << std::endl;
+//    std::cout << "Goal\n" << goalTf.withRespectTo(w) << std::endl;
+//    Eigen::AngleAxisd aaM(r.manip(m).withRespectTo(w).rotation());
+//    std::cout << "Mrot " << aaM.angle()/DEG << " <" << aaM.axis().transpose() << ">" << std::endl;
+//    Eigen::AngleAxisd aaT(anal.target.withRespectTo(w).rotation());
+//    std::cout << "Trot " << aaT.angle()/DEG << " <" << aaT.axis().transpose() << ">" << std::endl;
+//    Eigen::AngleAxisd aaG(goalTf.withRespectTo(w).rotation());
+//    std::cout << "Grot " << aaG.angle()/DEG << " <" << aaG.axis().transpose() << ">" << std::endl;
+////    Eigen::AngleAxisd aa((r.manip(m).respectToWorld()*goalTf.respectToWorld().inverse()).rotation());
+////    std::cout << "Diff " << aa.angle()/DEG << " <" << aa.axis().transpose() << ">" << std::endl;
 
 
 

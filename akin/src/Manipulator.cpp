@@ -2,6 +2,7 @@
 #include "akin/Robot.h"
 #include "akin/RobotConstraint.h"
 #include "akin/AnalyticalIKBase.h"
+#include "akin/Solver.h"
 
 using namespace akin;
 using namespace std;
@@ -12,6 +13,11 @@ Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &mani
     _com(*this, manipName+"_com"),
     _myRobot(robot)
 {
+    for(size_t i=0; i<NUM_MODES; ++i)
+    {
+        _solvers[i] = new RobotSolverX(parentRobot());
+    }
+
     _findParentLink();
     for(size_t i=0; i<NUM_MODES; ++i)
         _ownConstraint[i] = false;
@@ -24,7 +30,7 @@ Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &mani
     {
         for(size_t i=0; i<NUM_MODES; ++i)
         {
-            _constraints[i] = new NullManipConstraint;
+            _constraints[i] = new NullManipConstraint(parentRobot());
             _ownConstraint[i] = true;
         }
     }
@@ -36,7 +42,24 @@ Manipulator::~Manipulator()
     {
         if(_ownConstraint[i])
             delete _constraints[i];
+        delete _solvers[i];
     }
+}
+
+bool Manipulator::ik(Eigen::VectorXd& config, const akin::Transform& targetTf,
+                         akin::Frame& relativeFrame, akin::Manipulator::Mode m)
+{
+    _myRobot->verb.Assert( 0 <= m && m < NUM_MODES, verbosity::ASSERT_CASUAL,
+                           "Selected invalid IK mode ("+std::to_string((int)m)+")!");
+
+    _constraints[m]->target.changeRefFrame(relativeFrame);
+    _constraints[m]->target = targetTf;
+    return _solvers[m]->solve(config);
+}
+
+bool Manipulator::ik(Eigen::VectorXd &config, KinTransform &targetTf, Mode m)
+{
+    return ik(config, targetTf.respectToRef(), targetTf.refFrame(), m);
 }
 
 ManipConstraintBase& Manipulator::constraint(Mode mode)
@@ -44,6 +67,13 @@ ManipConstraintBase& Manipulator::constraint(Mode mode)
     if( mode < 0 || NUM_MODES <= mode)
         return *_constraints[0];
     return *_constraints[mode];
+}
+
+RobotSolverX& Manipulator::solver(Mode mode)
+{
+    if( mode < 0 || NUM_MODES <= mode)
+        return *_solvers[0];
+    return *_solvers[mode];
 }
 
 AnalyticalIKBase& Manipulator::analyticalIK()
@@ -81,6 +111,7 @@ void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, b
         delete _constraints[mode];
     _constraints[mode] = newConstraint;
     _ownConstraint[mode] = giveOwnership;
+    _solvers[mode]->setMandatoryConstraint(_constraints[mode]);
 }
 
 void Manipulator::resetConstraint(Mode mode)
@@ -93,7 +124,7 @@ void Manipulator::resetConstraint(Mode mode)
     ManipConstraintBase* constraint;
     if(FREE==mode)
     {
-        constraint = new NullManipConstraint;
+        constraint = new NullManipConstraint(parentRobot());
     }
     else if(LINKAGE==mode)
     {
@@ -120,7 +151,7 @@ void Manipulator::resetConstraint(Mode mode)
     }
     else if(CUSTOM==mode)
     {
-        constraint = new NullManipConstraint;
+        constraint = new NullManipConstraint(parentRobot());
     }
     
     setConstraint(mode, constraint, true);

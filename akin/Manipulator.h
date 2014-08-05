@@ -9,6 +9,7 @@ class Robot;
 class Link;
 class ManipConstraintBase;
 class AnalyticalIKBase;
+class RobotSolverX;
 
 class Manipulator : public Frame
 {
@@ -27,8 +28,13 @@ public:
         NUM_MODES
         
     } Mode;
+
+    bool ik(Eigen::VectorXd& config, const Transform& targetTf,
+                Frame& relativeFrame=Frame::World(), Mode m=LINKAGE);
+    bool ik(Eigen::VectorXd& config, KinTransform& targetTf, Mode m=LINKAGE);
     
     ManipConstraintBase& constraint(Mode mode);
+    RobotSolverX& solver(Mode mode);
     AnalyticalIKBase& analyticalIK();
     void setConstraint(Mode mode, ManipConstraintBase* newConstraint, bool giveOwnership=true);
     void resetConstraint(Mode mode);
@@ -77,6 +83,8 @@ protected:
     
     bool _ownConstraint[NUM_MODES];
     ManipConstraintBase* _constraints[NUM_MODES];
+    RobotSolverX* _solvers[NUM_MODES];
+
     AnalyticalIKBase* _analytical;
     KinTranslation _point;
     mutable KinTranslation _com;

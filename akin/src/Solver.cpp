@@ -134,7 +134,7 @@ bool SolverX::_satisfy(Eigen::VectorXd& config, ConstraintBase* constraint, size
     
     const Eigen::VectorXd original_config = config;
     Eigen::VectorXd rConfig(config.size());
-    ConstraintBase::Validity v = ConstraintBase::Validity::Invalid();
+    Validity v = Validity::Invalid();
     Eigen::VectorXd gradient(config.size());
     size_t attempt_count = 1;
     
