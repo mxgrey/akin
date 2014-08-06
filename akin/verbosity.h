@@ -227,11 +227,17 @@ public:
 
             if( ASSERT_NEVER < importance && importance <= assertiveness)
             {
-                *_outputstream << "ASSERTION LEVEL: " << assert_level_to_string(importance);
-                *_outputstream << " | MY ASSERTIVENESS LEVEL: "
-                               << assert_level_to_string(assertiveness) << std::endl;
-                std::flush(*_outputstream);
+                std::cerr << brief_explanation << desc_explanation
+                          << "\nASSERTION LEVEL: " << assert_level_to_string(importance)
+                          << " | MY ASSERTIVENESS LEVEL: "
+                          << assert_level_to_string(assertiveness) << std::endl;
                 exit(1);
+
+//                *_outputstream << "ASSERTION LEVEL: " << assert_level_to_string(importance);
+//                *_outputstream << " | MY ASSERTIVENESS LEVEL: "
+//                               << assert_level_to_string(assertiveness) << std::endl;
+//                std::flush(*_outputstream);
+//                exit(1);
             }
         }
 

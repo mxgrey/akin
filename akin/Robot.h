@@ -107,6 +107,7 @@ public:
     virtual ~Robot();
 
     Eigen::VectorXd getConfig(std::vector<size_t> joints) const;
+    bool setConfig(std::vector<size_t> joints, const Eigen::VectorXd& values);
     
     Frame& refFrame();
     const Frame& const_refFrame() const;

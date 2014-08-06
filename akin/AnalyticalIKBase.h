@@ -67,7 +67,7 @@ public:
         if(v.valid)
             return v;
 
-        v = getBestSolution(_tempBest);
+        v = getBestSolution(_tempBest, configuration);
         gradient = configuration - _tempBest;
         if(v.stuck)
             return v;
@@ -75,16 +75,17 @@ public:
         return Validity::Invalid();
     }
 
-    virtual Validity getBestSolutionX(Eigen::VectorXd& best) {
-        _tempBest = VectorQ(best);
-        Validity v = getBestSolution(_tempBest, _tempBest);
+    virtual Validity getBestSolutionX(Eigen::VectorXd& best, const Eigen::VectorXd& lastConfig) {
+        _tempBest = VectorQ(best); _tempLast = VectorQ(lastConfig);
+        Validity v = getBestSolution(_tempBest, _tempLast);
         best = Eigen::VectorXd(_tempBest);
         return v;
     }
 
-    virtual Validity getBestSolution(VectorQ& best) {
-        getSolutions(best, _solutions, _valid);
-        size_t selection = selectBestSolution(best, best, _solutions, _valid);
+    virtual Validity getBestSolution(VectorQ& best, const VectorQ& lastConfig) {
+        getSolutions(lastConfig, _solutions, _valid);
+        std::cout << "# Solutions: " << _solutions.size() << std::endl;
+        size_t selection = selectBestSolution(best, lastConfig, _solutions, _valid);
         if(selection == DOF_INVALID)
             return Validity::Stuck();
         else if(_valid[selection])
@@ -156,11 +157,11 @@ public:
 
         _goalTf = Eigen::Isometry3d::Identity();
         _goalTf.translate(_target_disp.template block<3,1>(0,0));
-        _goalTf.translate(target.respectToRef().translation());
+        _goalTf.translate(this->target.respectToRef().translation());
         _goalTf.rotate(Rotation(_target_disp[3], Vec3(1,0,0)));
         _goalTf.rotate(Rotation(_target_disp[4], Vec3(0,1,0)));
         _goalTf.rotate(Rotation(_target_disp[5], Vec3(0,0,1)));
-        _goalTf.rotate(target.respectToRef().rotation());
+        _goalTf.rotate(this->target.respectToRef().rotation());
 
         return _goalTf;
     }
@@ -179,6 +180,7 @@ protected:
     }
 
     VectorQ _tempBest;
+    VectorQ _tempLast;
     std::vector<VectorQ> _solutions;
     std::vector<bool> _valid;
     std::vector<size_t> _validChoices;
@@ -203,27 +205,48 @@ public:
     AnalyticalBallSocketHip(int cspace_size) :
         AnalyticalIKTemplate<Q>(cspace_size) { }
     AnalyticalBallSocketHip(Manipulator& manipulator, const std::vector<size_t>& joints) :
-        AnalyticalIKTemplate<Q>(manipulator, joints) { _reconfigure(); }
+        RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator),
+        AnalyticalIKTemplate<Q>(manipulator, joints)
+    { _reconfigure(); }
     AnalyticalBallSocketHip(int cspace_size, Manipulator& manipulator,
                             const std::vector<size_t>& joints) :
+        RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator),
         AnalyticalIKTemplate<Q>(cspace_size, manipulator, joints) { _reconfigure(); }
 
 
     virtual void getSolutions(const VectorQ& lastConfig,
                               std::vector<VectorQ>& solutions,
                               std::vector<bool>& valid) {
-        for(size_t i=6; i<this->_config_size; ++i)
+        for(int i=6; i<this->_config_size; ++i)
         {
             this->_robot->joint(this->_joints[i]).value(lastConfig[i]);
             testQ[i] = lastConfig[i];
         }
+        solutions.clear();
         solutions.reserve(8);
         getGoalTransform(lastConfig);
 
+        std::cout << " ____________________ " << std::endl;
+
         const Link& baseLink = this->_robot->joint(this->_joints[0]).const_upstreamLink();
         const Link& endLink  = this->_robot->joint(this->_joints[5]).const_downstreamLink();
-        B = this->_goalTf.withRespectTo(baseLink) * this->_manip->withRespectTo(endLink).inverse();
+        B = (baseLink.respectToWorld()*this->_robot->joint(this->_joints[0]).baseTransform()
+                    * hipRotation).inverse()
+                * this->_goalTf.respectToWorld()
+//                * (this->_manip->withRespectTo(endLink)*footRotation).inverse();
+                * (footRotation*this->_manip->withRespectTo(endLink)).inverse();
+
+//        B = (baseLink.withRespectTo(this->_robot->refFrame())*this->_robot->joint(this->_joints[0]).baseTransform()
+//                    * hipRotation).inverse()
+//                * this->_goalTf.withRespectTo(this->_robot->refFrame())
+//                * (this->_manip->withRespectTo(endLink)*footRotation).inverse();
+
         Binv = B.inverse();
+
+        std::cout << "waist\n"
+                  << (baseLink.respectToWorld()*this->_robot->joint(this->_joints[0]).baseTransform()*hipRotation).matrix()
+                  << std::endl;
+        std::cout << "B\n" << B.matrix() << std::endl;
 
         nx = Binv(0,0); sx = Binv(0,1); ax = Binv(0,2); px = Binv(0,3);
         ny = Binv(1,0); sy = Binv(1,1); ay = Binv(1,2); py = Binv(1,3);
@@ -273,6 +296,7 @@ public:
             q3 = wrapToPi(q345 - q4 - q5);
 
             testQ[0]=q1; testQ[1]=q2; testQ[2]=q3; testQ[3]=q4; testQ[4]=q5; testQ[5]=q6;
+            std::cout << "(" << isValid << ")\t" << testQ.transpose()/DEG << std::endl;
             bool add_result = true;
             for(int j=0; j<6; ++j)
             {
@@ -293,6 +317,9 @@ public:
         // TODO: Check the stuff above
         // TODO: Look over solution selection
     }
+
+    Transform hipRotation;
+    Transform footRotation;
 
 protected:
 
@@ -325,6 +352,9 @@ protected:
                 -1,  1, -1,
                 -1, -1,  1,
                 -1, -1, -1;
+
+        hipRotation = Eigen::Isometry3d::Identity();
+        footRotation = Eigen::Isometry3d::Identity();
 
         return true;
     }

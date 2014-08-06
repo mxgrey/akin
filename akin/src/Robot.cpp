@@ -155,6 +155,23 @@ Eigen::VectorXd Robot::getConfig(std::vector<size_t> joints) const
     return config;
 }
 
+bool Robot::setConfig(std::vector<size_t> joints, const Eigen::VectorXd &values)
+{
+    if(!verb.Assert((int)joints.size()==values.size(), verbosity::ASSERT_CASUAL,
+                    "Mismatch in array sizes ("+std::to_string(joints.size())+":"
+                    +std::to_string(values.size())+") in call to Robot::setConfig(~,~)"))
+        return false;
+
+    bool result = true;
+    for(size_t i=0; i<joints.size(); ++i)
+    {
+        if(!joint(joints[i]).value(values[i]))
+            result = false;
+    }
+
+    return result;
+}
+
 Frame& Robot::refFrame()
 {
     return _root_dummy_links.front()->refFrame();

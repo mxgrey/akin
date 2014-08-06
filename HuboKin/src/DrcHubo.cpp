@@ -1,5 +1,6 @@
 
 #include "../DrcHubo.h"
+#include "akin/AnalyticalIKBase.h"
 
 using namespace akin;
 using namespace HuboKin;
@@ -26,4 +27,14 @@ void DrcHubo::_setup_pegs()
     Transform rightTf = link("rightPalm").withRespectTo(joint("RWR").parentLink());
     rightTf.translate(Vec3(0,0.21,0));
     addManipulator(joint("RWR").parentLink(), "rightPeg", rightTf);
+
+    // Left Peg Constraints
+    manip(MANIP_L_PEG).setConstraint(Manipulator::LINKAGE,
+                new ManipConstraint<6>(manip(MANIP_L_PEG),
+                            Robot::Explorer::getIdPath(joint("LSP"),joint("LWP"))));
+
+    // Right Peg Constraints
+    manip(MANIP_R_PEG).setConstraint(Manipulator::LINKAGE,
+                new ManipConstraint<6>(manip(MANIP_R_PEG),
+                            Robot::Explorer::getIdPath(joint("RSP"),joint("RWP"))));
 }
