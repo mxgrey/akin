@@ -9,6 +9,11 @@ class DrcHubo : public Hubo2Plus
 {
 public:
 
+    enum {
+        MANIP_L_PEG = MANIP_R_FOOT+1,
+        MANIP_R_PEG
+    };
+
     DrcHubo(const std::string& urdf_file,
             const std::string& urdf_package_directory,
             akin::Frame& referenceFrame = akin::Frame::World());

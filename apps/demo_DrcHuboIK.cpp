@@ -1,5 +1,6 @@
 
 #include "akin/Robot.h"
+#include "HuboKin/DrcHubo.h"
 #include "akin/Solver.h"
 
 #include "akinUtils/urdfParsing.h"
@@ -15,17 +16,21 @@ public:
 
     CustomNode()
     {
-        drchubo = new Robot;
-        akinUtils::loadURDF(*drchubo, "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
-                            "../../../resources/drchubo");
+//        drchubo = new Robot;
+//        akinUtils::loadURDF(*drchubo, "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
+//                            "../../../resources/drchubo");
+        drchubo = new HuboKin::DrcHubo(
+                    "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
+                    "../../../resources/drchubo");
+
         addRobot(*drchubo);
         addRootFrame(Frame::World());
 
-        drchubo->joint(DOF_POS_Z).value(
-                    -drchubo->link("leftFoot").respectToWorld().translation()[2]);
+//        drchubo->joint(DOF_POS_Z).value(
+//                    -drchubo->link("leftFoot").respectToWorld().translation()[2]);
 
-        m = drchubo->addManipulator(drchubo->joint("LWR").childLink(), "leftHandManip",
-                                        drchubo->link("leftPalm").respectToRef());
+//        m = drchubo->addManipulator(drchubo->joint("LWR").childLink(), "leftHandManip",
+//                                        drchubo->link("leftPalm").respectToRef());
 
         drchubo->joint("LEP").value(-90*DEG);
         drchubo->joint("LWP").value(-90*DEG);
@@ -55,7 +60,7 @@ public:
 protected:
 
     double time;
-    Robot* drchubo;
+    HuboKin::DrcHubo* drchubo;
     int m;
     Manipulator::Mode mode;
     Transform baseTf;

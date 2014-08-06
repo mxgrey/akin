@@ -23,7 +23,16 @@ Hubo2Plus::Hubo2Plus(const std::string &urdf_string, Frame &referenceFrame) :
 
 void Hubo2Plus::_setup_manipulators()
 {
+    addManipulator(joint("LWR").childLink(), "leftHandManip",
+                   link("leftPalm").respectToRef());
+    addManipulator(joint("RWR").childLink(), "rightHandManip",
+                   link("rightPalm").respectToRef());
+    addManipulator(joint("LAR").childLink(), "leftFootManip",
+                   link("leftFoot").respectToRef());
+    addManipulator(joint("RAR").childLink(), "rightFootManip",
+                   link("rightFoot").respectToRef());
 
+    joint(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
 }
 
 

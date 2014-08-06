@@ -54,6 +54,10 @@ bool Manipulator::ik(Eigen::VectorXd& config, const akin::Transform& targetTf,
 
     _constraints[m]->target.changeRefFrame(relativeFrame);
     _constraints[m]->target = targetTf;
+
+    if(ANALYTICAL == m)
+        return _analytical->getBestSolutionX(config, config).valid;
+
     return _solvers[m]->solve(config);
 }
 

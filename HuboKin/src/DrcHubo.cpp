@@ -20,5 +20,10 @@ DrcHubo::DrcHubo(const std::string &urdf_string, Frame &referenceFrame) :
 
 void DrcHubo::_setup_pegs()
 {
-
+    Transform leftTf = link("leftPalm").withRespectTo(joint("LWR").parentLink());
+    leftTf.translate(Vec3(0,0.21,0));
+    addManipulator(joint("LWR").parentLink(), "leftPeg", leftTf);
+    Transform rightTf = link("rightPalm").withRespectTo(joint("RWR").parentLink());
+    rightTf.translate(Vec3(0,0.21,0));
+    addManipulator(joint("RWR").parentLink(), "rightPeg", rightTf);
 }

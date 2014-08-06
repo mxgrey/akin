@@ -62,9 +62,17 @@ public:
 
     virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) {
         _tempBest = configuration;
-        Validity v = getBestSolution(_tempBest);
+        getError(configuration, this->computeErrorFromCenter);
+        Validity v = this->_computeCurrentValidity();
+        if(v.valid)
+            return v;
+
+        v = getBestSolution(_tempBest);
         gradient = configuration - _tempBest;
-        return v;
+        if(v.stuck)
+            return v;
+
+        return Validity::Invalid();
     }
 
     virtual Validity getBestSolutionX(Eigen::VectorXd& best) {
@@ -77,7 +85,9 @@ public:
     virtual Validity getBestSolution(VectorQ& best) {
         getSolutions(best, _solutions, _valid);
         size_t selection = selectBestSolution(best, best, _solutions, _valid);
-        if(_valid[selection])
+        if(selection == DOF_INVALID)
+            return Validity::Stuck();
+        else if(_valid[selection])
             return Validity::Valid();
 
         return Validity::Stuck();
@@ -105,7 +115,7 @@ public:
                 _validChoices.push_back(i);
 
         bool valid_exists = _validChoices.size() > 0;
-        size_t result = (size_t)(-1); double best_cost = INFINITY;
+        size_t result = DOF_INVALID; double best_cost = INFINITY;
         double cost=0;
         if(valid_exists)
         {
@@ -133,7 +143,8 @@ public:
             }
         }
 
-        best = solutions[result];
+        if(result != DOF_INVALID)
+            best = solutions[result];
         return result;
     }
     
@@ -207,10 +218,11 @@ public:
             testQ[i] = lastConfig[i];
         }
         solutions.reserve(8);
+        getGoalTransform(lastConfig);
 
         const Link& baseLink = this->_robot->joint(this->_joints[0]).const_upstreamLink();
         const Link& endLink  = this->_robot->joint(this->_joints[5]).const_downstreamLink();
-        B = this->target.withRespectTo(baseLink) * this->_manip->withRespectTo(endLink).inverse();
+        B = this->_goalTf.withRespectTo(baseLink) * this->_manip->withRespectTo(endLink).inverse();
         Binv = B.inverse();
 
         nx = Binv(0,0); sx = Binv(0,1); ax = Binv(0,2); px = Binv(0,3);
@@ -219,14 +231,22 @@ public:
 
         for(int i=0; i<8; ++i)
         {
+            bool isValid = true;
+
             C4 = (px*px - L4*L4 - L5*L5 + py*py + pz*pz)/(2*L4*L5); // Note: Removed L6
             radical = 1-C4*C4;
-            q4 = atan2(alternatives(i,0)*std::sqrt(radical).real(), C4);
+            sqrt_radical = std::sqrt(radical);
+            if(sqrt_radical.imag() != 0)
+                isValid = false;
+            q4 = atan2(alternatives(i,0)*sqrt_radical.real(), C4);
 
             S4 = sin(q4);
             psi = atan2(S4*L4, C4*L4+L5);
             radical = px*px + py*py;
-            q5 = wrapToPi(atan2(-pz, alternatives(i,1)*std::sqrt(radical).real())-psi);
+            sqrt_radical = std::sqrt(radical);
+            if(sqrt_radical.imag() != 0)
+                isValid = false;
+            q5 = wrapToPi(atan2(-pz, alternatives(i,1)*sqrt_radical.real())-psi);
 
             q6 = atan2(py, -px);
             C45 = cos(q4+q5);
@@ -239,7 +259,10 @@ public:
 
             S2 = C6*ay + S6*ax;
             radical = 1-S2*S2;
-            q2 = atan2(S2, alternatives(i,2)*std::sqrt(radical).real());
+            sqrt_radical = std::sqrt(radical);
+            if(sqrt_radical.imag() != 0)
+                isValid = false;
+            q2 = atan2(S2, alternatives(i,2)*sqrt_radical.real());
 
             q1 = atan2(C6*sy + S6*sx, C6*ny + S6*nx);
             C2 = cos(q2);
@@ -261,7 +284,10 @@ public:
             }
 
             if(add_result)
+            {
                 solutions.push_back(testQ);
+                valid.push_back(isValid);
+            }
         }
 
         // TODO: Check the stuff above
@@ -277,6 +303,7 @@ protected:
     double C2, C4, C5, C6;
     double C45, psi, q345;
     std::complex<double> radical;
+    std::complex<double> sqrt_radical;
     Transform B, Binv;
     Eigen::Matrix<int, 8, 3> alternatives;
     VectorQ testQ;
