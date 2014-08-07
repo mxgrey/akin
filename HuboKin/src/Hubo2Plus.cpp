@@ -33,7 +33,7 @@ void Hubo2Plus::_setup_manipulators()
     addManipulator(joint("RAR").childLink(), "rightFootManip",
                    link("rightFoot").respectToRef());
 
-    joint(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
+//    joint(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
 
     // Left Hand Constraints
     manip(MANIP_L_HAND).setConstraint(Manipulator::LINKAGE,
@@ -63,9 +63,11 @@ void Hubo2Plus::_setup_manipulators()
 
     fc = new AnalyticalBallSocketHip<6>(manip(MANIP_R_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR")));
+    fc->hipRotation.rotate(Rotation(180*DEG, Vec3(0,1,0)));
+    fc->hipRotation.rotate(Rotation(180*DEG, Vec3(0,0,1)));
     fc->hipRotation.rotate(Rotation(90*DEG, Vec3(0,0,1)));
-    fc->hipRotation.rotate(Rotation(180*DEG, Vec3(1,0,0)));
-    fc->footRotation.rotate(Rotation(90*DEG, Vec3(0,1,0)));
+    fc->footRotation.rotate(Rotation(-90*DEG, Vec3(0,1,0)));
+    fc->footRotation.rotate(Rotation(180*DEG, Vec3(1,0,0)));
     manip(MANIP_R_FOOT).setConstraint(Manipulator::ANALYTICAL, fc);
 }
 

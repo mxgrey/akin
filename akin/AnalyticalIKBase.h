@@ -230,27 +230,37 @@ public:
 
         const Link& baseLink = this->_robot->joint(this->_joints[0]).const_upstreamLink();
         const Link& endLink  = this->_robot->joint(this->_joints[5]).const_downstreamLink();
-        B = (baseLink.respectToWorld()*this->_robot->joint(this->_joints[0]).baseTransform()
-                    * hipRotation).inverse()
-                * this->_goalTf.respectToWorld()
-//                * (this->_manip->withRespectTo(endLink)*footRotation).inverse();
-                * (footRotation*this->_manip->withRespectTo(endLink)).inverse();
-
-//        B = (baseLink.withRespectTo(this->_robot->refFrame())*this->_robot->joint(this->_joints[0]).baseTransform()
-//                    * hipRotation).inverse()
-//                * this->_goalTf.withRespectTo(this->_robot->refFrame())
-//                * (this->_manip->withRespectTo(endLink)*footRotation).inverse();
-
+        
+        Transform waist = baseLink.respectToWorld()
+                          *this->_robot->joint(this->_joints[0]).baseTransform();
+//                          * hipRotation;
+        
+        std::cout << "first part\n" << waist.matrix() << std::endl;
+        waist = waist*hipRotation;
+        
+        Transform foot = footRotation*this->_manip->withRespectTo(endLink);
+        
+        
+        B = waist.inverse() * this->_goalTf.respectToWorld() * foot.inverse();
         Binv = B.inverse();
 
         std::cout << "waist\n"
-                  << (baseLink.respectToWorld()*this->_robot->joint(this->_joints[0]).baseTransform()*hipRotation).matrix()
+                  << waist.matrix()
+                  << "\n" << std::endl;
+        std::cout << "waist inverse\n" 
+                  << waist.inverse().matrix()
+                  << std::endl;
+        std::cout << "target\n" << this->_goalTf.respectToWorld().matrix() << std::endl;
+        std::cout << "foot inverse\n" 
+                  << foot.matrix()
                   << std::endl;
         std::cout << "B\n" << B.matrix() << std::endl;
 
         nx = Binv(0,0); sx = Binv(0,1); ax = Binv(0,2); px = Binv(0,3);
         ny = Binv(1,0); sy = Binv(1,1); ay = Binv(1,2); py = Binv(1,3);
         nz = Binv(2,0); sz = Binv(2,1); az = Binv(2,2); pz = Binv(2,3);
+        
+        std::cout << "px: " << px << std::endl;
 
         for(int i=0; i<8; ++i)
         {
@@ -307,7 +317,7 @@ public:
                 }
             }
 
-            if(add_result)
+//            if(add_result)
             {
                 solutions.push_back(testQ);
                 valid.push_back(isValid);

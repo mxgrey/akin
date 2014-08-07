@@ -23,6 +23,7 @@ public:
         drchubo = new DrcHubo(
                     "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
                     "../../../resources/drchubo");
+        drchubo->enforceJointLimits(false);
 
         addRobot(*drchubo);
         addRootFrame(Frame::World());
@@ -35,6 +36,9 @@ public:
                                        .constraint(Manipulator::LINKAGE).getJoints());
 
         rf_baseTf = drchubo->manip(DrcHubo::MANIP_R_FOOT).respectToWorld();
+//        rf_baseTf.translate(Vec3(0,0,1.2));
+//        rf_baseTf.translate(Vec3(0,0,0.15));
+//        rf_baseTf.translate(Vec3(0,0,0.1));
         rf_joints = drchubo->manip(DrcHubo::MANIP_R_FOOT)
                                     .constraint(Manipulator::ANALYTICAL).getJoints();
         rf_config = drchubo->getConfig(rf_joints);
@@ -53,7 +57,7 @@ public:
                                                  Manipulator::LINKAGE);
 
         Transform rf_targetTf = rf_baseTf;
-        rf_targetTf.pretranslate( 0.1*Vec3(0,0,1) * (1-cos(time))/2);
+        rf_targetTf.pretranslate( 0.1*Vec3(1,1,1) * (1-cos(time))/2);
         drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World(),
                                                  Manipulator::ANALYTICAL);
         drchubo->setConfig(rf_joints, rf_config);
