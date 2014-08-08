@@ -9,6 +9,7 @@ using namespace std;
 
 Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &manipName) :
     Frame(referenceFrame, manipName),
+    mode(FREE),
     _point(*this, manipName+"_point"),
     _com(*this, manipName+"_com"),
     _myRobot(robot)
@@ -46,8 +47,13 @@ Manipulator::~Manipulator()
     }
 }
 
-bool Manipulator::ik(Eigen::VectorXd& config, const akin::Transform& targetTf,
-                         akin::Frame& relativeFrame, akin::Manipulator::Mode m)
+bool Manipulator::ik(Eigen::VectorXd &config, const Transform &targetTf, Frame &relativeFrame)
+{
+    return ik(mode, config, targetTf, relativeFrame);
+}
+
+bool Manipulator::ik(Mode m, Eigen::VectorXd& config, const akin::Transform& targetTf,
+                         akin::Frame& relativeFrame)
 {
     _myRobot->verb.Assert( 0 <= m && m < NUM_MODES, verbosity::ASSERT_CASUAL,
                            "Selected invalid IK mode ("+std::to_string((int)m)+")!");
@@ -61,23 +67,30 @@ bool Manipulator::ik(Eigen::VectorXd& config, const akin::Transform& targetTf,
     return _solvers[m]->solve(config);
 }
 
-bool Manipulator::ik(Eigen::VectorXd &config, KinTransform &targetTf, Mode m)
+bool Manipulator::ik(Eigen::VectorXd& config, KinTransform& targetTf)
 {
-    return ik(config, targetTf.respectToRef(), targetTf.refFrame(), m);
+    return ik(mode, config, targetTf);
 }
 
-ManipConstraintBase& Manipulator::constraint(Mode mode)
+bool Manipulator::ik(Mode m, Eigen::VectorXd &config, KinTransform &targetTf)
 {
-    if( mode < 0 || NUM_MODES <= mode)
+    return ik(m, config, targetTf.respectToRef(), targetTf.refFrame());
+}
+
+ManipConstraintBase& Manipulator::constraint() { return constraint(mode); }
+
+ManipConstraintBase& Manipulator::constraint(Mode m)
+{
+    if( m < 0 || NUM_MODES <= m)
         return *_constraints[0];
-    return *_constraints[mode];
+    return *_constraints[m];
 }
 
-RobotSolverX& Manipulator::solver(Mode mode)
+RobotSolverX& Manipulator::solver(Mode m)
 {
-    if( mode < 0 || NUM_MODES <= mode)
+    if( m < 0 || NUM_MODES <= m)
         return *_solvers[0];
-    return *_solvers[mode];
+    return *_solvers[m];
 }
 
 AnalyticalIKBase& Manipulator::analyticalIK()
@@ -85,10 +98,10 @@ AnalyticalIKBase& Manipulator::analyticalIK()
     return *_analytical;
 }
 
-void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, bool giveOwnership)
+void Manipulator::setConstraint(Mode m, ManipConstraintBase *newConstraint, bool giveOwnership)
 {
-    if( !_myRobot->verb.Assert(0 <= mode || mode < NUM_MODES, verbosity::ASSERT_CRITICAL,
-                               "Trying to set constraint for invalid mode ("+to_string((int)mode)
+    if( !_myRobot->verb.Assert(0 <= m || m < NUM_MODES, verbosity::ASSERT_CRITICAL,
+                               "Trying to set constraint for invalid mode ("+to_string((int)m)
                                +", Max:"+to_string((int)NUM_MODES)+")"))
     {
         if(giveOwnership)
@@ -96,7 +109,7 @@ void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, b
         return;
     }
     
-    if(ANALYTICAL==mode)
+    if(ANALYTICAL==m)
     {
         AnalyticalIKBase* check = dynamic_cast<AnalyticalIKBase*>(newConstraint);
         if( !_myRobot->verb.Assert(check != NULL, verbosity::ASSERT_CRITICAL,
@@ -111,26 +124,26 @@ void Manipulator::setConstraint(Mode mode, ManipConstraintBase *newConstraint, b
         _analytical = check;
     }
     
-    if(_ownConstraint[mode])
-        delete _constraints[mode];
-    _constraints[mode] = newConstraint;
-    _ownConstraint[mode] = giveOwnership;
-    _solvers[mode]->setMandatoryConstraint(_constraints[mode]);
+    if(_ownConstraint[m])
+        delete _constraints[m];
+    _constraints[m] = newConstraint;
+    _ownConstraint[m] = giveOwnership;
+    _solvers[m]->setMandatoryConstraint(_constraints[m]);
 }
 
-void Manipulator::resetConstraint(Mode mode)
+void Manipulator::resetConstraint(Mode m)
 {
-    if( !_myRobot->verb.Assert(0 <= mode || mode < NUM_MODES, verbosity::ASSERT_CRITICAL,
-                               "Trying to reset constraint for invalid mode ("+to_string((int)mode)
+    if( !_myRobot->verb.Assert(0 <= m || m < NUM_MODES, verbosity::ASSERT_CRITICAL,
+                               "Trying to reset constraint for invalid mode ("+to_string((int)m)
                                +", Max:"+to_string((int)NUM_MODES)+")"))
         return;
     
     ManipConstraintBase* constraint;
-    if(FREE==mode)
+    if(FREE==m)
     {
         constraint = new NullManipConstraint(parentRobot());
     }
-    else if(LINKAGE==mode)
+    else if(LINKAGE==m || SUPPORT==m)
     {
         std::vector<size_t> joints;
         const Joint* current = &const_parentLink().const_parentJoint();
@@ -143,22 +156,22 @@ void Manipulator::resetConstraint(Mode mode)
         
         constraint = new ManipConstraintX(joints.size(), *this, joints);
     }
-    else if(FULLBODY==mode)
+    else if(FULLBODY==m)
     {
         std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->const_joint(DOF_POS_X),
                                                             const_parentLink().const_parentJoint());
         constraint = new ManipConstraintX(joints.size(), *this, joints);
     }
-    else if(ANALYTICAL==mode)
+    else if(ANALYTICAL==m)
     {
         constraint = new NullAnalyticalIK;
     }
-    else if(CUSTOM==mode)
+    else if(CUSTOM==m)
     {
         constraint = new NullManipConstraint(parentRobot());
     }
     
-    setConstraint(mode, constraint, true);
+    setConstraint(m, constraint, true);
 }
 
 void Manipulator::resetConstraints()

@@ -30,13 +30,14 @@ public:
         drchubo->joint("LEP").value(-90*DEG);
         drchubo->joint("LWP").value(-90*DEG);
 
+        drchubo->manip(DrcHubo::MANIP_L_HAND).mode = Manipulator::LINKAGE;
         lh_baseTf = drchubo->manip(DrcHubo::MANIP_L_HAND).respectToWorld();
         lh_config = drchubo->getConfig(drchubo->manip(DrcHubo::MANIP_L_HAND)
-                                       .constraint(Manipulator::LINKAGE).getJoints());
+                                       .constraint().getJoints());
 
+        drchubo->manip(DrcHubo::MANIP_R_FOOT).mode = Manipulator::ANALYTICAL;
         rf_baseTf = drchubo->manip(DrcHubo::MANIP_R_FOOT).respectToWorld();
-        rf_joints = drchubo->manip(DrcHubo::MANIP_R_FOOT)
-                                    .constraint(Manipulator::ANALYTICAL).getJoints();
+        rf_joints = drchubo->manip(DrcHubo::MANIP_R_FOOT).constraint().getJoints();
         rf_config = drchubo->getConfig(rf_joints);
 
         time = 0;
@@ -49,15 +50,13 @@ public:
         Transform lh_targetTf = lh_baseTf;
         lh_targetTf.pretranslate( 0.1*Vec3(1,1,1) * (1-cos(time))/2);
         lh_targetTf.rotate(Rotation( 90*DEG * (1-cos(time))/2, Vec3(1,0,0) ));
-        drchubo->manip(DrcHubo::MANIP_L_HAND).ik(lh_config, lh_targetTf, Frame::World(),
-                                                 Manipulator::LINKAGE);
+        drchubo->manip(DrcHubo::MANIP_L_HAND).ik(lh_config, lh_targetTf, Frame::World());
 
         Transform rf_targetTf = rf_baseTf;
         rf_targetTf.pretranslate( 0.1*Vec3(2,-4,3) * (1-cos(time))/2);
         rf_targetTf.rotate(Rotation( -90*DEG * (1-cos(time))/2, Vec3(0,0,1)));
         rf_targetTf.rotate(Rotation( -45*DEG * (1-cos(time))/2, Vec3(0,1,0)));
-        if(drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World(),
-                                                 Manipulator::ANALYTICAL))
+        if(drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World()))
             drchubo->setConfig(rf_joints, rf_config);
 
         AkinNode::update();

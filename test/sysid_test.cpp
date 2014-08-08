@@ -1,6 +1,9 @@
 
 #include "akin/Robot.h"
 #include "osgAkin/AkinCallback.h"
+#include "Eigen/Dense"
+#include "Eigen/Eigenvalues"
+#include "HuboKin/DrcHubo.h"
 
 using namespace akin;
 using namespace std;
@@ -14,7 +17,7 @@ Robot* create_simple_robot()
     Robot* robot = new Robot;
     
     robot->createRootLink("root");
-    robot->link(0).mass = 1;
+    robot->link(0).mass = 0;
     robot->link(0).com = Translation(0.5);
     
     robot->createJointLinkPair(robot->link(0), "link1", "joint1",
@@ -229,12 +232,17 @@ int main(int , char* [])
         std::cout << error.transpose() << std::endl;
         std::cout << b.transpose() << std::endl;
         apply_delta_model(model, b);
+        std::cout << "(" << i << ")\t" << original_error.norm() << " --> " << error.norm() << std::endl;
+        Eigen::FullPivLU<Eigen::MatrixXd> decomp(X.transpose()*X);
+        std::cout << "Rank: " << decomp.rank() << "\t(" << (X.transpose()*X).cols() << ")" << std::endl;
+        Eigen::EigenSolver<Eigen::MatrixXd> es(X.transpose()*X);
+        std::cout << "EVal: " << es.eigenvalues().transpose() << std::endl;
         std::cout << "\n";
     }
     
 //    std::cout << "(" << (original_error-error).norm() << ")\t" 
 //              << (original_error-error).transpose() << std::endl;
-    std::cout << original_error.norm() << " --> " << error.norm() << std::endl;
+//    std::cout << original_error.norm() << " --> " << error.norm() << std::endl;
     
 //    generate_regression_matrices(X, y, configs, model, actual);
     

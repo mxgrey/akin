@@ -1,6 +1,7 @@
 
 #include "../Robot.h"
 #include "../../akinUtils/urdfParsing.h"
+#include "../ConvexHull.h"
 
 using namespace akin;
 using namespace std;
@@ -10,6 +11,48 @@ Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_le
 {
     _initializeRobot(referenceFrame, report_level);
 }
+
+const std::vector<Eigen::Vector2d>& Robot::getSupportPolygon()
+{
+    bool needUpdate = false;
+    for(size_t i=0; i<_lastSupports.size(); ++i)
+    {
+        if( ( (!_lastSupports[i]) && (manip(i).mode == Manipulator::SUPPORT) ) ||
+            (   _lastSupports[i]  && (manip(i).mode != Manipulator::SUPPORT) ) )
+            needUpdate = true;
+        _lastSupports[i] = (manip(i).mode == Manipulator::SUPPORT);
+    }
+
+    for(size_t i=_lastSupports.size(); i<numManips(); ++i)
+    {
+        if( manip(i).mode == Manipulator::SUPPORT )
+            needUpdate = true;
+        _lastSupports.push_back(manip(i).mode == Manipulator::SUPPORT);
+    }
+
+    if(needUpdate)
+        _supportPolgyon = computeSupportPolgon();
+    return _supportPolgyon;
+}
+
+std::vector<Eigen::Vector2d> Robot::computeSupportPolgon() const
+{
+    _supportPoints.clear();
+
+    for(size_t i=0; i<numManips(); ++i)
+    {
+        const std::vector<KinTranslation>& points = const_manip(i).supportGeometry;
+        for(size_t j=0; j<points.size(); ++j)
+        {
+            const KinTranslation& p = points[j];
+            _supportPoints.push_back(p.respectToWorld().block<2,1>(0,0));
+        }
+    }
+
+    return computeConvexHull(_supportPoints);
+}
+
+
 
 void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level)
 {

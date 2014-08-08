@@ -53,10 +53,9 @@ void Hubo2Plus::_setup_manipulators()
             new ManipConstraint<6>(manip(MANIP_L_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
 
+
     HuboLegIK<6>* fc = new HuboLegIK<6>(manip(MANIP_L_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR")));
-    fc->hipRotation.rotate(Rotation(90*DEG, Vec3(0,0,1)));
-    fc->footRotation.rotate(Rotation(-90*DEG, Vec3(0,1,0)));
     manip(MANIP_L_FOOT).setConstraint(Manipulator::ANALYTICAL, fc);
 
     // Right Foot Constraints
@@ -66,8 +65,6 @@ void Hubo2Plus::_setup_manipulators()
 
     fc = new HuboLegIK<6>(manip(MANIP_R_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR")));
-    fc->hipRotation.rotate(Rotation(90*DEG, Vec3(0,0,1)));
-    fc->footRotation.rotate(Rotation(-90*DEG, Vec3(0,1,0)));
     manip(MANIP_R_FOOT).setConstraint(Manipulator::ANALYTICAL, fc);
 }
 

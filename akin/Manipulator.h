@@ -23,21 +23,29 @@ public:
         LINKAGE,
         FULLBODY,
         ANALYTICAL,
+        SUPPORT,
         CUSTOM,
         
         NUM_MODES
         
     } Mode;
 
-    bool ik(Eigen::VectorXd& config, const Transform& targetTf,
-                Frame& relativeFrame=Frame::World(), Mode m=LINKAGE);
-    bool ik(Eigen::VectorXd& config, KinTransform& targetTf, Mode m=LINKAGE);
+    bool ik(Eigen::VectorXd &config, const Transform &targetTf,
+            Frame &relativeFrame=Frame::World());
+    bool ik(Mode m, Eigen::VectorXd& config, const Transform& targetTf,
+            Frame& relativeFrame=Frame::World());
+    bool ik(Eigen::VectorXd &config, KinTransform &targetTf);
+    bool ik(Mode m, Eigen::VectorXd& config, KinTransform& targetTf);
     
-    ManipConstraintBase& constraint(Mode mode);
-    RobotSolverX& solver(Mode mode);
+    std::vector<KinTranslation> supportGeometry;
+    Mode mode;
+
+    ManipConstraintBase& constraint();
+    ManipConstraintBase& constraint(Mode m);
+    RobotSolverX& solver(Mode m);
     AnalyticalIKBase& analyticalIK();
-    void setConstraint(Mode mode, ManipConstraintBase* newConstraint, bool giveOwnership=true);
-    void resetConstraint(Mode mode);
+    void setConstraint(Mode m, ManipConstraintBase* newConstraint, bool giveOwnership=true);
+    void resetConstraint(Mode m);
     void resetConstraints();
     
     const KinTranslation& point() const;

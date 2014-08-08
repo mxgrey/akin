@@ -225,6 +225,16 @@ NullManipConstraint::NullManipConstraint(Robot &robot)
     _robot = &robot;
 }
 
+///////////// CenterOfMassConstraintBase
+
+CenterOfMassConstraintBase::CenterOfMassConstraintBase() :
+    useRobotSupportPolygon(true),
+    min_height(-INFINITY),
+    max_height( INFINITY)
+{
+
+}
+
 ///////////// Analytical IK
 
 AnalyticalIKBase::~AnalyticalIKBase() { }

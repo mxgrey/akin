@@ -46,8 +46,8 @@ public:
 
         const akin::Link& baseLink = this->_robot->joint(this->_joints[0]).const_upstreamLink();
         
-        B = (baseLink.respectToWorld()*waist*hipRotation).inverse() 
-            * this->_goalTf.respectToWorld() * footRotation.inverse();
+        B = (baseLink.respectToWorld()*waist).inverse()
+            * this->_goalTf.respectToWorld() * footRotationInv;
         Binv = B.inverse();
 
         nx = Binv(0,0); sx = Binv(0,1); ax = Binv(0,2); px = Binv(0,3);
@@ -123,8 +123,6 @@ public:
     }
 
     double zeroSize;
-    akin::Transform hipRotation;
-    akin::Transform footRotation;
 
 protected:
 
@@ -138,6 +136,8 @@ protected:
     std::complex<double> sqrt_radical;
     akin::Transform B, Binv;
     akin::Transform waist;
+    akin::Transform hipRotation;
+    akin::Transform footRotationInv;
     Eigen::Matrix<int, 8, 3> alternatives;
     VectorQ testQ;
 
@@ -150,10 +150,18 @@ protected:
         L4 = fabs(this->_robot->joint(this->_joints[3]).childLink().respectToRef().translation()[2]);
         L5 = fabs(this->_robot->joint(this->_joints[4]).childLink().respectToRef().translation()[2]);
         L6 = fabs(this->_manip->withRespectTo(this->_robot->joint(this->_joints[5]).childLink()).translation()[2]);
+
+        hipRotation = Eigen::Isometry3d::Identity();
+        hipRotation.rotate(akin::Rotation(90*akin::DEG, akin::Vec3(0,0,1)));
         
         waist =  this->_robot->joint(this->_joints[0]).baseTransform()
                   *this->_robot->joint(this->_joints[1]).baseTransform()
-                  *this->_robot->joint(this->_joints[2]).baseTransform();
+                  *this->_robot->joint(this->_joints[2]).baseTransform()
+                  *hipRotation;
+
+        footRotationInv = Eigen::Isometry3d::Identity();
+        footRotationInv.rotate(akin::Rotation(-90*akin::DEG, akin::Vec3(0,1,0)));
+        footRotationInv = footRotationInv.inverse();
 
         alternatives <<
                  1,  1,  1,
@@ -164,9 +172,6 @@ protected:
                 -1,  1, -1,
                 -1, -1,  1,
                 -1, -1, -1;
-
-        hipRotation = Eigen::Isometry3d::Identity();
-        footRotation = Eigen::Isometry3d::Identity();
 
         return true;
     }

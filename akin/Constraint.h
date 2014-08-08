@@ -133,7 +133,7 @@ public:
             for(int i=0; i<this->_config_size; ++i)
                 gradient[i] *= this->gradient_weights[i];
         
-        clampGradientComponents(gradient, this->component_clamp);
+        clampGradientComponents(gradient, this->dq_clamp);
         
         return _computeCurrentValidity();
     }
@@ -183,7 +183,7 @@ protected:
         this->damp_factor=0.05;
         this->computeErrorFromCenter=true;
         this->error_clamp=0.2;
-        this->component_clamp = 0.2;
+        this->dq_clamp = 0.2;
         _Jacobian.resize(W,this->_config_size);
         _pseudoInverse.resize(this->_config_size,W);
     }

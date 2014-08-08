@@ -177,7 +177,7 @@ protected:
     void _initializeDefaults() {
          min_limits.setOnes(); max_limits.setOnes();
          min_limits *= -0.001;  max_limits *= 0.001;
-         this->error_clamp = 0.2; this->component_clamp = 0.2;
+         this->error_clamp = 0.2; this->dq_clamp = 0.2;
          this->computeErrorFromCenter = true;
          error_weights.resize(6); error_weights.setOnes();
          error_weights[3] = error_weights[4] = error_weights[5] = 0.1;
@@ -187,6 +187,55 @@ protected:
 };
 
 typedef ManipConstraint<Eigen::Dynamic> ManipConstraintX;
+
+class CenterOfMassConstraintBase : public virtual RobotConstraintBase
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    CenterOfMassConstraintBase();
+
+    bool useRobotSupportPolygon;
+    std::vector<Eigen::Vector2d> supportConvexHull;
+    double min_height;
+    double max_height;
+
+};
+
+template<int Q>
+class CenterOfMassConstraint : public RobotJacobianConstraint<Q,3>,
+        public CenterOfMassConstraintBase
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    CenterOfMassConstraint() { _initializeDefaults(); }
+    CenterOfMassConstraint(int cspace_size) :
+        RobotConstraintBase(), RobotJacobianConstraint<Q,3>(cspace_size)
+    { _initializeDefaults(); }
+    CenterOfMassConstraint(Robot& robot, const std::vector<size_t>& joints) :
+        RobotConstraintBase(robot, joints)
+    { _initializeDefaults(); }
+    CenterOfMassConstraint(int cspace_size, Robot& robot, const std::vector<size_t>& joints) :
+        RobotConstraintBase(robot, joints), RobotJacobianConstraint<Q,3>(cspace_size)
+    { _initializeDefaults(); }
+
+
+
+protected:
+
+
+
+    void _initializeDefaults() {
+        this->error_clamp = 0.2; this->dq_clamp = 0.2;
+        this->computeErrorFromCenter = true;
+        error_weights.resize(3); error_weights.setOnes();
+        _reconfigure();
+    }
+
+};
+
+
 
 } // namespace akin
 

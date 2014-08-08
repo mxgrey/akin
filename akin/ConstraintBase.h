@@ -44,7 +44,7 @@ public:
     Eigen::VectorXd gradient_weights;
     Eigen::VectorXd error_weights;
     double error_clamp;
-    double component_clamp;
+    double dq_clamp;
     double damp_factor;
     bool computeErrorFromCenter;
 
