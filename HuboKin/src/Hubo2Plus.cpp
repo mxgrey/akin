@@ -1,6 +1,6 @@
 
 #include "../Hubo2Plus.h"
-#include "akin/AnalyticalIKBase.h"
+#include "../HuboLegIK.h"
 #include "akinUtils/urdfParsing.h"
 
 using namespace akin;
@@ -53,7 +53,7 @@ void Hubo2Plus::_setup_manipulators()
             new ManipConstraint<6>(manip(MANIP_L_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
 
-    AnalyticalBallSocketHip<6>* fc = new AnalyticalBallSocketHip<6>(manip(MANIP_L_FOOT),
+    HuboLegIK<6>* fc = new HuboLegIK<6>(manip(MANIP_L_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR")));
     fc->hipRotation.rotate(Rotation(90*DEG, Vec3(0,0,1)));
     fc->footRotation.rotate(Rotation(-90*DEG, Vec3(0,1,0)));
@@ -64,13 +64,10 @@ void Hubo2Plus::_setup_manipulators()
             new ManipConstraint<6>(manip(MANIP_R_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
 
-    fc = new AnalyticalBallSocketHip<6>(manip(MANIP_R_FOOT),
+    fc = new HuboLegIK<6>(manip(MANIP_R_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR")));
-//    fc->hipRotation.rotate(Rotation(180*DEG, Vec3(0,1,0)));
-//    fc->hipRotation.rotate(Rotation(180*DEG, Vec3(0,0,1)));
     fc->hipRotation.rotate(Rotation(90*DEG, Vec3(0,0,1)));
     fc->footRotation.rotate(Rotation(-90*DEG, Vec3(0,1,0)));
-//    fc->footRotation.rotate(Rotation(180*DEG, Vec3(1,0,0)));
     manip(MANIP_R_FOOT).setConstraint(Manipulator::ANALYTICAL, fc);
 }
 
