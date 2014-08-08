@@ -83,8 +83,8 @@ public:
     }
 
     virtual Validity getBestSolution(VectorQ& best, const VectorQ& lastConfig) {
+        _solutions.clear(); _valid.clear();
         getSolutions(lastConfig, _solutions, _valid);
-        std::cout << "# Solutions: " << _solutions.size() << std::endl;
         size_t selection = selectBestSolution(best, lastConfig, _solutions, _valid);
         if(selection == DOF_INVALID)
             return Validity::Stuck();
@@ -97,6 +97,7 @@ public:
     virtual void getSolutionsX(const Eigen::VectorXd& lastConfig,
                                std::vector<Eigen::VectorXd>& solutions,
                                std::vector<bool>& valid) {
+        _solutions.clear(); valid.clear();
         getSolutions(VectorQ(lastConfig), _solutions, valid);
         solutions.resize(_solutions.size());
         for(size_t i=0; i<_solutions.size(); ++i)
@@ -223,50 +224,26 @@ public:
             testQ[i] = lastConfig[i];
         }
         solutions.clear();
+        valid.clear();
         solutions.reserve(8);
+        valid.reserve(8);
         getGoalTransform(lastConfig);
 
-        std::cout << " ____________________ " << std::endl;
-
         const Link& baseLink = this->_robot->joint(this->_joints[0]).const_upstreamLink();
-        const Link& endLink  = this->_robot->joint(this->_joints[5]).const_downstreamLink();
         
-        Transform waist = baseLink.respectToWorld()
-                          *this->_robot->joint(this->_joints[0]).baseTransform();
-//                          * hipRotation;
-        
-        std::cout << "first part\n" << waist.matrix() << std::endl;
-        waist = waist*hipRotation;
-        
-        Transform foot = footRotation*this->_manip->withRespectTo(endLink);
-        
-        
-        B = waist.inverse() * this->_goalTf.respectToWorld() * foot.inverse();
+        B = (baseLink.respectToWorld()*waist*hipRotation).inverse() 
+            * this->_goalTf.respectToWorld() * footRotation.inverse();
         Binv = B.inverse();
-
-        std::cout << "waist\n"
-                  << waist.matrix()
-                  << "\n" << std::endl;
-        std::cout << "waist inverse\n" 
-                  << waist.inverse().matrix()
-                  << std::endl;
-        std::cout << "target\n" << this->_goalTf.respectToWorld().matrix() << std::endl;
-        std::cout << "foot inverse\n" 
-                  << foot.matrix()
-                  << std::endl;
-        std::cout << "B\n" << B.matrix() << std::endl;
 
         nx = Binv(0,0); sx = Binv(0,1); ax = Binv(0,2); px = Binv(0,3);
         ny = Binv(1,0); sy = Binv(1,1); ay = Binv(1,2); py = Binv(1,3);
         nz = Binv(2,0); sz = Binv(2,1); az = Binv(2,2); pz = Binv(2,3);
-        
-        std::cout << "px: " << px << std::endl;
 
         for(int i=0; i<8; ++i)
         {
             bool isValid = true;
 
-            C4 = (px*px - L4*L4 - L5*L5 + py*py + pz*pz)/(2*L4*L5); // Note: Removed L6
+            C4 = ((px+L6)*(px+L6) - L4*L4 - L5*L5 + py*py + pz*pz)/(2*L4*L5);
             radical = 1-C4*C4;
             sqrt_radical = std::sqrt(radical);
             if(sqrt_radical.imag() != 0)
@@ -275,13 +252,14 @@ public:
 
             S4 = sin(q4);
             psi = atan2(S4*L4, C4*L4+L5);
-            radical = px*px + py*py;
+            radical = (px+L6)*(px+L6) + py*py;
             sqrt_radical = std::sqrt(radical);
             if(sqrt_radical.imag() != 0)
                 isValid = false;
+
             q5 = wrapToPi(atan2(-pz, alternatives(i,1)*sqrt_radical.real())-psi);
 
-            q6 = atan2(py, -px);
+            q6 = atan2(py, -(px+L6));
             C45 = cos(q4+q5);
             C5 = cos(q5);
             if( C45*L4 + C5*L5 < 0 )
@@ -306,7 +284,11 @@ public:
             q3 = wrapToPi(q345 - q4 - q5);
 
             testQ[0]=q1; testQ[1]=q2; testQ[2]=q3; testQ[3]=q4; testQ[4]=q5; testQ[5]=q6;
-            std::cout << "(" << isValid << ")\t" << testQ.transpose()/DEG << std::endl;
+            
+            for(int k=0; k<testQ.size(); ++k)
+                if( fabs(testQ[k]) < zeroSize )
+                    testQ[k] = 0;
+            
             bool add_result = true;
             for(int j=0; j<6; ++j)
             {
@@ -317,7 +299,7 @@ public:
                 }
             }
 
-//            if(add_result)
+            if(add_result)
             {
                 solutions.push_back(testQ);
                 valid.push_back(isValid);
@@ -328,12 +310,13 @@ public:
         // TODO: Look over solution selection
     }
 
+    double zeroSize;
     Transform hipRotation;
     Transform footRotation;
 
 protected:
 
-    double L4, L5;
+    double L4, L5, L6;
     double nx, ny, nz, sx, sy, sz, ax, ay, az, px, py, pz;
     double q1, q2, q3, q4, q5, q6;
     double S2, S4, S6;
@@ -342,16 +325,23 @@ protected:
     std::complex<double> radical;
     std::complex<double> sqrt_radical;
     Transform B, Binv;
+    Transform waist;
     Eigen::Matrix<int, 8, 3> alternatives;
     VectorQ testQ;
 
     virtual bool _reconfigure() {
         if(!ManipConstraintBase::_reconfigure())
             return false;
-        // TODO: Get the pertinent kinematic parameters for the new set of joints
+        
+        zeroSize = 1e-6;
 
-        L4 = this->_robot->joint(this->_joints[3]).childLink().respectToRef().translation()[2];
-        L5 = this->_robot->joint(this->_joints[4]).childLink().respectToRef().translation()[2];
+        L4 = fabs(this->_robot->joint(this->_joints[3]).childLink().respectToRef().translation()[2]);
+        L5 = fabs(this->_robot->joint(this->_joints[4]).childLink().respectToRef().translation()[2]);
+        L6 = fabs(this->_manip->withRespectTo(this->_robot->joint(this->_joints[5]).childLink()).translation()[2]);
+        
+        waist =  this->_robot->joint(this->_joints[0]).baseTransform()
+                  *this->_robot->joint(this->_joints[1]).baseTransform()
+                  *this->_robot->joint(this->_joints[2]).baseTransform();
 
         alternatives <<
                  1,  1,  1,

@@ -56,7 +56,7 @@ double akin::mod(double x, double y)
 
 double akin::wrapToPi(double angle)
 {
-    return mod(angle+M_PI, 2*M_PI) - M_PI;
+    return akin::mod(angle+M_PI, 2*M_PI) - M_PI;
 }
 
 KinObject::KinObject(Frame& referenceFrame,

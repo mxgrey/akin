@@ -144,9 +144,6 @@ bool SolverX::_satisfy(Eigen::VectorXd& config, ConstraintBase* constraint, size
         do {
             
             v = constraint->getGradientX(gradient, config);
-//            std::cout << "Validity: " << v.toString() << std::endl;
-//            std::cout << "Config:   " << config.transpose() << std::endl;
-//            std::cout << "Gradient: " << gradient.transpose() << std::endl;
             if(!v.valid)
             {
                 config = config - step_size*gradient;
