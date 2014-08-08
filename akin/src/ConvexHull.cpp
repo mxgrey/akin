@@ -47,8 +47,6 @@ std::vector<Eigen::Vector2d> akin::computeConvexHull(std::vector<Eigen::Vector2d
         }
     }
 
-    hull.push_back(points[lowest]);
-
     std::vector<HullAngle> angles;
     for(size_t i=0; i<points.size(); ++i)
     {
@@ -56,8 +54,39 @@ std::vector<Eigen::Vector2d> akin::computeConvexHull(std::vector<Eigen::Vector2d
     }
 
     std::sort(angles.begin(), angles.end(), HullAngleComparison);
-
-    // TODO: Fill in the hull
+    
+    std::vector<size_t> added;
+    size_t last = lowest;
+    size_t second_to_last = angles[1].index;
+    added.push_back(last);
+    for(size_t i=2; i<angles.size()-1; ++i)
+    {
+        size_t current = angles[i].index;
+        const Eigen::Vector2d& p1 = points[last];
+        const Eigen::Vector2d& p2 = points[second_to_last];
+        const Eigen::Vector2d& p3 = points[current];
+        
+        bool left_turn = ( (p2[0]-p1[0])*(p3[1]-p1[1]) - (p2[1]-p1[1])*(p3[0]-p1[0]) > 0 );
+        
+        if(left_turn)
+        {
+            added.push_back(second_to_last);
+            last = second_to_last;
+            second_to_last = current;
+        }
+        else
+        {
+            second_to_last = added.back();
+            added.pop_back();
+            last = added.back();
+            --i;
+        }
+    }
+    added.push_back(angles.back().index);
+    
+    for(size_t i=0; i<added.size(); ++i)
+        hull.push_back(points[added[i]]);
+    
 
     return hull;
 }
