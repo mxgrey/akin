@@ -17,6 +17,8 @@ typedef enum {
     
 } intersection_t;
 
+Eigen::Vector2d computeCentroid(const std::vector<Eigen::Vector2d>& convexHull);
+
 intersection_t computeIntersection(Eigen::Vector2d& intersection, 
                                    const Eigen::Vector2d& a1,
                                    const Eigen::Vector2d& a2,

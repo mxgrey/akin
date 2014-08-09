@@ -110,6 +110,7 @@ public:
     bool setConfig(std::vector<size_t> joints, const Eigen::VectorXd& values);
 
     const std::vector<Eigen::Vector2d>& getSupportPolygon();
+    const Eigen::Vector2d& getSupportCenter();
     std::vector<Eigen::Vector2d> computeSupportPolgon() const;
     
     Frame& refFrame();
@@ -213,8 +214,10 @@ protected:
     mutable Explorer _crawler;
 
     std::vector<Eigen::Vector2d> _supportPolgyon;
+    Eigen::Vector2d _supportCenter;
     mutable std::vector<Eigen::Vector2d> _supportPoints;
     std::vector<bool> _lastSupports;
+    bool _needSupportUpdate() const;
     
     std::string _name;
 

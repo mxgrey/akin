@@ -12,27 +12,47 @@ Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_le
     _initializeRobot(referenceFrame, report_level);
 }
 
-const std::vector<Eigen::Vector2d>& Robot::getSupportPolygon()
+bool Robot::_needSupportUpdate() const 
 {
-    bool needUpdate = false;
     for(size_t i=0; i<_lastSupports.size(); ++i)
     {
-        if( ( (!_lastSupports[i]) && (manip(i).mode == Manipulator::SUPPORT) ) ||
-            (   _lastSupports[i]  && (manip(i).mode != Manipulator::SUPPORT) ) )
-            needUpdate = true;
-        _lastSupports[i] = (manip(i).mode == Manipulator::SUPPORT);
+        if( ( (!_lastSupports[i]) && (const_manip(i).mode == Manipulator::SUPPORT) ) ||
+            (   _lastSupports[i]  && (const_manip(i).mode != Manipulator::SUPPORT) ) )
+            return true;
     }
-
+    
     for(size_t i=_lastSupports.size(); i<numManips(); ++i)
     {
-        if( manip(i).mode == Manipulator::SUPPORT )
-            needUpdate = true;
-        _lastSupports.push_back(manip(i).mode == Manipulator::SUPPORT);
+        if( const_manip(i).mode == Manipulator::SUPPORT )
+            return true;
     }
+    
+    return false;
+}
 
-    if(needUpdate)
+const std::vector<Eigen::Vector2d>& Robot::getSupportPolygon()
+{
+    if(_needSupportUpdate())
+    {
+        for(size_t i=0; i<_lastSupports.size(); ++i)
+            _lastSupports[i] = (manip(i).mode == Manipulator::SUPPORT);
+        
+        for(size_t i=_lastSupports.size(); i<numManips(); ++i)
+            _lastSupports.push_back(manip(i).mode == Manipulator::SUPPORT);
+        
         _supportPolgyon = computeSupportPolgon();
+        _supportCenter = computeCentroid(_supportPolgyon);
+    }
+    
     return _supportPolgyon;
+}
+
+const Eigen::Vector2d& Robot::getSupportCenter()
+{
+    if(_needSupportUpdate())
+        getSupportPolygon();
+    
+    return _supportCenter;
 }
 
 std::vector<Eigen::Vector2d> Robot::computeSupportPolgon() const
