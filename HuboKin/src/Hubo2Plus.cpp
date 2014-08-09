@@ -53,19 +53,39 @@ void Hubo2Plus::_setup_manipulators()
             new ManipConstraint<6>(manip(MANIP_L_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
 
-
-    HuboLegIK<6>* fc = new HuboLegIK<6>(manip(MANIP_L_FOOT),
-                        Robot::Explorer::getIdPath(joint("LHY"),joint("LAR")));
-    manip(MANIP_L_FOOT).setConstraint(Manipulator::ANALYTICAL, fc);
+    manip(MANIP_L_FOOT).setConstraint(Manipulator::ANALYTICAL, 
+            new HuboLegIK<6>(manip(MANIP_L_FOOT),
+                        Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
+    
+    manip(MANIP_L_FOOT).setConstraint(Manipulator::SUPPORT, 
+            new HuboLegIK<6>(manip(MANIP_L_FOOT),
+                        Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
+    
 
     // Right Foot Constraints
     manip(MANIP_R_FOOT).setConstraint(Manipulator::LINKAGE,
             new ManipConstraint<6>(manip(MANIP_R_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
 
-    fc = new HuboLegIK<6>(manip(MANIP_R_FOOT),
-                        Robot::Explorer::getIdPath(joint("RHY"),joint("RAR")));
-    manip(MANIP_R_FOOT).setConstraint(Manipulator::ANALYTICAL, fc);
+    manip(MANIP_R_FOOT).setConstraint(Manipulator::ANALYTICAL, 
+            new HuboLegIK<6>(manip(MANIP_R_FOOT),
+                        Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
+    
+    manip(MANIP_R_FOOT).setConstraint(Manipulator::SUPPORT, 
+            new HuboLegIK<6>(manip(MANIP_R_FOOT),
+                        Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
+    
+    for(size_t i=0; i<2; ++i)
+    {
+        size_t m = i==0? MANIP_L_FOOT : MANIP_R_FOOT;
+        std::string name = i==0? "lfoot" : "rfoot";
+        
+        std::vector<KinTranslation>& sg = manip(m).supportGeometry;
+        sg.push_back(KinTranslation(Translation( 0.02, 0.02,0), manip(m), name+"_FL_support"));
+        sg.push_back(KinTranslation(Translation(-0.02, 0.02,0), manip(m), name+"_BL_support"));
+        sg.push_back(KinTranslation(Translation(-0.02,-0.02,0), manip(m), name+"_BR_support"));
+        sg.push_back(KinTranslation(Translation( 0.02,-0.02,0), manip(m), name+"_FR_support"));
+    }
 }
 
 
