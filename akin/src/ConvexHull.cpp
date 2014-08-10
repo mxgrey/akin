@@ -134,13 +134,6 @@ Eigen::Vector2d akin::computeCentroid(const std::vector<Eigen::Vector2d>& convex
                       << result << ")" << std::endl;
         }
         
-        std::cout << area_i << ", <" << intersect.transpose() << "> : " 
-                  << "<"   << p0.transpose() << ">" 
-                  << ", <" << midp12.transpose() << ">" 
-                  << " x <" << p2.transpose() << ">" 
-                  << ", <" << midp01.transpose() << ">"
-                  << std::endl;
-        
         c += area_i*intersect;
     }
     
@@ -156,7 +149,7 @@ akin::intersection_t akin::computeIntersection(Eigen::Vector2d& intersection,
                                const Eigen::Vector2d& b2)
 {
     double dx_a = a2[0] - a1[0];
-    double dy_a = a2[1] - a1[0];
+    double dy_a = a2[1] - a1[1];
     
     double dx_b = b2[0] - b1[0];
     double dy_b = b2[1] - b1[1];

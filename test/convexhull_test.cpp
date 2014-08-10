@@ -12,11 +12,14 @@ int main(int , char* [])
     DrcHubo hubo("../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
                  "../../../resources/drchubo");
     
-    hubo.manip(DrcHubo::MANIP_L_FOOT).mode = Manipulator::SUPPORT;
-    hubo.manip(DrcHubo::MANIP_R_FOOT).mode = Manipulator::SUPPORT;
-    
     size_t left = DrcHubo::MANIP_L_FOOT;
     size_t right = DrcHubo::MANIP_R_FOOT;
+    
+    hubo.manip(left).mode = Manipulator::SUPPORT;
+    hubo.manip(right).mode = Manipulator::SUPPORT;
+    
+    hubo.joint(DOF_POS_X).value(1);
+    hubo.joint(DOF_POS_Y).value(1);
     
 //    std::vector<size_t> joints = hubo.manip(right).constraint().getJoints();
 //    Eigen::VectorXd config = hubo.getConfig(joints);

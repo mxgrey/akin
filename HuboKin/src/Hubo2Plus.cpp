@@ -81,14 +81,10 @@ void Hubo2Plus::_setup_manipulators()
         std::string name = i==0? "lfoot" : "rfoot";
         
         std::vector<KinTranslation>& sg = manip(m).supportGeometry;
-//        sg.push_back(KinTranslation(Translation( 0.02, 0.02,0), manip(m), name+"_FL_support"));
-//        sg.push_back(KinTranslation(Translation(-0.02, 0.02,0), manip(m), name+"_BL_support"));
-//        sg.push_back(KinTranslation(Translation(-0.02,-0.02,0), manip(m), name+"_BR_support"));
-//        sg.push_back(KinTranslation(Translation( 0.02,-0.02,0), manip(m), name+"_FR_support"));
-        sg.push_back(KinTranslation(Translation( 0.1, 0.1115,0), manip(m), name+"_FL_support"));
-        sg.push_back(KinTranslation(Translation(-0.1, 0.1115,0), manip(m), name+"_BL_support"));
-        sg.push_back(KinTranslation(Translation(-0.1,-0.1115,0), manip(m), name+"_BR_support"));
-        sg.push_back(KinTranslation(Translation( 0.1,-0.1115,0), manip(m), name+"_FR_support"));
+        sg.push_back(KinTranslation(Translation( 0.02, 0.02,0), manip(m), name+"_FL_support"));
+        sg.push_back(KinTranslation(Translation(-0.02, 0.02,0), manip(m), name+"_BL_support"));
+        sg.push_back(KinTranslation(Translation(-0.02,-0.02,0), manip(m), name+"_BR_support"));
+        sg.push_back(KinTranslation(Translation( 0.02,-0.02,0), manip(m), name+"_FR_support"));
     }
 }
 
