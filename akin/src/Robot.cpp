@@ -18,6 +18,9 @@ bool Robot::_needSupportUpdate() const
         if( ( (!_lastSupports[i]) && (const_manip(i).mode == Manipulator::SUPPORT) ) ||
             (   _lastSupports[i]  && (const_manip(i).mode != Manipulator::SUPPORT) ) )
             return true;
+        if( const_manip(i).mode == Manipulator::SUPPORT 
+                && _supportTrackers[i]->needsUpdate() )
+            return true;
     }
     
     for(size_t i=_lastSupports.size(); i<numManips(); ++i)
@@ -34,10 +37,19 @@ const std::vector<Eigen::Vector2d>& Robot::getSupportPolygon()
     if(_needSupportUpdate())
     {
         for(size_t i=0; i<_lastSupports.size(); ++i)
+        {
             _lastSupports[i] = (manip(i).mode == Manipulator::SUPPORT);
+            _supportTrackers[i]->clearNotification();
+        }
         
         for(size_t i=_lastSupports.size(); i<numManips(); ++i)
+        {
             _lastSupports.push_back(manip(i).mode == Manipulator::SUPPORT);
+            _supportTrackers[i]->clearNotification();
+        }
+        
+        verb.debug() << "Updating support polygon for robot '"+name()+"'";
+        verb.end();
         
         _supportPolgyon = computeSupportPolgon();
         _supportCenter = computeCentroid(_supportPolgyon);
@@ -206,6 +218,16 @@ Robot::~Robot()
     for(size_t j=0; j<_root_dummy_joints.size(); ++j)
     {
         delete _root_dummy_joints[j];
+    }
+    
+    for(size_t m=0; m<_manips.size(); ++m)
+    {
+        delete _manips[m];
+    }
+    
+    for(size_t m=0; m<_supportTrackers.size(); ++m)
+    {
+        delete _supportTrackers[m];
     }
 }
 
@@ -608,9 +630,10 @@ int Robot::addManipulator(Frame &attachment, const string &name, Transform relat
     Manipulator* newManip = new Manipulator(this, attachment, name);
     newManip->respectToRef(relativeTf);
     
-    _insertManip(newManip);
     if(newManip->parentLink().isDummy())
         return -2;
+    
+    _insertManip(newManip);
     
     newManip->parentLink()._manips.push_back(newManip);
     return _manips.size()-1;
@@ -686,6 +709,7 @@ void Robot::_insertJoint(Joint *newJoint)
 void Robot::_insertManip(Manipulator* newManip)
 {
     _manips.push_back(newManip);
+    _supportTrackers.push_back(new Tracker(*newManip, newManip->name()+"_support_tracker"));
     _manipNameToIndex[newManip->name()] = _manips.size()-1;
 }
 

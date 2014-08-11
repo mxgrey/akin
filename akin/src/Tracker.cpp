@@ -11,7 +11,43 @@ Tracker::Tracker(const string &name, verbosity::verbosity_level_t report_level) 
     
 }
 
-void Tracker::_loseParent(KinObject *parent)
+Tracker::Tracker(Frame &target, const string &name, verbosity::verbosity_level_t report_level) :
+    KinObject(target, name, report_level, "Tracker")
+{
+    
+}
+
+void Tracker::_kinitialize(const Tracker &)
+{
+    
+}
+
+void Tracker::clearNotification()
+{
+    _needsUpdate = false;
+}
+
+MultiTracker::MultiTracker(const string &name, verbosity::verbosity_level_t report_level) :
+    Tracker(name, report_level)
+{
+    _type = "MultiTracker";
+}
+
+MultiTracker::MultiTracker(const MultiTracker &copyMultiTracker) :
+    Tracker(copyMultiTracker)
+{
+    _kinitialize(copyMultiTracker);
+}
+
+MultiTracker& MultiTracker::operator =(const MultiTracker& copyMultiTracker)
+{
+    (Tracker&)(*this) = (Tracker&)(copyMultiTracker);
+    _kinitialize(copyMultiTracker);
+    notifyUpdate();
+    return *this;
+}
+
+void MultiTracker::_loseParent(KinObject *parent)
 {
     verb.debug() << "Removing '" << parent->name() << "' as a subscription of the Tracker '" 
                  << name() << "'";
@@ -44,12 +80,12 @@ void Tracker::_loseParent(KinObject *parent)
     }
 }
 
-void Tracker::_kinitialize(const Tracker &copy)
+void MultiTracker::_kinitialize(const MultiTracker &copy)
 {
     setSubscriptions(copy._subscriptions);
 }
 
-void Tracker::setSubscriptions(const KinObjectPtrArray& objects, bool notify)
+void MultiTracker::setSubscriptions(const KinObjectPtrArray& objects, bool notify)
 {
     clearSubscriptions();
     addSubscriptions(objects);
@@ -58,7 +94,7 @@ void Tracker::setSubscriptions(const KinObjectPtrArray& objects, bool notify)
         notifyUpdate();
 }
 
-void Tracker::addSubscriptions(const KinObjectPtrArray &objects, bool notify)
+void MultiTracker::addSubscriptions(const KinObjectPtrArray &objects, bool notify)
 {
     for(size_t i=0; i<objects.size(); ++i)
     {
@@ -69,7 +105,7 @@ void Tracker::addSubscriptions(const KinObjectPtrArray &objects, bool notify)
         notifyUpdate();
 }
 
-void Tracker::addSubscription(KinObject *object, bool notify)
+void MultiTracker::addSubscription(KinObject *object, bool notify)
 {
     _subscriptions.push_back(object);
     _subscriptions.back()->_registerObject(this);
@@ -78,7 +114,7 @@ void Tracker::addSubscription(KinObject *object, bool notify)
         notifyUpdate();
 }
 
-bool Tracker::removeSubscription(KinObject *object, bool notify)
+bool MultiTracker::removeSubscription(KinObject *object, bool notify)
 {
     if(object==NULL)
         return false;
@@ -117,7 +153,7 @@ bool Tracker::removeSubscription(KinObject *object, bool notify)
     return true;
 }
 
-void Tracker::clearSubscriptions(bool notify)
+void MultiTracker::clearSubscriptions(bool notify)
 {
     for(size_t i=0; i<_subscriptions.size(); ++i)
     {

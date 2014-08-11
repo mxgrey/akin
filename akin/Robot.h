@@ -4,6 +4,7 @@
 #include "Joint.h"
 #include "Link.h"
 #include "Manipulator.h"
+#include "Tracker.h"
 #include <map>
 
 namespace akin {
@@ -217,6 +218,7 @@ protected:
     Eigen::Vector2d _supportCenter;
     mutable std::vector<Eigen::Vector2d> _supportPoints;
     std::vector<bool> _lastSupports;
+    TrackerPtrArray _supportTrackers;
     bool _needSupportUpdate() const;
     
     std::string _name;

@@ -18,9 +18,6 @@ int main(int , char* [])
     hubo.manip(left).mode = Manipulator::SUPPORT;
     hubo.manip(right).mode = Manipulator::SUPPORT;
     
-    hubo.joint(DOF_POS_X).value(1);
-    hubo.joint(DOF_POS_Y).value(1);
-    
 //    std::vector<size_t> joints = hubo.manip(right).constraint().getJoints();
 //    Eigen::VectorXd config = hubo.getConfig(joints);
 //    Transform tf = hubo.manip(right).respectToWorld();
@@ -36,11 +33,24 @@ int main(int , char* [])
         std::cout << hubo.manip(right).supportGeometry[i].respectToWorld().transpose() << std::endl;
     
     std::cout << "\nHull:" << std::endl;
-    const std::vector<Eigen::Vector2d> hull = hubo.getSupportPolygon();
+    const std::vector<Eigen::Vector2d>& hull = hubo.getSupportPolygon();
     for(size_t i=0; i<hull.size(); ++i)
         std::cout << hull[i].transpose() << std::endl;
     
     std::cout << "\nCenter: " << hubo.getSupportCenter().transpose() << std::endl;
+    
+    
+    hubo.joint(DOF_POS_X).value(1);
+    std::cout << "\nMoved forward" << std::endl;
+    
+    const std::vector<Eigen::Vector2d>& newHull = hubo.getSupportPolygon();
+    for(size_t i=0; i<newHull.size(); ++i)
+        std::cout << newHull[i].transpose() << std::endl;
+    
+    hubo.joint(DOF_POS_Y).value(1);
+    std::cout << "\nMoved left" << std::endl;
+    for(size_t i=0; i<hubo.getSupportPolygon().size(); ++i)
+        std::cout << hubo.getSupportPolygon()[i].transpose() << std::endl;
     
     return 0;
 }

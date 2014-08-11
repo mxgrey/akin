@@ -13,6 +13,22 @@ public:
     
     Tracker(const std::string& name="tracker",
             verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    Tracker(Frame& target, const std::string& name="tracker",
+            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    
+    void clearNotification();
+    
+};
+
+class MultiTracker : public Tracker
+{
+public:
+    
+    MultiTracker(const std::string& name="multitracker",
+            verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    
+    MultiTracker(const MultiTracker& copyMultiTracker);
+    MultiTracker& operator=(const MultiTracker& copyMultiTracker);
     
     void setSubscriptions(const KinObjectPtrArray& objects, bool notify=true);
     void addSubscriptions(const KinObjectPtrArray& objects, bool notify=true);
@@ -26,7 +42,11 @@ protected:
     void _loseParent(KinObject* parent);
     KinObjectPtrArray _subscriptions;
     
+    void _kinitialize(const MultiTracker& copy);
+    
 };
+
+typedef std::vector<Tracker*> TrackerPtrArray;
 
 } // namespace akin
 

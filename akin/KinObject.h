@@ -160,7 +160,7 @@ double wrapToPi(double angle);
 
 
 class Frame; // Declaring Frame here so I can have a pointer to it in KinObject
-class Tracker;
+class MultiTracker;
 
 /*!
  * \class KinObject
@@ -177,7 +177,7 @@ class KinObject
 public:
 
     friend class Frame;
-    friend class Tracker;
+    friend class MultiTracker;
 
     KinObject(Frame &referenceFrame,
               const std::string& myName,
