@@ -1,7 +1,6 @@
 
 #include "../Robot.h"
 #include "../../akinUtils/urdfParsing.h"
-#include "../ConvexHull.h"
 
 using namespace akin;
 using namespace std;
