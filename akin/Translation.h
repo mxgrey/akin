@@ -82,56 +82,6 @@ public:
         this->Base::operator=(other);
         return *this;
     }
-    
-//    inline Translation(const Eigen::Vector3d::ScalarMultipleReturnType& vec) :
-//        Eigen::Vector3d(vec)
-//    {
-        
-//    }
-
-//    inline Translation(const Eigen::Vector3d& vec) :
-//        Eigen::Vector3d(vec)
-//    {
-
-//    }
-
-//    inline Translation(const Eigen::Block<const Eigen::Matrix<double, 4, 4>, 3, 1, false>& vec) :
-//        Eigen::Vector3d(vec)
-//    {
-
-//    }
-
-//    // Returned by Transform operations
-//    inline Translation(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 3, 1> >& vec) :
-//        Eigen::Vector3d(vec)
-//    {
-
-//    }
-    
-    // Returned by Rotation operations, but conflicts with the one below
-//    inline Translation(const Eigen::CoeffBasedProduct<const Eigen::Matrix<double,3,3>&,
-//                       const Eigen::Matrix<double, 3, 1>&, 6>& vec) :
-//        Eigen::Vector3d(vec)
-//    {
-        
-//    }
-    
-    // Returned when a negative is put in front of a rotation
-//    inline Translation(const Eigen::CoeffBasedProduct<
-//                       const Eigen::CwiseUnaryOp<Eigen::internal::scalar_opposite_op<double>,
-//                       const Eigen::Matrix<double,3,3> >,
-//                       const Eigen::Matrix<double,3,1>&, 6 >& vec) :
-//        Eigen::Vector3d(vec)
-//    {
-        
-//    }
-    
-    
-//    inline Translation& operator=(const Eigen::Vector3d& vec)
-//    {
-//        (Eigen::Vector3d&)(*this) = vec;
-//        return *this;
-//    }
 };
 
 /*!
@@ -144,17 +94,10 @@ public:
 class KinTranslation : public Translation, public KinObject
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     KinMacro( KinTranslation, Translation )
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//    KinTranslation(Frame& referenceFrame,
-//                   std::string translationName="translation",
-//                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
-
-//    KinTranslation(const Translation& relativeTranslation,
-//                   Frame& referenceFrame,
-//                   std::string translationName="translation",
-//                   verbosity::verbosity_level_t report_level = verbosity::INHERIT);
+    KinTranslation();
 
     const Translation& respectToWorld() const;
     Translation withRespectTo(const Frame& someFrame) const;

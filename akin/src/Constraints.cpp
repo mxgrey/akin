@@ -99,12 +99,14 @@ int NullConstraintBase::getConfigurationSize()
 RobotConstraintBase::~RobotConstraintBase() { }
 
 RobotConstraintBase::RobotConstraintBase() :
+    _configured(false),
     _robot(NULL)
 {
     
 }
 
 RobotConstraintBase::RobotConstraintBase(Robot& robot, const std::vector<size_t>& joints) :
+    _configured(false),
     _robot(&robot),
     _joints(joints)
 {
@@ -145,6 +147,45 @@ Robot* RobotConstraintBase::getRobot()
     return _robot;
 }
 
+bool RobotConstraintBase::checkSetup() const 
+{
+    if(_robot==NULL)
+    {
+        std::cout << "Constraint has not been assigned a robot yet!" << std::endl;
+        return false;
+    }
+    
+    if(!_configured)
+    {
+        std::cout << "Constraint has not been configured yet!" << std::endl;
+    }
+    
+    return true;
+}
+
+bool RobotConstraintBase::_reconfigure()
+{
+    if(this->_robot==NULL)
+    {
+        _configured = false;
+        return false;
+    }
+    
+    if(!this->_robot->verb.Assert((int)this->_joints.size()==getConfigurationSize(), 
+                              verbosity::ASSERT_CRITICAL,
+                        "ManipConstraint templated for "
+                              +std::to_string(getConfigurationSize())
+                        +" DoF was given an index array of size "
+                        +std::to_string(this->_joints.size())+"!"))
+    {
+        _configured = false;
+        return false;
+    }
+    
+    _configured = true;
+    return true;
+}
+
 ManipConstraintBase::~ManipConstraintBase() { }
 
 ManipConstraintBase::ManipConstraintBase() :
@@ -172,17 +213,13 @@ bool ManipConstraintBase::changeManipulator(Manipulator *manip)
         return false;
 
     _manip = manip;
-    _reconfigure();
-    return true;
+    return _reconfigure();
 }
 
 bool ManipConstraintBase::checkSetup() const
 {
-    if(_robot==NULL)
-    {
-        std::cout << "Constraint has not been assigned a robot yet!" << std::endl;
+    if(!RobotConstraintBase::checkSetup())
         return false;
-    }
     
     if(!_robot->verb.Assert(_manip != NULL, verbosity::ASSERT_CRITICAL,
                                   "Constraint has not been set up yet!") )
@@ -192,18 +229,15 @@ bool ManipConstraintBase::checkSetup() const
 }
 
 bool ManipConstraintBase::_reconfigure() {
-    if(this->_robot==NULL)
-        return false;
     
-    this->_robot->verb.Assert((int)this->_joints.size()==getConfigurationSize(), 
-                              verbosity::ASSERT_CRITICAL,
-                        "ManipConstraint templated for "
-                              +std::to_string(getConfigurationSize())
-                        +" DoF was given an index array of size "
-                        +std::to_string(this->_joints.size())+"!");
+    if(!RobotConstraintBase::_reconfigure())
+        return false;
     
     if(_manip==NULL)
+    {
+        _configured = false;
         return false;
+    }
     
     _dependency.clear();
     for(int i=0; i<getConfigurationSize(); ++i)
@@ -215,6 +249,7 @@ bool ManipConstraintBase::_reconfigure() {
             _dependency.push_back(false);
     }
     
+    _configured = true;
     return true;
 }
 

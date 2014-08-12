@@ -123,6 +123,12 @@ public:
         _update(configuration);
         
         getError(configuration, this->computeErrorFromCenter, false);
+        if(this->_error.norm() == 0)
+        {
+            gradient.setZero();
+            return Validity::Valid();
+        }
+        
         getJacobian(configuration, false);
         computeDampedPseudoInverse(_pseudoInverse, _Jacobian, this->damp_factor);
         
@@ -169,12 +175,17 @@ protected:
     virtual void _update(const VectorQ& config) = 0;
     
     virtual Validity _computeCurrentValidity() {
-        for(int i=0; i<_error.size(); ++i)
-            if(_error[i] != _error[i])
-                return Validity::Invalid();
-
         if(_error.norm() == 0)
             return Validity::Valid();
+        
+        for(int i=0; i<_error.size(); ++i)
+        {
+            if(_error[i] != _error[i])
+            {
+                std::cout << "Error vector has NaN: " << _error.transpose() << std::endl;
+                return Validity::Stuck();
+            }
+        }
         
         return Validity::Invalid();
     }

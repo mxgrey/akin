@@ -26,6 +26,21 @@ intersection_t computeIntersection(Eigen::Vector2d& intersection,
                                    const Eigen::Vector2d& b1,
                                    const Eigen::Vector2d& b2);
 
+double cross2d(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2);
+
+bool isLeftTurn(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2, const Eigen::Vector2d& p3);
+
+bool isRightTurn(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2, const Eigen::Vector2d& p3);
+
+bool isInsideConvexHull(const Eigen::Vector2d& p, const std::vector<Eigen::Vector2d>& convexHull, 
+                        bool exclude_edge = false);
+
+Eigen::Vector2d closestPointToLineSegment(const Eigen::Vector2d& p, 
+                                          const Eigen::Vector2d& s1, const Eigen::Vector2d& s2);
+
+Eigen::Vector2d closestPointOnHull(const Eigen::Vector2d& p, 
+                                   const std::vector<Eigen::Vector2d>& convexHull);
+
 class ColorSpec
 {
 public:

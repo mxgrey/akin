@@ -68,7 +68,7 @@ std::vector<Eigen::Vector2d> akin::computeConvexHull(std::vector<Eigen::Vector2d
         const Eigen::Vector2d& p2 = points[second_to_last];
         const Eigen::Vector2d& p3 = points[current];
         
-        bool left_turn = ( (p2[0]-p1[0])*(p3[1]-p1[1]) - (p2[1]-p1[1])*(p3[0]-p1[0]) > 0 );
+        bool left_turn = isLeftTurn(p1, p2, p3);
         
         if(left_turn)
         {
@@ -88,7 +88,7 @@ std::vector<Eigen::Vector2d> akin::computeConvexHull(std::vector<Eigen::Vector2d
     const Eigen::Vector2d& p1 = points[added.back()];
     const Eigen::Vector2d& p2 = points[angles.back().index];
     const Eigen::Vector2d& p3 = points[lowest];
-    bool left_turn = ( (p2[0]-p1[0])*(p3[1]-p1[1]) - (p2[1]-p1[1])*(p3[0]-p1[0]) > 0 );
+    bool left_turn = isLeftTurn(p1, p2, p3);
     if(left_turn)
         added.push_back(angles.back().index);
     
@@ -186,7 +186,151 @@ akin::intersection_t akin::computeIntersection(Eigen::Vector2d& intersection,
     return INTERSECTING;
 }
 
+double akin::cross2d(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2)
+{
+    return p1[0]*p2[1] - p1[1]*p2[0];
+}
 
+bool akin::isLeftTurn(const Eigen::Vector2d& p1, 
+                      const Eigen::Vector2d& p2, 
+                      const Eigen::Vector2d& p3)
+{
+    return (cross2d(p2-p1, p3-p1) > 0);
+}
 
+bool akin::isRightTurn(const Eigen::Vector2d& p1, 
+                       const Eigen::Vector2d& p2, 
+                       const Eigen::Vector2d& p3)
+{
+    return (cross2d(p2-p1, p3-p1) < 0);
+}
 
+bool akin::isInsideConvexHull(const Eigen::Vector2d& p, 
+                              const std::vector<Eigen::Vector2d>& convexHull,
+                              bool exclude_edge)
+{
+    // If there is no actual hull
+    if(convexHull.size()==0)
+        return false; // TODO: Should this return true instead?
+    
+    // If the hull is a single point
+    if(convexHull.size()==1)
+    {
+        if(exclude_edge)
+            return false;
+        return ((convexHull.front()-p).norm() == 0);
+    }
+    
+    // If the hull is a single line
+    if(convexHull.size()==2)
+    {
+        if(exclude_edge)
+            return false;
+        
+        const Eigen::Vector2d& p1 = convexHull[0];
+        const Eigen::Vector2d& p2 = convexHull[1];
+        const Eigen::Vector2d& p3 = p;
+        
+        if(cross2d(p2-p1,p3-p1) == 0)
+        {
+            if( p3[0] < std::min(p1[0],p2[0]) || std::max(p1[0],p2[0]) < p3[0] )
+                return false;
+            return true;
+        }
+        
+        return false;
+    }
+    
+    for(size_t i=0; i<convexHull.size(); ++i)
+    {
+        const Eigen::Vector2d& p1 = i==0? convexHull.back() : convexHull[i-1];
+        const Eigen::Vector2d& p2 = convexHull[i];
+        const Eigen::Vector2d& p3 = p;
+        
+        double cross = cross2d(p2-p1,p3-p1);
+        if(cross > 0)
+            continue;
+        
+        if(cross == 0)
+        {
+            if(exclude_edge)
+                return false;
+            
+            if( p3[0] < std::min(p1[0],p2[0]) || std::max(p1[0],p2[0]) < p3[0] )
+                return false;
+        }
+        else
+            return false;
+    }
+    
+    return true;
+}
+
+Eigen::Vector2d akin::closestPointToLineSegment(const Eigen::Vector2d& p, 
+                                                const Eigen::Vector2d& s1, 
+                                                const Eigen::Vector2d& s2)
+{
+    Eigen::Vector2d result;
+    
+    if(s1[0]-s2[0] == 0) // If the line segment is vertical
+    {
+        result[0] = s1[0];
+        result[1] = p[1];
+        if( result[1] < std::min(s1[1],s2[1]) || std::max(s1[1],s2[1]) < result[1] )
+        {
+            if( fabs(p[1]-s2[1]) < fabs(p[1]-s1[1]) )
+                result[1] = s2[1];
+            else
+                result[1] = s1[1];
+        }
+    }
+    else
+    {
+        double m = (s2[1]-s1[1])/(s2[0]-s1[0]);
+        double k = s1[1] - m*s1[0];
+        result[0] = (p[0] + m*(p[1] - k))/(m*m+1);
+        result[1] = m*result[0]+k;
+        
+        if( result[0] < std::min(s1[0],s2[0]) || std::max(s1[0],s2[0]) < result[0] )
+        {
+            if( (p-s2).norm() < (p-s1).norm() )
+                result = s2;
+            else
+                result = s1;
+        }
+    }
+    
+    return result;
+}
+
+Eigen::Vector2d akin::closestPointOnHull(const Eigen::Vector2d &p, 
+                                         const std::vector<Eigen::Vector2d> &convexHull)
+{
+    if(convexHull.size()==0) // If there is no convex hull
+        return p;
+    
+    if(convexHull.size()==1) // If the hull is a single point
+        return convexHull.front();
+    
+    if(convexHull.size()==2) // If the hull is a single line
+        return closestPointToLineSegment(p, convexHull.front(), convexHull.back());
+    
+    double best = INFINITY, check;
+    Eigen::Vector2d test, result;
+    for(size_t i=0; i<convexHull.size(); ++i)
+    {
+        const Eigen::Vector2d& p1 = i==0? convexHull.back() : convexHull[i-1];
+        const Eigen::Vector2d& p2 = convexHull[i];
+        
+        test = closestPointToLineSegment(p, p1, p2);
+        check = (test-p).norm();
+        if( check < best )
+        {
+            best = check;
+            result = test;
+        }
+    }
+    
+    return result;
+}
 

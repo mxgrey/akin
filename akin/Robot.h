@@ -54,6 +54,11 @@ public:
         static std::vector<size_t> getIdPath(const Link& startLink, const Link& endLink);
         static std::vector<size_t> getIdPath(const Joint& startJoint, const Joint& endJoint);
         
+        static std::vector<const Link*> getLinks(const Link& startLink, policy p=DOWNSTREAM);
+        static std::vector<const Joint*> getJoints(const Joint& startJoint, policy p=DOWNSTREAM);
+        static std::vector<size_t> getLinkIds(const Link& startLink, policy p=DOWNSTREAM);
+        static std::vector<size_t> getJointIds(const Joint& startJoint, policy p=DOWNSTREAM);
+        
         Explorer();
         Explorer(const Link& startLink, policy p=DOWNSTREAM);
         Explorer(const Link& startLink, const Link& endLink);

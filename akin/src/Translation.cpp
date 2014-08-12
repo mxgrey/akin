@@ -48,6 +48,12 @@
 using namespace std;
 using namespace akin;
 
+KinTranslation::KinTranslation() :
+    KinObject(Frame::World(), "translation", verbosity::INHERIT, "KinTranslation")
+{
+    
+}
+
 const Translation& KinTranslation::respectToWorld() const
 {
 //    if(_needsUpdate)

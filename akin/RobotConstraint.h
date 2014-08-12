@@ -19,12 +19,15 @@ public:
     bool changeJoints(const std::vector<size_t>& newJoints, bool reconfigure=true);
     bool changeSetup(Robot* newRobot, const std::vector<size_t>& newJoints);
     
+    virtual bool checkSetup() const;
+    
     const std::vector<size_t>& getJoints() const;
     Robot* getRobot();
 
 protected:
     
-    virtual bool _reconfigure() = 0;
+    virtual bool _reconfigure();
+    bool _configured;
     
     Robot* _robot;
     std::vector<size_t> _joints;
@@ -110,8 +113,7 @@ public:
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
         if(!checkSetup()) { this->_Jacobian.setZero(); return this->_Jacobian; }
         
-        if(update)
-            _update(config);
+        if(update) _update(config);
         
         for(size_t i=0; i<this->_joints.size(); ++i)
         {
@@ -126,12 +128,10 @@ public:
         return this->_Jacobian;
     }
     
-    virtual const Error& getError(const VectorQ& config, 
-                                  bool fromCenter=false, bool update=true) {
+    virtual const Error& getError(const VectorQ& config, bool fromCenter=false, bool update=true) {
         if(!checkSetup()) { this->_error.setZero(); return this->_error; }
 
-        if(update)
-            _update(config);
+        if(update) _update(config);
 
         Transform tf_error = _manip->withRespectTo(target.refFrame())
                              *target.respectToRef().inverse();
@@ -208,6 +208,10 @@ class CenterOfMassConstraint : public RobotJacobianConstraint<Q,3>,
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
+    typedef typename Constraint<Q>::VectorQ VectorQ;
+    typedef typename JacobianConstraint<Q,3>::Error Error;
+    typedef typename JacobianConstraint<Q,3>::Jacobian Jacobian;
 
     CenterOfMassConstraint() { _initializeDefaults(); }
     CenterOfMassConstraint(int cspace_size) :
@@ -220,22 +224,109 @@ public:
         RobotConstraintBase(robot, joints), RobotJacobianConstraint<Q,3>(cspace_size)
     { _initializeDefaults(); }
 
-
+    virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
+        if(!checkSetup()) { this->_Jacobian.setZero(); return this->_Jacobian; }
+        
+        if(update) _update(config);
+        
+        double total_mass = _robot->mass();
+        
+        for(size_t i=0; i<this->_joints.size(); ++i)
+        {
+            _ex.reset(this->_robot->const_joint(_joints[i]).const_childLink(), 
+                      Robot::Explorer::DOWNSTREAM);
+            
+            Translation p;
+            double mass = 0;
+            double mass_l;
+            const Link* nextLink;
+            while( (nextLink = _ex.nextLink()) )
+            {
+                mass_l = nextLink->mass;
+                p += mass_l*nextLink->com.respectToWorld();
+                mass += mass_l;
+                
+                for(size_t m=0; m<nextLink->numManips(); ++m)
+                {
+                    const Manipulator& manip = nextLink->const_manip(m);
+                    mass_l = manip.mass();
+                    p += mass_l*manip.com().respectToWorld();
+                    mass += mass_l;
+                }
+            }
+            
+            _point = p/mass;
+            
+            this->_Jacobian.template block<3,1>(0,i) = mass/total_mass*
+                    this->_robot->const_joint(this->_joints[i]).Jacobian_posOnly(
+                        _point, Frame::World(), false);
+        }
+        
+        return this->_Jacobian;
+    }
+    
+    virtual const Error& getError(const VectorQ &config, bool fromCenter=false, bool update=true) {
+        if(!checkSetup()) { this->_error.setZero(); return this->_error; }
+        
+        if(update) _update(config);
+        
+        Translation com = _robot->com().respectToWorld();
+        
+        if(isInsideConvexHull(com.template block<2,1>(0,0), _robot->getSupportPolygon()))
+        {
+            this->_error.template block<2,1>(0,0).setZero();
+        }
+        else
+        {
+            if(fromCenter)
+            {
+                this->_error.template block<2,1>(0,0) = com.template block<2,1>(0,0) 
+                                                            - this->_robot->getSupportCenter();
+            }
+            else
+            {
+                this->_error.template block<2,1>(0,0) = com.template block<2,1>(0,0)
+                        - closestPointOnHull(com.template block<2,1>(0,0), 
+                                             this->_robot->getSupportPolygon());
+            }
+        }
+        
+        if(fromCenter)
+        {
+            if( com[2] < this->min_height || this->max_height < com[2] )
+                this->_error[2] = com[2] - 0.5*(this->min_height+this->max_height);
+            else
+                this->_error[2] = 0;
+        }
+        else
+        {
+            if( com[2] < this->min_height )
+                this->_error[2] = com[2] - this->min_height;
+            else if( this->max_height < com[2] )
+                this->_error[2] = com[2] - this->max_height;
+            else
+                this->_error[2] = 0;
+        }
+        
+        return this->_error;
+    }
 
 protected:
 
-
+    Robot::Explorer _ex;
+    KinTranslation _point;
 
     void _initializeDefaults() {
         this->error_clamp = 0.2; this->dq_clamp = 0.2;
         this->computeErrorFromCenter = true;
         error_weights.resize(3); error_weights.setOnes();
+        _point.name("com_j");
         _reconfigure();
     }
 
 };
 
-
+typedef CenterOfMassConstraint<Eigen::Dynamic> CenterOfMassContraintX;
 
 } // namespace akin
 

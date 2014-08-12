@@ -172,7 +172,8 @@ protected:
                 -1,  1, -1,
                 -1, -1,  1,
                 -1, -1, -1;
-
+        
+        this->_configured = true;
         return true;
     }
 

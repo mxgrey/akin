@@ -72,11 +72,14 @@ std::vector<Eigen::Vector2d> Robot::computeSupportPolgon() const
 
     for(size_t i=0; i<numManips(); ++i)
     {
-        const std::vector<KinTranslation>& points = const_manip(i).supportGeometry;
-        for(size_t j=0; j<points.size(); ++j)
+        if(Manipulator::SUPPORT == const_manip(i).mode)
         {
-            const KinTranslation& p = points[j];
-            _supportPoints.push_back(p.respectToWorld().block<2,1>(0,0));
+            const std::vector<KinTranslation>& points = const_manip(i).supportGeometry;
+            for(size_t j=0; j<points.size(); ++j)
+            {
+                const KinTranslation& p = points[j];
+                _supportPoints.push_back(p.respectToWorld().block<2,1>(0,0));
+            }
         }
     }
 
@@ -292,37 +295,37 @@ const KinTranslation& Robot::com() const
 Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
                        Explorer::policy p) const
 {
-    Translation com_;
-    double mass_ = 0, lmass = 0;
+    Translation fcom;
+    double fmass = 0, lmass = 0;
     
     _crawler.reset(startLink, p);
     const Link* current = _crawler.nextLink();
     while(current != NULL)
     {
         lmass = current->mass;
-        com_ += lmass*current->com.withRespectTo(referenceFrame);
-        mass_ += lmass;
+        fcom += lmass*current->com.withRespectTo(referenceFrame);
+        fmass += lmass;
         
         for(size_t i=0; i<current->numManips(); ++i)
         {
             const Manipulator& manip_ = current->const_manip(i);
             lmass = manip_.mass();
-            com_ += lmass*manip_.com().withRespectTo(referenceFrame);
-            mass_ += lmass;
+            fcom += lmass*manip_.com().withRespectTo(referenceFrame);
+            fmass += lmass;
         }
         
         current = _crawler.nextLink();
     }
     
-//    if( verb.Assert(_mass > 0, verbosity::ASSERT_CASUAL,
+//    if( verb.Assert(fmass > 0, verbosity::ASSERT_CASUAL,
 //                    "Center of Mass requested for Robot '"+name()+"' starting at Link '"
 //                    +startLink.name()+"', but there was no mass at all!") )
-    if( _mass > 0 )
-        com_ = com_/mass_;
+    if( fmass > 0 )
+        fcom = fcom/fmass;
     else
-        com_.setZero();
+        fcom.setZero();
     
-    return com_;
+    return fcom;
 }
 
 double Robot::mass(const Link &startLink, Explorer::policy p) const
@@ -378,7 +381,7 @@ bool Robot::createRootLink(string rootLinkName)
     _root_dummy_joints.push_back(rot_z_joint);
     _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
     
-    _com.changeRefFrame(*rootLink);
+//    _com.changeRefFrame(*rootLink);
 
     _root_dummy_links.back()->_addChildJoint(rot_z_joint);
     rootLink->_setParentJoint(rot_z_joint);
@@ -839,6 +842,54 @@ std::vector<size_t> Robot::Explorer::getIdPath(const Joint &startJoint, const Jo
         result.push_back(joint->id());
         joint = crawl.nextJoint();
     }
+    
+    return result;
+}
+
+std::vector<const Link*> Robot::Explorer::getLinks(const Link &startLink, policy p)
+{
+    Explorer crawl(startLink, p);
+    
+    std::vector<const Link*> result;
+    const Link* nextLink;
+    while( (nextLink = crawl.nextLink()) )
+        result.push_back(nextLink);
+    
+    return result;
+}
+
+std::vector<const Joint*> Robot::Explorer::getJoints(const Joint &startJoint, policy p)
+{
+    Explorer crawl(startJoint, p);
+    
+    std::vector<const Joint*> result;
+    const Joint* nextJoint;
+    while( (nextJoint = crawl.nextJoint()) )
+        result.push_back(nextJoint);
+    
+    return result;
+}
+
+std::vector<size_t> Robot::Explorer::getLinkIds(const Link &startLink, policy p)
+{
+    Explorer crawl(startLink, p);
+    
+    std::vector<size_t> result;
+    const Link* nextLink;
+    while( (nextLink = crawl.nextLink()) )
+        result.push_back(nextLink->id());
+    
+    return result;
+}
+
+std::vector<size_t> Robot::Explorer::getJointIds(const Joint &startJoint, policy p)
+{
+    Explorer crawl(startJoint, p);
+    
+    std::vector<size_t> result;
+    const Joint* nextJoint;
+    while( (nextJoint = crawl.nextJoint()) )
+        result.push_back(nextJoint->id());
     
     return result;
 }
