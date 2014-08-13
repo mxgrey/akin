@@ -9,7 +9,7 @@
 
 namespace akin {
 
-class Link;
+class CenterOfMassConstraintBase;
 
 typedef std::map<std::string,size_t> StringMap;
 typedef std::vector<std::string> StringArray;
@@ -132,6 +132,11 @@ public:
     const double& mass() const;
     double mass(const Link& startLink, Explorer::policy p = Explorer::DOWNSTREAM) const;
 
+    CenterOfMassConstraintBase* balance();
+    const CenterOfMassConstraintBase* const_balance() const;
+
+    void setBalanceConstraint(CenterOfMassConstraintBase* newConstraint, bool ownConstraint=true);
+
     void name(std::string newName);
     const std::string& name() const;
 
@@ -235,6 +240,9 @@ protected:
     Joint* _dummyJoint;
     Manipulator* _dummyManip;
     Geometry _dummyGeometry;
+
+    CenterOfMassConstraintBase* _balance;
+    bool _ownsBalance;
 
     JointPtrArray _joints;
     LinkPtrArray _links;

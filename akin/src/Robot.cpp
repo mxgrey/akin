@@ -1,12 +1,15 @@
 
 #include "../Robot.h"
 #include "../../akinUtils/urdfParsing.h"
+#include "../RobotConstraint.h"
 
 using namespace akin;
 using namespace std;
 
 Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level) :
-    _com(referenceFrame, "CenterOfMass")
+    _com(referenceFrame, "CenterOfMass"),
+    _balance(NULL),
+    _ownsBalance(false)
 {
     _initializeRobot(referenceFrame, report_level);
 }
@@ -232,6 +235,9 @@ Robot::~Robot()
     {
         delete _supportTrackers[m];
     }
+
+    if(_ownsBalance)
+        delete _balance;
 }
 
 Eigen::VectorXd Robot::getConfig(std::vector<size_t> joints) const
@@ -354,6 +360,18 @@ const double& Robot::mass() const
 {
     _mass = mass(const_anchorLink());
     return _mass;
+}
+
+CenterOfMassConstraintBase* Robot::balance() { return _balance; }
+const CenterOfMassConstraintBase* Robot::const_balance() const { return _balance; }
+
+void Robot::setBalanceConstraint(CenterOfMassConstraintBase *newConstraint, bool ownConstraint)
+{
+    if(_ownsBalance)
+        delete _balance;
+
+    _balance = newConstraint;
+    _ownsBalance = ownConstraint;
 }
 
 void Robot::name(string newName)

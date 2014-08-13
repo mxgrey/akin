@@ -8,6 +8,10 @@ using namespace std;
 
 ConstraintBase::~ConstraintBase() { }
 
+ConstraintBase::ConstraintBase() : _isNull(false) { }
+
+bool ConstraintBase::isNull() const { return _isNull; }
+
 Validity::Validity() :
     valid(false),
     stuck(false),
@@ -69,7 +73,11 @@ std::ostream& operator<<(std::ostream& oStrStream, const Validity& v)
     return oStrStream;
 }
 
+
+
 NullConstraintBase::~NullConstraintBase() { }
+
+NullConstraintBase::NullConstraintBase() { _isNull = true; }
 
 Validity NullConstraintBase::getGradientX(Eigen::VectorXd &gradient,
                                                           const Eigen::VectorXd &configuration)
@@ -259,6 +267,14 @@ NullManipConstraint::NullManipConstraint(Robot &robot)
 {
     _robot = &robot;
 }
+
+Validity NullManipConstraint::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
+
+double NullManipConstraint::getGradientComponent(size_t) const { return 0; }
+
+bool NullManipConstraint::computeJPinvJ(const Eigen::VectorXd &, bool) { return false; }
+
+double NullManipConstraint::getJPinvJComponent(size_t, size_t) const { return 0; }
 
 ///////////// CenterOfMassConstraintBase
 

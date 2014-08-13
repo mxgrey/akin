@@ -24,6 +24,11 @@ public:
     const std::vector<size_t>& getJoints() const;
     Robot* getRobot();
 
+    virtual Validity computeGradient(const Eigen::VectorXd& config) = 0;
+    virtual double getGradientComponent(size_t i) const = 0;
+    virtual bool computeJPinvJ(const Eigen::VectorXd& config, bool update=true) = 0;
+    virtual double getJPinvJComponent(size_t i, size_t j) const = 0;
+
 protected:
     
     virtual bool _reconfigure();
@@ -42,10 +47,33 @@ public:
     virtual ~RobotJacobianConstraint() { }
     
     typedef typename Constraint<Q>::VectorQ VectorQ;
+    typedef typename Constraint<Q>::MatrixQ MatrixQ;
+
     RobotJacobianConstraint() { }
     RobotJacobianConstraint(int cspace_size) : JacobianConstraint<Q,W>(cspace_size) { }
+
+    virtual Validity computeGradient(const Eigen::VectorXd& config) {
+        return getGradient(_gradient, VectorQ(config));
+    }
+
+    virtual double getGradientComponent(size_t i) const { return _gradient[i]; }
+
+    virtual bool computeJPinvJ(const Eigen::VectorXd &config, bool update=true) {
+        if(!this->useNullspace) return false;
+
+        if(update) getJacobian(VectorQ(config), true);
+
+        computeDampedPseudoInverse(this->_pseudoInverse, this->_Jacobian, this->damp_factor);
+        _JPinvJ = this->_pseudoInverse*this->_Jacobian;
+        return true;
+    }
+
+    virtual double getJPinvJComponent(size_t i, size_t j) const { return _JPinvJ(i,j); }
     
 protected:
+
+    VectorQ _gradient;
+    MatrixQ _JPinvJ;
     
     virtual void _update(const VectorQ& config){
         for(int i=0; i<this->_config_size; ++i)
@@ -79,12 +107,17 @@ protected:
     
 };
 
-class NullManipConstraint : public ManipConstraintBase, public NullConstraintBase
+class NullManipConstraint : public virtual ManipConstraintBase, public virtual NullConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     NullManipConstraint();
     NullManipConstraint(Robot& robot);
+
+    Validity computeGradient(const Eigen::VectorXd&);
+    double getGradientComponent(size_t) const;
+    bool computeJPinvJ(const Eigen::VectorXd&, bool);
+    double getJPinvJComponent(size_t, size_t) const;
 };
 
 template<int Q>
@@ -327,6 +360,9 @@ protected:
 };
 
 typedef CenterOfMassConstraint<Eigen::Dynamic> CenterOfMassContraintX;
+
+//class RobotTaskConstraint
+
 
 } // namespace akin
 

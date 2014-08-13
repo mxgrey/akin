@@ -30,9 +30,9 @@ public:
 
     void setManipulator(Manipulator& new_manip)
     {
-        solver->setMandatoryConstraint(&new_manip.constraint(mode));
+        solver->setMandatoryConstraint(new_manip.constraint(mode));
         manip = &new_manip;
-        config = getRobot(0).getConfig(manip->constraint(mode).getJoints());
+        config = getRobot(0).getConfig(manip->constraint(mode)->getJoints());
     }
 
     size_t addRobot(Robot &new_robot)
@@ -59,10 +59,10 @@ public:
 
         if( manip != NULL )
         {
-            tf = manip->constraint(mode).target.respectToRef();
+            tf = manip->constraint(mode)->target.respectToRef();
             tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
             tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
-            manip->ik(config, tf, manip->constraint(mode).target.refFrame());
+            manip->ik(config, tf, manip->constraint(mode)->target.refFrame());
         }
 
 //        if(solver != NULL && manip != NULL)
@@ -170,21 +170,21 @@ void display_robot(Robot& displaying_robot)
 
     r.joint("LEP").value(-90*DEG);
     w.respectToRef(r.manip(m).respectToWorld());
-    r.manip(m).constraint(mode).target.changeRefFrame(w);
-    r.manip(m).constraint(mode).target = r.manip(m).withRespectTo(w);
-    Transform tf = r.manip(m).constraint(mode).target.respectToRef();
+    r.manip(m).constraint(mode)->target.changeRefFrame(w);
+    r.manip(m).constraint(mode)->target = r.manip(m).withRespectTo(w);
+    Transform tf = r.manip(m).constraint(mode)->target.respectToRef();
 //    tf.translate(Vec3(0.2,0,0.2));
     tf.translate(Vec3(0,0.05,0.1));
 //    tf.rotate(Rotation(-90*DEG, Vec3(1,0,0)));
 //    tf.rotate(Rotation(1*DEG,Vec3(0,0,1)));
-    r.manip(m).constraint(mode).target = tf;
+    r.manip(m).constraint(mode)->target = tf;
 
     akinNode->setManipulator(r.manip(m));
 
-    std::vector<size_t> joints = r.manip(m).constraint(mode).getJoints();
+    std::vector<size_t> joints = r.manip(m).constraint(mode)->getJoints();
     Eigen::VectorXd config = r.getConfig(joints);
     RobotSolverX solver(r);
-    solver.setMandatoryConstraint(&r.manip(m).constraint(mode));
+    solver.setMandatoryConstraint(r.manip(m).constraint(mode));
     if(solver.solve(config))
     {
         std::cout << "Solved!" << std::endl;

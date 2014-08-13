@@ -40,8 +40,8 @@ public:
     std::vector<KinTranslation> supportGeometry;
     Mode mode;
 
-    ManipConstraintBase& constraint();
-    ManipConstraintBase& constraint(Mode m);
+    ManipConstraintBase* constraint();
+    ManipConstraintBase* constraint(Mode m);
     RobotSolverX& solver(Mode m);
     AnalyticalIKBase& analyticalIK();
     void setConstraint(Mode m, ManipConstraintBase* newConstraint, bool giveOwnership=true);

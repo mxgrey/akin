@@ -31,6 +31,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     virtual ~ConstraintBase();
+    ConstraintBase();
     
     virtual Validity getGradientX(Eigen::VectorXd& gradient, 
                                      const Eigen::VectorXd& configuration) = 0;
@@ -48,6 +49,12 @@ public:
     double damp_factor;
     bool computeErrorFromCenter;
 
+    bool isNull() const;
+
+protected:
+
+    bool _isNull;
+
 };
 
 class NullConstraintBase : public virtual ConstraintBase
@@ -56,6 +63,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
     virtual ~NullConstraintBase();
+    NullConstraintBase();
     
     Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);
     Validity getValidityX(const Eigen::VectorXd &);

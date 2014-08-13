@@ -77,13 +77,13 @@ bool Manipulator::ik(Mode m, Eigen::VectorXd &config, KinTransform &targetTf)
     return ik(m, config, targetTf.respectToRef(), targetTf.refFrame());
 }
 
-ManipConstraintBase& Manipulator::constraint() { return constraint(mode); }
+akin::ManipConstraintBase* Manipulator::constraint() { return constraint(mode); }
 
-ManipConstraintBase& Manipulator::constraint(Mode m)
+akin::ManipConstraintBase* Manipulator::constraint(Mode m)
 {
     if( m < 0 || NUM_MODES <= m)
-        return *_constraints[0];
-    return *_constraints[m];
+        return _constraints[0];
+    return _constraints[m];
 }
 
 RobotSolverX& Manipulator::solver(Mode m)

@@ -25,7 +25,7 @@ public:
     
 };
 
-class NullAnalyticalIK : public AnalyticalIKBase, public NullConstraintBase
+class NullAnalyticalIK : public AnalyticalIKBase, public NullManipConstraint
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
