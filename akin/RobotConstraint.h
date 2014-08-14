@@ -26,6 +26,8 @@ public:
 
     virtual Validity computeGradient(const Eigen::VectorXd& config) = 0;
     virtual double getGradientComponent(size_t i) const = 0;
+    virtual void computeJacobian(const Eigen::VectorXd& config) = 0;
+    virtual double getJacobianComponent(size_t i, size_t j) const = 0;
     virtual bool computeJPinvJ(const Eigen::VectorXd& config, bool update=true) = 0;
     virtual double getJPinvJComponent(size_t i, size_t j) const = 0;
 
@@ -57,6 +59,12 @@ public:
     }
 
     virtual double getGradientComponent(size_t i) const { return _gradient[i]; }
+
+    virtual void computeJacobian(const Eigen::VectorXd& config) {
+        this->getJacobian(config, true);
+    }
+
+    virtual double getJacobianComponent(size_t i, size_t j) const { return this->_Jacobian(i,j); }
 
     virtual bool computeJPinvJ(const Eigen::VectorXd &config, bool update=true) {
         if(!this->useNullspace) return false;
@@ -116,6 +124,8 @@ public:
 
     Validity computeGradient(const Eigen::VectorXd&);
     double getGradientComponent(size_t) const;
+    void computeJacobian(const Eigen::VectorXd&);
+    double getJacobianComponent(size_t, size_t) const;
     bool computeJPinvJ(const Eigen::VectorXd&, bool);
     double getJPinvJComponent(size_t, size_t) const;
 };
@@ -140,8 +150,7 @@ public:
     { _initializeDefaults(); }
     ManipConstraint(int cspace_size, Manipulator& manipulator, const std::vector<size_t>& joints) :
         RobotConstraintBase(manipulator.parentRobot(), joints), ManipConstraintBase(manipulator),
-        RobotJacobianConstraint<Q,6>(cspace_size)
-    { _initializeDefaults(); }
+        RobotJacobianConstraint<Q,6>(cspace_size) { _initializeDefaults(); }
     
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
         if(!checkSetup()) { this->_Jacobian.setZero(); return this->_Jacobian; }
@@ -361,7 +370,100 @@ protected:
 
 typedef CenterOfMassConstraint<Eigen::Dynamic> CenterOfMassContraintX;
 
-//class RobotTaskConstraint
+template<int Q, int W>
+class RobotTaskConstraint : public RobotJacobianConstraint<Q,W>
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    typedef typename Constraint<Q>::VectorQ VectorQ;
+    typedef typename Constraint<Q>::MatrixQ MatrixQ;
+    typedef typename JacobianConstraint<Q,W>::Error Error;
+    typedef typename JacobianConstraint<Q,W>::Jacobian Jacobian;
+    typedef typename JacobianConstraint<Q,W>::PseudoInverse PseudoInverse;
+
+    RobotTaskConstraint() { _initializeRobotTaskDefaults(); }
+    RobotTaskConstraint(int cspace_size) :
+        RobotConstraintBase(), RobotJacobianConstraint<Q,W>(cspace_size)
+    { _initializeRobotTaskDefaults();}
+    RobotTaskConstraint(Robot& robot, const std::vector<size_t>& joints) :
+        RobotConstraintBase(robot, joints) { _initializeRobotTaskDefaults(); }
+    RobotTaskConstraint(int cspace_size, Robot& robot, const std::vector<size_t>& joints) :
+        RobotConstraintBase(robot, joints), RobotJacobianConstraint<Q,W>(cspace_size)
+    { _initializeRobotTaskDefaults(); }
+
+    virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) {
+        gradient.setZero();
+        Validity v = Validity::Valid();
+
+        for(size_t i=0; i<this->_robot->numManips(); ++i)
+            v &= _addConstraintGradient(gradient, configuration,
+                                        this->_robot->manip(i).constraint());
+
+        v &= _addConstraintGradient(gradient, configuration, this->_robot->balance());
+
+        return v;
+    }
+
+    const Jacobian& getJacobian(const VectorQ &config, bool update) {
+        if(update) _update(config);
+
+        this->_Jacobian.resize(6*this->_robot->numManips()+3, Eigen::NoChange);
+
+        for(size_t i=0; i<this->_robot->numManips(); ++i)
+        {
+            if(this->_robot->manip(i).constraint()==NULL)
+                continue;
+            const std::vector<size_t>& joints = this->_robot->manip(i).constraint()->getJoints();
+            this->_robot->manip(i).constraint()->computeJacobian(config);
+            for(size_t j=0; j<joints.size(); ++j)
+            {
+                for(size_t k=0; k<6; ++k)
+                {
+                    this->_Jacobian(6*i+k, joints[j]) =
+                            this->_robot->manip(i).constraint()->getJacobianComponent(k,j);
+                }
+            }
+        }
+
+        if(this->_robot->balance()!=NULL)
+        {
+            const std::vector<size_t>& joints = this->_robot->balance()->getJoints();
+            this->_robot->balance()->computeJacobian(config);
+            for(size_t j=0; j<joints.size(); ++j)
+            {
+                for(size_t k=0; k<joints.size(); ++k)
+                {
+                    this->_Jacobian(6*this->_robot->numManips()+k, joints[j]) =
+                            this->_robot->balance()->getJacobianComponent(k,j);
+                }
+            }
+        }
+
+        return this->_Jacobian;
+    }
+
+    // TODO: computeJPinvJ intelligently
+
+
+protected:
+
+    void _initializeRobotTaskDefaults() {
+        this->_reconfigure();
+    }
+
+
+    Validity _addConstraintGradient(VectorQ& gradient, const VectorQ& configuration,
+                                    RobotConstraintBase* constraint) {
+        const std::vector<size_t>& joints = constraint->getJoints();
+        Validity v = constraint->computeGradient(configuration);
+        for(size_t i=0; i<joints.size(); ++i)
+            gradient[joints[i]] += constraint->getGradientComponent(i);
+
+        return v;
+    }
+
+};
 
 
 } // namespace akin

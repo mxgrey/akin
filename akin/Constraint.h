@@ -195,8 +195,8 @@ protected:
         this->computeErrorFromCenter=true;
         this->error_clamp=0.2;
         this->dq_clamp = 0.2;
-        _Jacobian.resize(W,this->_config_size);
-        _pseudoInverse.resize(this->_config_size,W);
+        _Jacobian.resize(Eigen::NoChange,this->_config_size);
+        _pseudoInverse.resize(this->_config_size,Eigen::NoChange);
     }
     
     Jacobian _Jacobian;

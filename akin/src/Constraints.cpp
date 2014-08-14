@@ -50,6 +50,24 @@ bool operator==(const Validity& v1, const Validity& v2)
     return false;
 }
 
+Validity& Validity::operator&=(const Validity& otherV)
+{
+    this->valid &= otherV.valid;
+    this->stuck &= otherV.stuck;
+    this->near_edge &= otherV.near_edge;
+
+    return *this;
+}
+
+Validity& Validity::operator |=(const Validity& otherV)
+{
+    this->valid |= otherV.valid;
+    this->stuck |= otherV.stuck;
+    this->near_edge |= otherV.near_edge;
+
+    return *this;
+}
+
 std::string Validity::toString() const
 {
     stringstream str;
@@ -271,6 +289,10 @@ NullManipConstraint::NullManipConstraint(Robot &robot)
 Validity NullManipConstraint::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
 
 double NullManipConstraint::getGradientComponent(size_t) const { return 0; }
+
+void NullManipConstraint::computeJacobian(const Eigen::VectorXd &) { }
+
+double NullManipConstraint::getJacobianComponent(size_t, size_t) const { return 0; }
 
 bool NullManipConstraint::computeJPinvJ(const Eigen::VectorXd &, bool) { return false; }
 

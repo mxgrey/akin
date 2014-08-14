@@ -16,6 +16,9 @@ public:
 
     friend bool operator==(const Validity& v1, const Validity& v2);
 
+    Validity& operator&=(const Validity& otherV);
+    Validity& operator|=(const Validity& otherV);
+
     Validity();
     bool valid;
     bool stuck;
