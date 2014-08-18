@@ -307,6 +307,8 @@ NullManipConstraint::NullManipConstraint(Robot &robot)
     _robot = &robot;
 }
 
+int NullManipConstraint::getErrorDimension() { return 6; }
+
 ///////////// CenterOfMassConstraintBase
 
 CenterOfMassConstraintBase::CenterOfMassConstraintBase() :

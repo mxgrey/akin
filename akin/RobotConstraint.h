@@ -90,6 +90,9 @@ public:
 
     NullManipConstraint();
     NullManipConstraint(Robot& robot);
+
+    virtual int getErrorDimension();
+
 };
 
 template<int Q>
@@ -370,7 +373,8 @@ public:
     const Jacobian& getJacobian(const VectorQ &config, bool update) {
         if(update) _update(config);
 
-        this->_Jacobian.resize(6*this->_robot->numManips()+3, Eigen::NoChange);
+        this->_error_dim = 6*this->_robot->numManips()+3;
+        this->_Jacobian.resize(this->_error_dim, Eigen::NoChange);
 
         for(size_t i=0; i<this->_robot->numManips(); ++i)
         {
@@ -403,6 +407,11 @@ public:
         }
 
         return this->_Jacobian;
+    }
+
+    virtual int getErrorDimension() {
+        this->_error_dim = 6*this->_robot->numManips()+3;
+        return this->_error_dim;
     }
 
     // TODO: computeJPinvJ intelligently
