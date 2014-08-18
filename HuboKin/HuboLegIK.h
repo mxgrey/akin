@@ -33,7 +33,7 @@ public:
     virtual void getSolutions(const VectorQ& lastConfig,
                               std::vector<VectorQ>& solutions,
                               std::vector<bool>& valid) {
-        for(int i=6; i<this->_config_size; ++i)
+        for(int i=6; i<this->_config_dim; ++i)
         {
             this->_robot->joint(this->_joints[i]).value(lastConfig[i]);
             testQ[i] = lastConfig[i];

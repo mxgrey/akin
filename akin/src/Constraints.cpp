@@ -115,10 +115,29 @@ double NullConstraintBase::getErrorNormX(const Eigen::VectorXd &, bool)
     return 0;
 }
 
-int NullConstraintBase::getConfigurationSize()
+int NullConstraintBase::getConfigurationDimension()
 {
     return 0;
 }
+
+JacobianConstraintBase::~JacobianConstraintBase() { }
+
+
+NullJacobianConstraint::~NullJacobianConstraint() { }
+
+Validity NullJacobianConstraint::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
+
+double NullJacobianConstraint::getGradientComponent(size_t) const { return 0; }
+
+void NullJacobianConstraint::computeJacobian(const Eigen::VectorXd &) { }
+
+double NullJacobianConstraint::getJacobianComponent(size_t, size_t) const { return 0; }
+
+bool NullJacobianConstraint::computeJPinvJ(const Eigen::VectorXd &, bool) { return false; }
+
+double NullJacobianConstraint::getJPinvJComponent(size_t, size_t) const { return 0; }
+
+int NullJacobianConstraint::getErrorDimension() { return 0; }
 
 /////// Robot Constraints
 
@@ -197,10 +216,10 @@ bool RobotConstraintBase::_reconfigure()
         return false;
     }
     
-    if(!this->_robot->verb.Assert((int)this->_joints.size()==getConfigurationSize(), 
+    if(!this->_robot->verb.Assert((int)this->_joints.size()==getConfigurationDimension(),
                               verbosity::ASSERT_CRITICAL,
                         "ManipConstraint templated for "
-                              +std::to_string(getConfigurationSize())
+                              +std::to_string(getConfigurationDimension())
                         +" DoF was given an index array of size "
                         +std::to_string(this->_joints.size())+"!"))
     {
@@ -266,7 +285,7 @@ bool ManipConstraintBase::_reconfigure() {
     }
     
     _dependency.clear();
-    for(int i=0; i<getConfigurationSize(); ++i)
+    for(int i=0; i<getConfigurationDimension(); ++i)
     {
         const Joint& j = this->_robot->const_joint(this->_joints[i]);
         if(_manip->descendsFrom(j.const_childLink()))
@@ -279,24 +298,14 @@ bool ManipConstraintBase::_reconfigure() {
     return true;
 }
 
+NullManipConstraint::~NullManipConstraint() { }
+
 NullManipConstraint::NullManipConstraint() { }
 
 NullManipConstraint::NullManipConstraint(Robot &robot)
 {
     _robot = &robot;
 }
-
-Validity NullManipConstraint::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
-
-double NullManipConstraint::getGradientComponent(size_t) const { return 0; }
-
-void NullManipConstraint::computeJacobian(const Eigen::VectorXd &) { }
-
-double NullManipConstraint::getJacobianComponent(size_t, size_t) const { return 0; }
-
-bool NullManipConstraint::computeJPinvJ(const Eigen::VectorXd &, bool) { return false; }
-
-double NullManipConstraint::getJPinvJComponent(size_t, size_t) const { return 0; }
 
 ///////////// CenterOfMassConstraintBase
 

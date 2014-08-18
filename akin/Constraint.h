@@ -23,20 +23,20 @@ public:
             std::cout << "You should not use the default constructor for Dynamically Sized Constraints!"
                       << "\n -- Use the Constraint constructor with an 'int' argument!" << std::endl;
         }
-        _config_size = Q;
+        _config_dim = Q;
     }
     Constraint(int cspace_size) {
         useNullspace = false;
         if(Q==-1 || Q==cspace_size)
         {
-            _config_size = cspace_size;
+            _config_dim = cspace_size;
         }
         else
         {
             std::cout << "Mismatch between template argument and constructor argument for " 
                       << "Dynamically Sized Constraint: \n -- Template:" << Q 
                       << ", Constructor:" << cspace_size << std::endl;
-            _config_size = 0;
+            _config_dim = 0;
         }
     }
     
@@ -60,21 +60,52 @@ public:
     
     virtual bool getNullspace(MatrixQ& Jnull, const VectorQ& configuration, bool update=true) = 0;
     
-    int getConfigurationSize() { return _config_size; }
+    int getConfigurationDimension() { return _config_dim; }
     
     bool useNullspace;
     
 protected:
     
-    int _config_size;
+    int _config_dim;
     VectorQ _tempGradient;
     
 };
 
 typedef Constraint<Eigen::Dynamic> ConstraintX;
 
+class JacobianConstraintBase : public virtual ConstraintBase
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~JacobianConstraintBase();
+
+    virtual void computeJacobian(const Eigen::VectorXd& config) = 0;
+    virtual double getJacobianComponent(size_t i, size_t j) const = 0;
+    virtual bool computeJPinvJ(const Eigen::VectorXd& config, bool update=true) = 0;
+    virtual double getJPinvJComponent(size_t i, size_t j) const = 0;
+
+    virtual int getErrorDimension() = 0;
+
+};
+
+class NullJacobianConstraint : public virtual JacobianConstraintBase, public virtual NullConstraintBase
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~NullJacobianConstraint();
+
+    Validity computeGradient(const Eigen::VectorXd&);
+    double getGradientComponent(size_t) const;
+    void computeJacobian(const Eigen::VectorXd&);
+    double getJacobianComponent(size_t, size_t) const;
+    bool computeJPinvJ(const Eigen::VectorXd&, bool);
+    double getJPinvJComponent(size_t, size_t) const;
+    int getErrorDimension();
+
+};
+
 template<int Q, int W>
-class JacobianConstraint : public Constraint<Q>
+class JacobianConstraint : public Constraint<Q>, public virtual JacobianConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -91,8 +122,22 @@ public:
         _initJacobianConstraint();
     }
     
-    JacobianConstraint(int cspace_size) : Constraint<Q>(cspace_size) {
+    JacobianConstraint(int cspace_dim) : Constraint<Q>(cspace_dim) {
         _initJacobianConstraint();
+    }
+
+    JacobianConstraint(int cspace_dim, int error_dim) : Constraint<Q>(cspace_dim) {
+        if(W==-1 || W==error_dim)
+        {
+            _error_dim = error_dim;
+        }
+        else
+        {
+            std::cout << "Mismatch between template argument and constructor argument for "
+                      << "Dynamically Sized Constraint: \n -- Template: " << Q
+                      << ", Constructor:" << error_dim << std::endl;
+            _error_dim = 0;
+        }
     }
     
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) = 0;
@@ -135,8 +180,8 @@ public:
         clampErrorNorm(_error);
         gradient = _pseudoInverse*_error;
         
-        if(this->gradient_weights.size() == this->_config_size)
-            for(int i=0; i<this->_config_size; ++i)
+        if(this->gradient_weights.size() == this->_config_dim)
+            for(int i=0; i<this->_config_dim; ++i)
                 gradient[i] *= this->gradient_weights[i];
         
         clampGradientComponents(gradient, this->dq_clamp);
@@ -166,11 +211,39 @@ public:
             getJacobian(configuration, true);
         
         computeDampedPseudoInverse(_pseudoInverse, _Jacobian, this->damp_factor);
-        Jnull = MatrixQ::Identity(this->_config_size,this->_config_size) - _pseudoInverse*_Jacobian;
+        Jnull = MatrixQ::Identity(this->_config_dim,this->_config_dim) - _pseudoInverse*_Jacobian;
         return true;
     }
+
+    virtual Validity computeGradient(const Eigen::VectorXd& config) {
+        return getGradient(_gradient, VectorQ(config));
+    }
+
+    virtual double getGradientComponent(size_t i) const { return _gradient[i]; }
+
+    virtual void computeJacobian(const Eigen::VectorXd& config) {
+        this->getJacobian(config, true);
+    }
+
+    virtual double getJacobianComponent(size_t i, size_t j) const { return this->_Jacobian(i,j); }
+
+    virtual bool computeJPinvJ(const Eigen::VectorXd &config, bool update=true) {
+        if(!this->useNullspace) return false;
+
+        if(update) getJacobian(VectorQ(config), true);
+
+        computeDampedPseudoInverse(this->_pseudoInverse, this->_Jacobian, this->damp_factor);
+        _JPinvJ = this->_pseudoInverse*this->_Jacobian;
+        return true;
+    }
+
+    virtual double getJPinvJComponent(size_t i, size_t j) const { return _JPinvJ(i,j); }
+
+    virtual int getErrorDimension() { return _error_dim; }
     
 protected:
+
+    int _error_dim;
     
     virtual void _update(const VectorQ& config) = 0;
     
@@ -195,13 +268,16 @@ protected:
         this->computeErrorFromCenter=true;
         this->error_clamp=0.2;
         this->dq_clamp = 0.2;
-        _Jacobian.resize(Eigen::NoChange,this->_config_size);
-        _pseudoInverse.resize(this->_config_size,Eigen::NoChange);
+        _Jacobian.resize(Eigen::NoChange,this->_config_dim);
+        _pseudoInverse.resize(this->_config_dim,Eigen::NoChange);
     }
     
     Jacobian _Jacobian;
     PseudoInverse _pseudoInverse;
     Error _error;
+
+    VectorQ _gradient;
+    MatrixQ _JPinvJ;
     
 };
 

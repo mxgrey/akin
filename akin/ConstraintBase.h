@@ -38,12 +38,15 @@ public:
     
     virtual Validity getGradientX(Eigen::VectorXd& gradient, 
                                      const Eigen::VectorXd& configuration) = 0;
+
+    virtual Validity computeGradient(const Eigen::VectorXd& config) = 0;
+    virtual double getGradientComponent(size_t i) const = 0;
     
     virtual Validity getValidityX(const Eigen::VectorXd& configuration) = 0;
     
     virtual double getErrorNormX(const Eigen::VectorXd& configuration, bool update=true) = 0;
     
-    virtual int getConfigurationSize() = 0;
+    virtual int getConfigurationDimension() = 0;
     
     Eigen::VectorXd gradient_weights;
     Eigen::VectorXd error_weights;
@@ -71,7 +74,7 @@ public:
     Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);
     Validity getValidityX(const Eigen::VectorXd &);
     double getErrorNormX(const Eigen::VectorXd &, bool update=true);
-    int getConfigurationSize();
+    int getConfigurationDimension();
     
 protected:
     

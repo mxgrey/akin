@@ -6,7 +6,7 @@
 
 namespace akin {
 
-class RobotConstraintBase : public virtual ConstraintBase
+class RobotConstraintBase : public virtual JacobianConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -23,13 +23,6 @@ public:
     
     const std::vector<size_t>& getJoints() const;
     Robot* getRobot();
-
-    virtual Validity computeGradient(const Eigen::VectorXd& config) = 0;
-    virtual double getGradientComponent(size_t i) const = 0;
-    virtual void computeJacobian(const Eigen::VectorXd& config) = 0;
-    virtual double getJacobianComponent(size_t i, size_t j) const = 0;
-    virtual bool computeJPinvJ(const Eigen::VectorXd& config, bool update=true) = 0;
-    virtual double getJPinvJComponent(size_t i, size_t j) const = 0;
 
 protected:
     
@@ -54,37 +47,11 @@ public:
     RobotJacobianConstraint() { }
     RobotJacobianConstraint(int cspace_size) : JacobianConstraint<Q,W>(cspace_size) { }
 
-    virtual Validity computeGradient(const Eigen::VectorXd& config) {
-        return getGradient(_gradient, VectorQ(config));
-    }
-
-    virtual double getGradientComponent(size_t i) const { return _gradient[i]; }
-
-    virtual void computeJacobian(const Eigen::VectorXd& config) {
-        this->getJacobian(config, true);
-    }
-
-    virtual double getJacobianComponent(size_t i, size_t j) const { return this->_Jacobian(i,j); }
-
-    virtual bool computeJPinvJ(const Eigen::VectorXd &config, bool update=true) {
-        if(!this->useNullspace) return false;
-
-        if(update) getJacobian(VectorQ(config), true);
-
-        computeDampedPseudoInverse(this->_pseudoInverse, this->_Jacobian, this->damp_factor);
-        _JPinvJ = this->_pseudoInverse*this->_Jacobian;
-        return true;
-    }
-
-    virtual double getJPinvJComponent(size_t i, size_t j) const { return _JPinvJ(i,j); }
     
 protected:
-
-    VectorQ _gradient;
-    MatrixQ _JPinvJ;
     
     virtual void _update(const VectorQ& config){
-        for(int i=0; i<this->_config_size; ++i)
+        for(int i=0; i<this->_config_dim; ++i)
             _robot->joint(_joints[i]).value(config[i]);
     }
     
@@ -115,19 +82,14 @@ protected:
     
 };
 
-class NullManipConstraint : public virtual ManipConstraintBase, public virtual NullConstraintBase
+class NullManipConstraint : public virtual ManipConstraintBase, public virtual NullJacobianConstraint
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~NullManipConstraint();
+
     NullManipConstraint();
     NullManipConstraint(Robot& robot);
-
-    Validity computeGradient(const Eigen::VectorXd&);
-    double getGradientComponent(size_t) const;
-    void computeJacobian(const Eigen::VectorXd&);
-    double getJacobianComponent(size_t, size_t) const;
-    bool computeJPinvJ(const Eigen::VectorXd&, bool);
-    double getJPinvJComponent(size_t, size_t) const;
 };
 
 template<int Q>
