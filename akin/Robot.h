@@ -9,6 +9,7 @@
 
 namespace akin {
 
+class RobotConstraintBase;
 class CenterOfMassConstraintBase;
 
 typedef std::map<std::string,size_t> StringMap;
@@ -134,8 +135,11 @@ public:
 
     CenterOfMassConstraintBase* balance();
     const CenterOfMassConstraintBase* const_balance() const;
-
     void setBalanceConstraint(CenterOfMassConstraintBase* newConstraint, bool ownConstraint=true);
+
+    RobotConstraintBase* task();
+    const RobotConstraintBase* const_task() const;
+    void setTaskConstraint(RobotConstraintBase* newConstraint, bool ownConstraint=true);
 
     void name(std::string newName);
     const std::string& name() const;
@@ -243,6 +247,9 @@ protected:
 
     CenterOfMassConstraintBase* _balance;
     bool _ownsBalance;
+
+    RobotConstraintBase* _task;
+    bool _ownsTask;
 
     JointPtrArray _joints;
     LinkPtrArray _links;

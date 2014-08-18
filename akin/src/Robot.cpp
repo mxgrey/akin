@@ -379,6 +379,18 @@ void Robot::name(string newName)
     _name = newName;
 }
 
+RobotConstraintBase* Robot::task() { return _task; }
+const RobotConstraintBase* Robot::const_task() const { return _task; }
+
+void Robot::setTaskConstraint(RobotConstraintBase *newConstraint, bool ownConstraint)
+{
+    if(_ownsTask)
+        delete _task;
+
+    _task = newConstraint;
+    _ownsTask = ownConstraint;
+}
+
 const string& Robot::name() const { return _name; }
 
 bool Robot::createRootLink(string rootLinkName)
