@@ -2,31 +2,40 @@
 #include "../Robot.h"
 #include "../../akinUtils/urdfParsing.h"
 #include "../RobotConstraint.h"
+#include "../Solver.h"
 
 using namespace akin;
 using namespace std;
 
 Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level) :
+    zeroValue(1e-8),
     _com(referenceFrame, "CenterOfMass"),
     _balance(NULL),
-    _ownsBalance(false)
+    _ownsBalance(false),
+    _task(NULL),
+    _ownsTask(false),
+    _solver(new RobotSolverX(*this))
 {
     _initializeRobot(referenceFrame, report_level);
 }
 
 bool Robot::_needSupportUpdate() const 
 {
-    for(size_t i=0; i<_lastSupports.size(); ++i)
+    for(size_t i=0; i<_supportMemory.size(); ++i)
     {
-        if( ( (!_lastSupports[i]) && (const_manip(i).mode == Manipulator::SUPPORT) ) ||
-            (   _lastSupports[i]  && (const_manip(i).mode != Manipulator::SUPPORT) ) )
+        bool usedToBeSupport = _supportMemory[i].support;
+        if( ( (!usedToBeSupport) && (const_manip(i).mode == Manipulator::SUPPORT) ) ||
+            (   usedToBeSupport  && (const_manip(i).mode != Manipulator::SUPPORT) ) )
             return true;
         if( const_manip(i).mode == Manipulator::SUPPORT 
                 && _supportTrackers[i]->needsUpdate() )
-            return true;
+        {
+            if(const_manip(i).respectToWorld().diff(_supportMemory[i].tf).norm() > zeroValue)
+                return true;
+        }
     }
     
-    for(size_t i=_lastSupports.size(); i<numManips(); ++i)
+    for(size_t i=_supportMemory.size(); i<numManips(); ++i)
     {
         if( const_manip(i).mode == Manipulator::SUPPORT )
             return true;
@@ -39,15 +48,17 @@ const std::vector<Eigen::Vector2d>& Robot::getSupportPolygon()
 {
     if(_needSupportUpdate())
     {
-        for(size_t i=0; i<_lastSupports.size(); ++i)
+        for(size_t i=0; i<_supportMemory.size(); ++i)
         {
-            _lastSupports[i] = (manip(i).mode == Manipulator::SUPPORT);
+            _supportMemory[i].support = (manip(i).mode == Manipulator::SUPPORT);
+            _supportMemory[i].tf = manip(i).respectToWorld();
             _supportTrackers[i]->clearNotification();
         }
         
-        for(size_t i=_lastSupports.size(); i<numManips(); ++i)
+        for(size_t i=_supportMemory.size(); i<numManips(); ++i)
         {
-            _lastSupports.push_back(manip(i).mode == Manipulator::SUPPORT);
+            _supportMemory.push_back(ManipMemory(manip(i).mode==Manipulator::SUPPORT,
+                                                 manip(i).respectToWorld()));
             _supportTrackers[i]->clearNotification();
         }
         
@@ -238,9 +249,14 @@ Robot::~Robot()
 
     if(_ownsBalance)
         delete _balance;
+
+    if(_ownsTask)
+        delete _task;
+
+    delete _solver;
 }
 
-Eigen::VectorXd Robot::getConfig(std::vector<size_t> joints) const
+Eigen::VectorXd Robot::getConfig(const std::vector<size_t>& joints) const
 {
     Eigen::VectorXd config(joints.size());
     for(size_t i=0; i<joints.size(); ++i)
@@ -248,7 +264,7 @@ Eigen::VectorXd Robot::getConfig(std::vector<size_t> joints) const
     return config;
 }
 
-bool Robot::setConfig(std::vector<size_t> joints, const Eigen::VectorXd &values)
+bool Robot::setConfig(const std::vector<size_t>& joints, const Eigen::VectorXd &values)
 {
     if(!verb.Assert((int)joints.size()==values.size(), verbosity::ASSERT_CASUAL,
                     "Mismatch in array sizes ("+std::to_string(joints.size())+":"
@@ -374,6 +390,12 @@ void Robot::setBalanceConstraint(CenterOfMassConstraintBase *newConstraint, bool
     _ownsBalance = ownConstraint;
 }
 
+void Robot::setDefaultBalanceConstraint()
+{
+    setBalanceConstraint(new CenterOfMassConstraintX(numJoints()+6, *this,
+                                    Explorer::getJointIds(joint(DOF_POS_X))));
+}
+
 void Robot::name(string newName)
 {
     _name = newName;
@@ -389,6 +411,33 @@ void Robot::setTaskConstraint(RobotConstraintBase *newConstraint, bool ownConstr
 
     _task = newConstraint;
     _ownsTask = ownConstraint;
+    _solver->setMandatoryConstraint(_task);
+}
+
+void Robot::setDefaultTaskConstraint()
+{
+    setTaskConstraint(new RobotTaskConstraintX(numJoints()+6, *this,
+                                    Explorer::getJointIds(joint(DOF_POS_X))));
+}
+
+void Robot::setDefaultRobotConstraints()
+{
+    setDefaultBalanceConstraint();
+    setDefaultTaskConstraint();
+}
+
+RobotSolverX& Robot::solver() { return *_solver; }
+
+bool Robot::solve()
+{
+    if(_task == NULL)
+        return true;
+
+    _taskConfig = getConfig(_task->getJoints());
+    bool result = _solver->solve(_taskConfig);
+    setConfig(_task->getJoints(), _taskConfig);
+
+    return result;
 }
 
 const string& Robot::name() const { return _name; }

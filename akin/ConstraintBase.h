@@ -70,11 +70,14 @@ public:
     
     virtual ~NullConstraintBase();
     NullConstraintBase();
+
+    virtual Validity computeGradient(const Eigen::VectorXd&);
+    virtual double getGradientComponent(size_t) const;
     
-    Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);
-    Validity getValidityX(const Eigen::VectorXd &);
-    double getErrorNormX(const Eigen::VectorXd &, bool update=true);
-    int getConfigurationDimension();
+    virtual Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);
+    virtual Validity getValidityX(const Eigen::VectorXd &);
+    virtual double getErrorNormX(const Eigen::VectorXd &, bool update=true);
+    virtual int getConfigurationDimension();
     
 protected:
     

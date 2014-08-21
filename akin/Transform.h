@@ -47,6 +47,7 @@
 
 #include "KinObject.h"
 #include "Translation.h"
+#include "Screw.h"
 #include "Rotation.h"
 
 namespace akin {
@@ -83,6 +84,21 @@ public:
 
     }
 
+    inline Screw diff(const akin::Transform& other) const
+    {
+        Screw result;
+
+        result.block<3,1>(0,0) = this->translation() - other.translation();
+        const Eigen::Matrix3d& rot =
+                Eigen::AngleAxisd(this->rotation() * other.rotation().transpose()).matrix();
+
+        result[3] =  atan2(rot(2,1), rot(2,2));
+        result[4] = -asin(rot(2,0));
+        result[5] =  atan2(rot(1,0), rot(0,0));
+
+        return result;
+    }
+
     inline akin::Transform operator*(const akin::Transform& other) const
     {
         return akin::Transform((Eigen::Isometry3d&)(*this) * (Eigen::Isometry3d&)(other));
@@ -92,12 +108,6 @@ public:
     {
         return akin::Translation((Eigen::Isometry3d&)(*this) * (Eigen::Vector3d&)(other));
     }
-
-//    // This caused ambiguous overload issues (because Translation has a constructor for Vector3d)
-//    inline Eigen::Vector3d operator*(const Eigen::Vector3d& other) const
-//    {
-//        return (Eigen::Isometry3d&)(*this) * other;
-//    }
 
     inline akin::FreeVector operator*(const akin::FreeVector& other) const
     {

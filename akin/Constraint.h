@@ -84,6 +84,8 @@ public:
     virtual bool computeJPinvJ(const Eigen::VectorXd& config, bool update=true) = 0;
     virtual double getJPinvJComponent(size_t i, size_t j) const = 0;
 
+    virtual void computeError(const Eigen::VectorXd& config) = 0;
+    virtual double getErrorComponent(size_t i) = 0;
     virtual int getErrorDimension() = 0;
 
 };
@@ -94,13 +96,14 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     virtual ~NullJacobianConstraint();
 
-    Validity computeGradient(const Eigen::VectorXd&);
-    double getGradientComponent(size_t) const;
-    void computeJacobian(const Eigen::VectorXd&);
-    double getJacobianComponent(size_t, size_t) const;
-    bool computeJPinvJ(const Eigen::VectorXd&, bool);
-    double getJPinvJComponent(size_t, size_t) const;
-    int getErrorDimension();
+    virtual void computeJacobian(const Eigen::VectorXd&);
+    virtual double getJacobianComponent(size_t, size_t) const;
+    virtual bool computeJPinvJ(const Eigen::VectorXd&, bool);
+    virtual double getJPinvJComponent(size_t, size_t) const;
+
+    virtual void computeError(const Eigen::VectorXd&);
+    virtual double getErrorComponent(size_t);
+    virtual int getErrorDimension();
 
 };
 
@@ -149,7 +152,7 @@ public:
                                            double damp_factor=0.05)
     {
         pseudoInverse = J.transpose()*(J*J.transpose()+
-                            damp_factor*damp_factor*MatrixW::Identity()).inverse();
+                            damp_factor*damp_factor*MatrixW::Identity(J.rows(),J.rows())).inverse();
     }
     
     static void clampErrorNorm(Error& error, double clamp=0.2) {
@@ -238,6 +241,14 @@ public:
     }
 
     virtual double getJPinvJComponent(size_t i, size_t j) const { return _JPinvJ(i,j); }
+
+    virtual void computeError(const Eigen::VectorXd& config) {
+        getError(VectorQ(config), computeErrorFromCenter);
+    }
+
+    virtual double getErrorComponent(size_t i) {
+        return this->_error[i];
+    }
 
     virtual int getErrorDimension() { return _error_dim; }
     

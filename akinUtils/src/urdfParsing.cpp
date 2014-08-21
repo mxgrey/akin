@@ -73,6 +73,8 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
     
     bool result = akinUtils::exploreLink(robot, model, rootLink, robot.link(0));
     
+    robot.setDefaultRobotConstraints();
+
     return result;
 }
 

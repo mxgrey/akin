@@ -97,6 +97,10 @@ NullConstraintBase::~NullConstraintBase() { }
 
 NullConstraintBase::NullConstraintBase() { _isNull = true; }
 
+Validity NullConstraintBase::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
+
+double NullConstraintBase::getGradientComponent(size_t) const { return 0; }
+
 Validity NullConstraintBase::getGradientX(Eigen::VectorXd &gradient,
                                                           const Eigen::VectorXd &configuration)
 {
@@ -125,10 +129,6 @@ JacobianConstraintBase::~JacobianConstraintBase() { }
 
 NullJacobianConstraint::~NullJacobianConstraint() { }
 
-Validity NullJacobianConstraint::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
-
-double NullJacobianConstraint::getGradientComponent(size_t) const { return 0; }
-
 void NullJacobianConstraint::computeJacobian(const Eigen::VectorXd &) { }
 
 double NullJacobianConstraint::getJacobianComponent(size_t, size_t) const { return 0; }
@@ -136,6 +136,10 @@ double NullJacobianConstraint::getJacobianComponent(size_t, size_t) const { retu
 bool NullJacobianConstraint::computeJPinvJ(const Eigen::VectorXd &, bool) { return false; }
 
 double NullJacobianConstraint::getJPinvJComponent(size_t, size_t) const { return 0; }
+
+void NullJacobianConstraint::computeError(const Eigen::VectorXd &) { }
+
+double NullJacobianConstraint::getErrorComponent(size_t) { return 0; }
 
 int NullJacobianConstraint::getErrorDimension() { return 0; }
 

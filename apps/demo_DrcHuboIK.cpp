@@ -28,7 +28,7 @@ public:
 //        com_joints = Robot::Explorer::getJointIds(drchubo->joint(DOF_POS_X));
         com_joints = Robot::Explorer::getIdPath(drchubo->joint(DOF_POS_X), drchubo->joint(DOF_ROT_Z));
         
-        comx = new CenterOfMassContraintX(com_joints.size(), *drchubo, com_joints);
+        comx = new CenterOfMassConstraintX(com_joints.size(), *drchubo, com_joints);
         drchubo->manip(DrcHubo::MANIP_L_FOOT).mode = Manipulator::SUPPORT;
 
         addRobot(*drchubo);
@@ -56,6 +56,9 @@ public:
         
         std::cout << "Center: " << drchubo->getSupportCenter().transpose() << std::endl;
 
+        drchubo->solver().max_steps = 5;
+        drchubo->solver().max_attempts = 1;
+
         time = 0;
     }
 
@@ -66,17 +69,18 @@ public:
         Transform lh_targetTf = lh_baseTf;
         lh_targetTf.pretranslate( 0.1*Vec3(1,1,1) * (1-cos(time))/2);
         lh_targetTf.rotate(Rotation( 90*DEG * (1-cos(time))/2, Vec3(1,0,0) ));
-        drchubo->manip(DrcHubo::MANIP_L_HAND).ik(lh_config, lh_targetTf, Frame::World());
+//        drchubo->manip(DrcHubo::MANIP_L_HAND).ik(lh_config, lh_targetTf, Frame::World());
 
         Transform rf_targetTf = rf_baseTf;
         rf_targetTf.pretranslate( 0.1*Vec3(2,-4,3) * (1-cos(time))/2);
         rf_targetTf.rotate(Rotation( -90*DEG * (1-cos(time))/2, Vec3(0,0,1)));
         rf_targetTf.rotate(Rotation( -45*DEG * (1-cos(time))/2, Vec3(0,1,0)));
-        if(drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World()))
-            drchubo->setConfig(rf_joints, rf_config);
+//        drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World());
+
+        drchubo->solve();
+
         
         com_config = drchubo->getConfig(com_joints);
-        std::cout << comx->getJacobian(com_config) << "\n" << std::endl;
 
         AkinNode::update();
     }
@@ -101,7 +105,7 @@ protected:
     std::vector<size_t> com_joints;
     Eigen::VectorXd com_config;
     
-    CenterOfMassContraintX* comx;
+    CenterOfMassConstraintX* comx;
 
 };
 

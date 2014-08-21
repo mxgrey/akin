@@ -12,6 +12,7 @@ namespace akin {
 class RobotConstraintBase;
 class CenterOfMassConstraintBase;
 
+
 typedef std::map<std::string,size_t> StringMap;
 typedef std::vector<std::string> StringArray;
 
@@ -111,10 +112,12 @@ public:
     Robot(akin::Frame& referenceFrame = akin::Frame::World(), 
           verbosity::verbosity_level_t report_level = verbosity::LOG);
 
+    double zeroValue;
+
     virtual ~Robot();
 
-    Eigen::VectorXd getConfig(std::vector<size_t> joints) const;
-    bool setConfig(std::vector<size_t> joints, const Eigen::VectorXd& values);
+    Eigen::VectorXd getConfig(const std::vector<size_t>& joints) const;
+    bool setConfig(const std::vector<size_t>& joints, const Eigen::VectorXd& values);
 
     const std::vector<Eigen::Vector2d>& getSupportPolygon();
     const Eigen::Vector2d& getSupportCenter();
@@ -136,10 +139,17 @@ public:
     CenterOfMassConstraintBase* balance();
     const CenterOfMassConstraintBase* const_balance() const;
     void setBalanceConstraint(CenterOfMassConstraintBase* newConstraint, bool ownConstraint=true);
+    void setDefaultBalanceConstraint();
 
     RobotConstraintBase* task();
     const RobotConstraintBase* const_task() const;
     void setTaskConstraint(RobotConstraintBase* newConstraint, bool ownConstraint=true);
+    void setDefaultTaskConstraint();
+
+    void setDefaultRobotConstraints();
+
+    RobotSolverX& solver();
+    bool solve();
 
     void name(std::string newName);
     const std::string& name() const;
@@ -231,7 +241,16 @@ protected:
     std::vector<Eigen::Vector2d> _supportPolgyon;
     Eigen::Vector2d _supportCenter;
     mutable std::vector<Eigen::Vector2d> _supportPoints;
-    std::vector<bool> _lastSupports;
+
+    class ManipMemory {
+    public:
+        inline ManipMemory(bool mSupport, Transform mTf) :
+            support(mSupport), tf(mTf) { }
+        bool support;
+        Transform tf;
+    };
+
+    std::vector<ManipMemory> _supportMemory;
     TrackerPtrArray _supportTrackers;
     bool _needSupportUpdate() const;
     
@@ -250,6 +269,9 @@ protected:
 
     RobotConstraintBase* _task;
     bool _ownsTask;
+    Eigen::VectorXd _taskConfig;
+
+    RobotSolverX* _solver;
 
     JointPtrArray _joints;
     LinkPtrArray _links;

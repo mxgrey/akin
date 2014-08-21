@@ -8,6 +8,8 @@ namespace akin {
 class Screw : public Eigen::Matrix<double,6,1>
 {
 public:
+
+    typedef Eigen::Matrix<double,6,1> Base;
     
     inline Screw(double x=0, double y=0, double z=0,
                  double u=0, double v=0, double w=0)
@@ -26,17 +28,21 @@ public:
         
     }
     
-    inline Screw(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, 6, 1> >& vec) :
+    inline Screw(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>,
+                 Eigen::Matrix<double, 6, 1> >& vec) :
         Eigen::Matrix<double, 6, 1>(vec)
     {
         
     }
     
-    // TODO: Handle multiplication by transforms and rotations
-    
-    inline Screw& operator=(const Eigen::Matrix<double,6,1>& screw)
+
+    template<typename OtherDerived>
+    Screw(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Matrix<double,6,1>(other) { }
+
+    template<typename OtherDerived>
+    Screw & operator= (const Eigen::MatrixBase <OtherDerived>& other)
     {
-        (Eigen::Matrix<double,6,1>)(*this) = screw;
+        this->Base::operator=(other);
         return *this;
     }
     

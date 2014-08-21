@@ -62,7 +62,11 @@ bool Manipulator::ik(Mode m, Eigen::VectorXd& config, const akin::Transform& tar
     _constraints[m]->target = targetTf;
 
     if(ANALYTICAL == m)
-        return _analytical->getBestSolutionX(config, config).valid;
+    {
+        bool result = _analytical->getBestSolutionX(config, config).valid;
+        _myRobot->setConfig(_analytical->getJoints(), config);
+        return result;
+    }
 
     return _solvers[m]->solve(config);
 }
