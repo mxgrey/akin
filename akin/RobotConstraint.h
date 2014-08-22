@@ -375,14 +375,12 @@ public:
     { _initializeRobotTaskDefaults(); }
 
     virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) {
+        _update(configuration);
         gradient.setZero();
         Validity v = Validity::Valid();
 
         for(size_t i=0; i<this->_robot->numManips(); ++i) {
             v &= _addConstraintGradient(gradient, this->_robot->manip(i).constraint());
-//            for(int j=0; j<gradient.size(); ++j)
-//                if(gradient[j] != gradient[j])
-//                    std::cout << "NaN being created by " << this->_robot->manip(i).name() << std::endl;
         }
 
         _update(configuration-gradient);
