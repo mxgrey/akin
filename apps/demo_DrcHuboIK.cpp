@@ -29,6 +29,9 @@ public:
         com_joints = Robot::Explorer::getIdPath(drchubo->joint(DOF_POS_X), drchubo->joint(DOF_ROT_Z));
         
         drchubo->manip(DrcHubo::MANIP_L_FOOT).mode = Manipulator::SUPPORT;
+        std::vector<KinTranslation>& sg = drchubo->manip(DrcHubo::MANIP_L_FOOT).supportGeometry;
+        sg.clear();
+        sg.push_back(KinTranslation(Translation(0,0,0), drchubo->manip(DrcHubo::MANIP_L_FOOT), "support"));
         
         drchubo->manip(DrcHubo::MANIP_R_FOOT).mode = Manipulator::ANALYTICAL;
         rf_baseTf = drchubo->manip(DrcHubo::MANIP_R_FOOT).respectToWorld();
@@ -69,15 +72,15 @@ public:
         Transform lh_targetTf = lh_baseTf;
         lh_targetTf.pretranslate( 0.1*Vec3(1,1,1) * (1-cos(time))/2);
         lh_targetTf.rotate(Rotation( 90*DEG * (1-cos(time))/2, Vec3(1,0,0) ));
-//        drchubo->manip(DrcHubo::MANIP_L_HAND).ik(lh_config, lh_targetTf, Frame::World());
         drchubo->manip(DrcHubo::MANIP_L_HAND).constraint()->target = lh_targetTf;
+//        drchubo->manip(DrcHubo::MANIP_L_HAND).ik(lh_config, lh_targetTf, Frame::World());
 
         Transform rf_targetTf = rf_baseTf;
         rf_targetTf.pretranslate( 0.1*Vec3(2,-4,3) * (1-cos(time))/2);
         rf_targetTf.rotate(Rotation( -90*DEG * (1-cos(time))/2, Vec3(0,0,1)));
         rf_targetTf.rotate(Rotation( -45*DEG * (1-cos(time))/2, Vec3(0,1,0)));
-//        drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World());
         drchubo->manip(DrcHubo::MANIP_R_FOOT).constraint()->target = rf_targetTf;
+//        drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World());
 
         drchubo->solve();
         

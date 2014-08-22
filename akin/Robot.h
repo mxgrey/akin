@@ -122,6 +122,7 @@ public:
     const std::vector<Eigen::Vector2d>& getSupportPolygon();
     const Eigen::Vector2d& getSupportCenter();
     std::vector<Eigen::Vector2d> computeSupportPolgon() const;
+    void forceSupportUpdate();
     
     Frame& refFrame();
     const Frame& const_refFrame() const;

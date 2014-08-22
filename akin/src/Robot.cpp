@@ -100,7 +100,11 @@ std::vector<Eigen::Vector2d> Robot::computeSupportPolgon() const
     return computeConvexHull(_supportPoints);
 }
 
-
+void Robot::forceSupportUpdate()
+{
+    _supportPolgyon = computeSupportPolgon();
+    _supportCenter = computeCentroid(_supportPolgyon);
+}
 
 void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level)
 {

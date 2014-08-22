@@ -21,6 +21,9 @@ bool HullAngleComparison(const HullAngle& a, const HullAngle& b)
 
 std::vector<Eigen::Vector2d> akin::computeConvexHull(std::vector<Eigen::Vector2d>& points)
 {
+    if(points.size() <= 3)
+        return points;
+    
     std::vector<Eigen::Vector2d> hull;
 
     size_t lowest = (size_t)(-1); double y = INFINITY;

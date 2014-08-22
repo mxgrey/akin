@@ -217,8 +217,8 @@ public:
     CenterOfMassConstraintBase();
 
     bool useRobotSupportPolygon;
-    std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > supportConvexHull;
-//    std::vector<Eigen::Vector2d> supportConvexHull;
+//    std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > supportConvexHull;
+    std::vector<Eigen::Vector2d> supportConvexHull;
     double min_height;
     double max_height;
 
