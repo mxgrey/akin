@@ -64,9 +64,11 @@ public:
         _tempBest = configuration;
         getError(configuration, this->computeErrorFromCenter);
         Validity v = this->_computeCurrentValidity();
-        if(v.valid)
+        if(v.valid) {
+            gradient.setZero();
             return v;
-
+        }
+        
         v = getBestSolution(_tempBest, configuration);
         gradient = configuration - _tempBest;
         if(v.stuck)

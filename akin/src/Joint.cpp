@@ -21,6 +21,14 @@ std::string Joint::type_to_string(Type myJointType)
 bool Joint::value(double newJointValue)
 {
     bool inBounds = true;
+    
+    if(newJointValue != newJointValue)
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set value for joint '"
+                    +name()+"' to NaN!");
+        return false;
+    }
+    
     if(newJointValue < _min)
     {
         if(_myRobot->enforcingJointLimits())

@@ -4,6 +4,8 @@
 #include "Constraint.h"
 #include "Robot.h"
 
+#include "Eigen/StdVector"
+
 namespace akin {
 
 class RobotConstraintBase : public virtual JacobianConstraintBase
@@ -18,6 +20,8 @@ public:
     bool changeRobot(Robot* newRobot, bool reconfigure=true);
     bool changeJoints(const std::vector<size_t>& newJoints, bool reconfigure=true);
     bool changeSetup(Robot* newRobot, const std::vector<size_t>& newJoints);
+    
+    virtual void setConfiguration() = 0;
     
     virtual bool checkSetup() const;
     
@@ -47,6 +51,10 @@ public:
     RobotJacobianConstraint() { }
     RobotJacobianConstraint(int cspace_size) : JacobianConstraint<Q,W>(cspace_size) { }
 
+    virtual void setConfiguration() {
+        for(size_t i=0; i<this->_joints.size(); ++i)
+            this->_config[i] = this->_robot->joint(this->_joints[i]).value();
+    }
     
 protected:
     
@@ -91,6 +99,8 @@ public:
     NullManipConstraint();
     NullManipConstraint(Robot& robot);
 
+    virtual void setConfiguration();
+    
     virtual int getErrorDimension();
 
 };
@@ -202,11 +212,13 @@ class CenterOfMassConstraintBase : public virtual RobotConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~CenterOfMassConstraintBase();
 
     CenterOfMassConstraintBase();
 
     bool useRobotSupportPolygon;
-    std::vector<Eigen::Vector2d> supportConvexHull;
+    std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > supportConvexHull;
+//    std::vector<Eigen::Vector2d> supportConvexHull;
     double min_height;
     double max_height;
 
@@ -214,10 +226,11 @@ public:
 
 template<int Q>
 class CenterOfMassConstraint : public RobotJacobianConstraint<Q,3>,
-        public CenterOfMassConstraintBase
+        public virtual CenterOfMassConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~CenterOfMassConstraint() { }
     
     typedef typename Constraint<Q>::VectorQ VectorQ;
     typedef typename JacobianConstraint<Q,3>::Error Error;
@@ -343,6 +356,7 @@ class RobotTaskConstraint : public RobotJacobianConstraint<Q,W>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    virtual ~RobotTaskConstraint() { }
 
     typedef typename Constraint<Q>::VectorQ VectorQ;
     typedef typename Constraint<Q>::MatrixQ MatrixQ;
@@ -365,13 +379,14 @@ public:
         Validity v = Validity::Valid();
 
         for(size_t i=0; i<this->_robot->numManips(); ++i) {
-            v &= _addConstraintGradient(gradient, _reduceConfig(configuration, i),
-                                        this->_robot->manip(i).constraint());
+            v &= _addConstraintGradient(gradient, this->_robot->manip(i).constraint());
+//            for(int j=0; j<gradient.size(); ++j)
+//                if(gradient[j] != gradient[j])
+//                    std::cout << "NaN being created by " << this->_robot->manip(i).name() << std::endl;
         }
 
         _update(configuration-gradient);
-        v &= _addConstraintGradient(gradient, _reduceConfig(configuration, -1),
-                                    this->_robot->balance());
+        v &= _addConstraintGradient(gradient, this->_robot->balance());
 
         if(this->gradient_weights.size() == gradient.size())
             for(int i=0; i<this->gradient_weights.size(); ++i)
@@ -385,19 +400,20 @@ public:
 
         getErrorDimension();
         this->_Jacobian.resize(this->_error_dim, Eigen::NoChange);
+        this->_Jacobian.setZero();
 
         for(size_t i=0; i<this->_robot->numManips(); ++i) {
             if(this->_robot->manip(i).constraint()==NULL) {
-                this->_Jacobian.block(6*i,0,6,this->_Jacobian.cols()).setZero();
                 continue;
             }
 
             const std::vector<size_t>& joints = this->_robot->manip(i).constraint()->getJoints();
-            this->_robot->manip(i).constraint()->computeJacobian(config);
-            for(size_t j=0; j<joints.size(); ++j)
-            {
+            this->_robot->manip(i).constraint()->setConfiguration();
+            this->_robot->manip(i).constraint()->computeJacobian();
+            for(size_t j=0; j<joints.size(); ++j) {
+                int joint = _getIndex(joints[j]); if(joint < 0) continue;
                 for(size_t k=0; k<6; ++k) {
-                    this->_Jacobian(6*i+k, joints[j]) =
+                    this->_Jacobian(6*i+k, joint) =
                             this->_robot->manip(i).constraint()->getJacobianComponent(k,j);
                 }
             }
@@ -405,10 +421,13 @@ public:
 
         if(this->_robot->balance()!=NULL) {
             const std::vector<size_t>& joints = this->_robot->balance()->getJoints();
-            this->_robot->balance()->computeJacobian(config);
+            this->_robot->balance()->setConfiguration();
+            this->_robot->balance()->computeJacobian();
             for(size_t j=0; j<joints.size(); ++j) {
+                
+                int joint = _getIndex(joints[j]); if(joint < 0) continue;
                 for(size_t k=0; k<joints.size(); ++k) {
-                    this->_Jacobian(6*this->_robot->numManips()+k, joints[j]) =
+                    this->_Jacobian(6*this->_robot->numManips()+k, joint) =
                             this->_robot->balance()->getJacobianComponent(k,j);
                 }
             }
@@ -430,15 +449,22 @@ public:
                 continue;
             }
 
-            this->_robot->manip(i).constraint()->computeError(config);
+            this->_robot->manip(i).constraint()->setConfiguration();
+            this->_robot->manip(i).constraint()->computeError();
             for(size_t k=0; k<6; ++k)
                 this->_error[6*i+k] = this->_robot->manip(i).constraint()->getErrorComponent(k);
         }
 
-        this->_robot->balance()->computeError(config);
-        for(size_t k=0; k<3; ++k)
-            this->_error[6*this->_robot->numManips()+k] = this->_robot->balance()->
-                                                            getErrorComponent(k);
+        if(this->_robot->balance() != NULL) {
+            this->_robot->balance()->setConfiguration();
+            this->_robot->balance()->computeError();
+            for(size_t k=0; k<3; ++k)
+                this->_error[6*this->_robot->numManips()+k] = 
+                    this->_robot->balance()->getErrorComponent(k);
+        }
+        else {
+            this->_error.template block<3,1>(6*this->_robot->numManips(),0).setZero();
+        }
 
         return this->_error;
     }
@@ -457,41 +483,54 @@ protected:
         this->_reconfigure();
     }
 
-    Validity _addConstraintGradient(VectorQ& gradient, const Eigen::VectorXd& configuration,
-                                    RobotConstraintBase* constraint) {
+    Validity _addConstraintGradient(VectorQ& gradient, RobotConstraintBase* constraint) {
+        if(constraint == NULL)
+            return Validity::Valid();
+        
         const std::vector<size_t>& joints = constraint->getJoints();
-        Validity v = constraint->computeGradient(configuration);
-        for(size_t i=0; i<joints.size(); ++i)
-            gradient[joints[i]] += constraint->getGradientComponent(i);
+        constraint->setConfiguration();
+        Validity v = constraint->computeGradient();
+        for(size_t i=0; i<joints.size(); ++i) {
+            int index = _getIndex(joints[i]);
+            if(index >= 0)
+                gradient[index] += constraint->getGradientComponent(i);
+        }
 
         return v;
     }
-
-    const Eigen::VectorXd& _reduceConfig(const VectorQ& config, int index) {
-        if(index < 0) {
-            _reduceConfig(_balanceConfig, config, this->_robot->balance()->getJoints());
-            return _balanceConfig;
+    
+    virtual bool _reconfigure() {
+        if(!RobotConstraintBase::_reconfigure())
+            return false;
+        
+        _baseMap.clear();
+        _baseMap.resize(6, -1);
+        
+        _jointMap.clear();
+        _jointMap.resize(this->_robot->numJoints(), -1);
+        
+        for(size_t i=0; i<this->_joints.size(); ++i) {
+            if( DOF_POS_X <= this->_joints[i] && this->_joints[i] <= DOF_ROT_Z )
+                _baseMap[this->_joints[i]-DOF_POS_X] = i;
+            else
+                _jointMap[this->_joints[i]] = i;
         }
-
-        if(index >= (int)_manipConfigs.size())
-            _manipConfigs.resize(index+1);
-
-        _reduceConfig(_manipConfigs[index], config,
-                      this->_robot->manip(index).constraint()->getJoints());
-        return _manipConfigs[index];
+        
+        return true;
     }
-
-    void _reduceConfig(Eigen::VectorXd& reducedConfig, const VectorQ& config,
-                          const std::vector<size_t> map, const std::vector<size_t>& joints) {
-        reducedConfig.resize(joints.size());
-        for(size_t i=0; i<joints.size(); ++i)
-            reducedConfig[i] = config[joints[i]]; // TODO
+    
+    std::vector<int> _jointMap;
+    std::vector<int> _baseMap;
+    
+    int _getIndex(size_t jointId) {
+        if( (DOF_POS_X <= jointId) && (jointId <= DOF_ROT_Z) )
+            return _baseMap[jointId-DOF_POS_X];
+        
+        if(jointId > _jointMap.size())
+            return -1;
+        
+        return _jointMap[jointId];
     }
-
-    std::vector< std::vector<size_t> > _manipMaps;
-    std::vector<Eigen::VectorXd> _manipConfigs;
-    std::vector<size_t> _balanceMap;
-    Eigen::VectorXd _balanceConfig;
 
 };
 

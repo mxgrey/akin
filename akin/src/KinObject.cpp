@@ -81,10 +81,10 @@ KinObject::KinObject(Frame& referenceFrame,
 
     _isFrame = false;
     _visualsUpdate = false;
-
+    
+    _needsUpdate = false;
     referenceFrame._registerObject(this);
     _referenceFrame = &referenceFrame;
-    notifyUpdate();
 }
 
 KinObject::KinObject(const KinObject &other)
@@ -109,13 +109,12 @@ void KinObject::_copyValues(const KinObject &other)
     verb.level = other.verb.level;
     name(other.name());
     _type = other.type();
-
+    
+    _needsUpdate = false;
     other.refFrame()._registerObject(this);
     _referenceFrame = &(other.refFrame());
 
     _isFrame = other.isFrame();
-
-    notifyUpdate();
 }
 
 KinObject& KinObject::Generic()

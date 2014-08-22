@@ -32,14 +32,15 @@ class ConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    
     virtual ~ConstraintBase();
+    
     ConstraintBase();
     
     virtual Validity getGradientX(Eigen::VectorXd& gradient, 
                                      const Eigen::VectorXd& configuration) = 0;
 
-    virtual Validity computeGradient(const Eigen::VectorXd& config) = 0;
+    virtual void setConfiguration(const Eigen::VectorXd& config) = 0;
+    virtual Validity computeGradient() = 0;
     virtual double getGradientComponent(size_t i) const = 0;
     
     virtual Validity getValidityX(const Eigen::VectorXd& configuration) = 0;
@@ -71,7 +72,8 @@ public:
     virtual ~NullConstraintBase();
     NullConstraintBase();
 
-    virtual Validity computeGradient(const Eigen::VectorXd&);
+    virtual void setConfiguration(const Eigen::VectorXd&);
+    virtual Validity computeGradient();
     virtual double getGradientComponent(size_t) const;
     
     virtual Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration);

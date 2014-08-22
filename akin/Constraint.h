@@ -30,6 +30,9 @@ public:
         if(Q==-1 || Q==cspace_size)
         {
             _config_dim = cspace_size;
+            _config.resize(_config_dim);
+            _gradient.resize(_config_dim);
+            _tempGradient.resize(_config_dim);
         }
         else
         {
@@ -41,12 +44,22 @@ public:
     }
     
     Validity getGradientX(Eigen::VectorXd &gradient, const Eigen::VectorXd &configuration) {
-        _tempGradient = VectorQ(gradient);
+        _tempGradient.resize(getConfigurationDimension());
         Validity v = getGradient(_tempGradient, VectorQ(configuration));
         gradient = Eigen::VectorXd(_tempGradient);
         return v;
     }
     virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) = 0;
+    
+    virtual void setConfiguration(const Eigen::VectorXd& config) {
+        this->_config = VectorQ(config);
+    }
+
+    virtual Validity computeGradient() {
+        return getGradient(_gradient, _config);
+    }
+    
+    virtual double getGradientComponent(size_t i) const { return _gradient[i]; }
     
     Validity getValidityX(const Eigen::VectorXd &configuration) {
         return getValidity(VectorQ(configuration));
@@ -68,6 +81,8 @@ protected:
     
     int _config_dim;
     VectorQ _tempGradient;
+    VectorQ _gradient;
+    VectorQ _config;
     
 };
 
@@ -79,12 +94,12 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     virtual ~JacobianConstraintBase();
 
-    virtual void computeJacobian(const Eigen::VectorXd& config) = 0;
+    virtual void computeJacobian() = 0;
     virtual double getJacobianComponent(size_t i, size_t j) const = 0;
-    virtual bool computeJPinvJ(const Eigen::VectorXd& config, bool update=true) = 0;
+    virtual bool computeJPinvJ() = 0;
     virtual double getJPinvJComponent(size_t i, size_t j) const = 0;
 
-    virtual void computeError(const Eigen::VectorXd& config) = 0;
+    virtual void computeError() = 0;
     virtual double getErrorComponent(size_t i) = 0;
     virtual int getErrorDimension() = 0;
 
@@ -96,12 +111,12 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     virtual ~NullJacobianConstraint();
 
-    virtual void computeJacobian(const Eigen::VectorXd&);
+    virtual void computeJacobian();
     virtual double getJacobianComponent(size_t, size_t) const;
-    virtual bool computeJPinvJ(const Eigen::VectorXd&, bool);
+    virtual bool computeJPinvJ();
     virtual double getJPinvJComponent(size_t, size_t) const;
 
-    virtual void computeError(const Eigen::VectorXd&);
+    virtual void computeError();
     virtual double getErrorComponent(size_t);
     virtual int getErrorDimension();
 
@@ -133,6 +148,7 @@ public:
         if(W==-1 || W==error_dim)
         {
             _error_dim = error_dim;
+            _error.resize(_error_dim);
         }
         else
         {
@@ -218,22 +234,14 @@ public:
         return true;
     }
 
-    virtual Validity computeGradient(const Eigen::VectorXd& config) {
-        return getGradient(_gradient, VectorQ(config));
-    }
-
-    virtual double getGradientComponent(size_t i) const { return _gradient[i]; }
-
-    virtual void computeJacobian(const Eigen::VectorXd& config) {
-        this->getJacobian(config, true);
+    virtual void computeJacobian() {
+        this->getJacobian(this->_config, true);
     }
 
     virtual double getJacobianComponent(size_t i, size_t j) const { return this->_Jacobian(i,j); }
 
-    virtual bool computeJPinvJ(const Eigen::VectorXd &config, bool update=true) {
+    virtual bool computeJPinvJ() {
         if(!this->useNullspace) return false;
-
-        if(update) getJacobian(VectorQ(config), true);
 
         computeDampedPseudoInverse(this->_pseudoInverse, this->_Jacobian, this->damp_factor);
         _JPinvJ = this->_pseudoInverse*this->_Jacobian;
@@ -242,8 +250,8 @@ public:
 
     virtual double getJPinvJComponent(size_t i, size_t j) const { return _JPinvJ(i,j); }
 
-    virtual void computeError(const Eigen::VectorXd& config) {
-        getError(VectorQ(config), computeErrorFromCenter);
+    virtual void computeError() {
+        getError(this->_config, computeErrorFromCenter);
     }
 
     virtual double getErrorComponent(size_t i) {
@@ -287,7 +295,6 @@ protected:
     PseudoInverse _pseudoInverse;
     Error _error;
 
-    VectorQ _gradient;
     MatrixQ _JPinvJ;
     
 };

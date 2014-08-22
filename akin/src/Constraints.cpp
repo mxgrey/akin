@@ -97,7 +97,9 @@ NullConstraintBase::~NullConstraintBase() { }
 
 NullConstraintBase::NullConstraintBase() { _isNull = true; }
 
-Validity NullConstraintBase::computeGradient(const Eigen::VectorXd &) { return Validity::Valid(); }
+void NullConstraintBase::setConfiguration(const Eigen::VectorXd &) { }
+
+Validity NullConstraintBase::computeGradient() { return Validity::Valid(); }
 
 double NullConstraintBase::getGradientComponent(size_t) const { return 0; }
 
@@ -129,15 +131,15 @@ JacobianConstraintBase::~JacobianConstraintBase() { }
 
 NullJacobianConstraint::~NullJacobianConstraint() { }
 
-void NullJacobianConstraint::computeJacobian(const Eigen::VectorXd &) { }
+void NullJacobianConstraint::computeJacobian() { }
 
 double NullJacobianConstraint::getJacobianComponent(size_t, size_t) const { return 0; }
 
-bool NullJacobianConstraint::computeJPinvJ(const Eigen::VectorXd &, bool) { return false; }
+bool NullJacobianConstraint::computeJPinvJ() { return false; }
 
 double NullJacobianConstraint::getJPinvJComponent(size_t, size_t) const { return 0; }
 
-void NullJacobianConstraint::computeError(const Eigen::VectorXd &) { }
+void NullJacobianConstraint::computeError() { }
 
 double NullJacobianConstraint::getErrorComponent(size_t) { return 0; }
 
@@ -311,6 +313,8 @@ NullManipConstraint::NullManipConstraint(Robot &robot)
     _robot = &robot;
 }
 
+void NullManipConstraint::setConfiguration() { }
+
 int NullManipConstraint::getErrorDimension() { return 6; }
 
 ///////////// CenterOfMassConstraintBase
@@ -322,6 +326,8 @@ CenterOfMassConstraintBase::CenterOfMassConstraintBase() :
 {
 
 }
+
+CenterOfMassConstraintBase::~CenterOfMassConstraintBase() { }
 
 ///////////// Analytical IK
 
