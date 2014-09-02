@@ -214,6 +214,9 @@ public:
     const Link& const_anchorLink() const;
     void anchorLink(Link&);
     void anchorLink(size_t);
+
+    Link& rootLink();
+    const Link& const_rootLink() const;
     
     void enforceJointLimits(bool enforce);
     inline bool enforcingJointLimits() { return _enforceJointLimits; }

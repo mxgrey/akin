@@ -9,15 +9,12 @@ namespace akin {
 class Link;
 class Robot;
 
-class Joint
+class PublicJointProperties
 {
 public:
 
-    friend class Link;
-    friend class Robot;
-
     typedef enum {
-        
+
         FIXED = 0,
         REVOLUTE,
         PRISMATIC,
@@ -25,6 +22,40 @@ public:
 
         JOINT_TYPE_SIZE
     } Type;
+
+};
+
+class ProtectedJointProperties
+{
+public:
+
+    ProtectedJointProperties();
+    ProtectedJointProperties(size_t jointID, const std::string& jointName,
+                             const Transform& mBaseTransform, const Axis& mJointAxis,
+                             akin::PublicJointProperties::Type mType,
+                             double minimumValue, double maximumValue);
+
+    Transform _baseTransform;
+    Vec3 _axis;
+
+    double _value;
+    double _min;
+    double _max;
+
+    PublicJointProperties::Type _myType;
+
+    size_t _id;
+    std::string _name;
+
+    bool _isDummy;
+};
+
+class Joint : public PublicJointProperties, protected ProtectedJointProperties
+{
+public:
+
+    friend class Link;
+    friend class Robot;
     
     static std::string type_to_string(Type myJointType);
 
@@ -185,6 +216,7 @@ protected:
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
           double mininumValue=-INFINITY, double maximumValue=INFINITY);
+    Joint& operator=(const Joint& otherJoint);
     
     void _computeRefTransform();
     void _computeTransformedJointAxis(Vec3& z_i, const Frame& refFrame) const;
@@ -192,9 +224,6 @@ protected:
                              const KinTranslation& point, 
                              const Frame& refFrame) const;
     Vec3 _computeRotJacobian(const Vec3& z_i) const;
-
-    size_t _id;
-    std::string _name;
     
     void _changeParentLink(Link* newParent);
 
@@ -207,16 +236,6 @@ protected:
 
     void _reverse();
 
-    Transform _baseTransform;
-    Vec3 _axis;
-
-    double _value;
-    double _min;
-    double _max;
-
-    Type _myType;
-
-    bool _isDummy;
     Robot* _myRobot;
     
     virtual ~Joint();

@@ -4,7 +4,7 @@
 using namespace akin;
 using namespace std;
 
-std::string Joint::type_to_string(Type myJointType)
+std::string Joint::type_to_string(akin::Joint::Type myJointType)
 {
     switch(myJointType)
     {
@@ -163,26 +163,38 @@ void Joint::_computeRefTransform()
     }
 }
 
+ProtectedJointProperties::ProtectedJointProperties() { }
+
+ProtectedJointProperties::ProtectedJointProperties(
+        size_t jointID, const string &jointName, const Transform &mBaseTransform,
+        const Axis &mJointAxis, PublicJointProperties::Type mType,
+        double minimumValue, double maximumValue) :
+    _baseTransform(mBaseTransform),
+    _axis(mJointAxis),
+    _value(0),
+    _min(minimumValue),
+    _max(maximumValue),
+    _myType(mType),
+    _id(jointID),
+    _name(jointName),
+    _isDummy(false)
+{
+
+}
+
 Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
              Link *mParentLink, Link *mChildLink,
              const Transform &mBaseTransform,
-             const Axis &mJointAxis, Type mType,
+             const Axis &mJointAxis, akin::Joint::Type mType,
              double mininumValue, double maximumValue) :
+    ProtectedJointProperties(jointID, jointName, mBaseTransform, mJointAxis, mType,
+                             mininumValue, maximumValue),
     verb(mRobot->verb),
-    _id(jointID),
-    _name(jointName),
     _parentLink(mParentLink),
     _childLink(mChildLink),
     _reversed(false),
     _upstreamLink(mParentLink),
     _downstreamLink(mChildLink),
-    _baseTransform(mBaseTransform),
-    _axis(mJointAxis),
-    _value(0),
-    _min(mininumValue),
-    _max(maximumValue),
-    _myType(mType),
-    _isDummy(false),
     _myRobot(mRobot)
 {
     _computeRefTransform();
@@ -203,6 +215,14 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
 Joint::~Joint()
 {
     
+}
+
+Joint& Joint::operator=(const Joint& otherJoint)
+{
+    (PublicJointProperties&)(*this) = (PublicJointProperties&)(otherJoint);
+    (ProtectedJointProperties&)(*this) = (ProtectedJointProperties&)(otherJoint);
+
+    return *this;
 }
 
 bool Joint::min(double newMinValue)
@@ -251,7 +271,7 @@ bool Joint::withinLimits(double someValue) const
 }
 
 Joint::Type Joint::type() const { return _myType; }
-void Joint::type(Type newType) { _myType = newType; _computeRefTransform(); }
+void Joint::type(akin::Joint::Type newType) { _myType = newType; _computeRefTransform(); }
 
 void Joint::_changeParentLink(Link *newParent)
 {

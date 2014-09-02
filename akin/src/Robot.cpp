@@ -689,6 +689,19 @@ size_t Robot::numLinks() const { return _links.size(); }
 Link& Robot::anchorLink() { return *_anchor; }
 const Link& Robot::const_anchorLink() const { return *_anchor; }
 
+void Robot::anchorLink(Link &)
+{
+    // TODO
+}
+
+void Robot::anchorLink(size_t )
+{
+    // TODO
+}
+
+Link& Robot::rootLink() { return *_root; }
+const Link& Robot::const_rootLink() const { return *_root; }
+
 Link& Robot::link(size_t linkNum)
 {
     if( DOF_POS_X <= linkNum && linkNum <= DOF_ROT_Z )
@@ -855,16 +868,6 @@ bool Robot::checkForManipName(const string &name) const
         return false;
     
     return true;
-}
-
-void Robot::anchorLink(Link &)
-{
-    // TODO
-}
-
-void Robot::anchorLink(size_t )
-{
-    // TODO
 }
 
 void Robot::enforceJointLimits(bool enforce)

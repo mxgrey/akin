@@ -109,14 +109,14 @@ public:
 protected:
     
     Link(Robot* mRobot, Frame& referenceFrame, std::string linkName, size_t mID, bool root=false);
-    
+
+
     size_t _id;
     
     void _addChildJoint(Joint* newChild);
     void _removeChildJoint(Joint* oldChild);
     void _setParentJoint(Joint* newParent);
 
-    bool _isAnchor;
     bool _isRoot;
     bool _isDummy;
 

@@ -7,7 +7,6 @@ using namespace std;
 Link::Link(Robot *mRobot, Frame &referenceFrame, string linkName, size_t mID, bool root) :
     Body(referenceFrame, linkName),
     _id(mID),
-    _isAnchor(root),
     _isRoot(root),
     _isDummy(false),
     _parentJoint(NULL),
@@ -50,7 +49,7 @@ size_t Link::id() const
     return _id;
 }
 
-bool Link::isAnchor() const { return _isAnchor; }
+bool Link::isAnchor() const { return (this == &_myRobot->anchorLink()); }
 
 void Link::setAsAnchor()
 {
