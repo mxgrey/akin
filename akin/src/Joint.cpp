@@ -4,7 +4,7 @@
 using namespace akin;
 using namespace std;
 
-std::string Joint::type_to_string(akin::Joint::Type myJointType)
+std::string PublicJointProperties::type_to_string(akin::Joint::Type myJointType)
 {
     switch(myJointType)
     {

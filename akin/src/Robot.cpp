@@ -440,9 +440,9 @@ bool Robot::solve()
     _taskConfig = getConfig(_task->getJoints());
     bool result = _solver->solve(_taskConfig);
 //    std::cout << "\nGradient:" << _taskConfig.transpose() << "\n\n" << std::endl;
-    
-    
-    
+
+
+
     setConfig(_task->getJoints(), _taskConfig);
 
     return result;

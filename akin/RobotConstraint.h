@@ -150,17 +150,6 @@ public:
 
         if(update) _update(config);
 
-//        Transform tf_error = _manip->withRespectTo(target.refFrame())
-//                             *target.respectToRef().inverse();
-//        const Eigen::Matrix3d& rot = tf_error.rotation().matrix();
-
-//        this->_displacement.template block<3,1>(0,0) =
-//                                        _manip->withRespectTo(target.refFrame()).translation()
-//                                            - target.respectToRef().translation();
-//        this->_displacement[3] =  atan2(rot(2,1), rot(2,2));
-//        this->_displacement[4] = -asin(rot(2,0));
-//        this->_displacement[5] =  atan2(rot(1,0), rot(0,0));
-
         this->_displacement = _manip->withRespectTo(target.refFrame()).diff(target.respectToRef());
 
         for(int i=0; i<6; ++i)
@@ -187,6 +176,9 @@ public:
             for(int i=0; i<6; ++i)
                 this->_error[i] *= this->error_weights[i];
         
+        if(this->_error.norm() < this->_robot->zeroValue)
+            this->_error.setZero();
+
         return this->_error;
     }
     
@@ -254,8 +246,7 @@ public:
         
         double total_mass = _robot->mass();
         
-        for(size_t i=0; i<this->_joints.size(); ++i)
-        {
+        for(size_t i=0; i<this->_joints.size(); ++i) {
             _ex.reset(this->_robot->const_joint(_joints[i]).const_childLink(), 
                       Robot::Explorer::DOWNSTREAM);
             
@@ -263,8 +254,7 @@ public:
             double mass = 0;
             double mass_l;
             const Link* nextLink;
-            while( (nextLink = _ex.nextLink()) )
-            {
+            while( (nextLink = _ex.nextLink()) ) {
                 mass_l = nextLink->mass;
                 p += mass_l*nextLink->com.respectToWorld();
                 mass += mass_l;
@@ -295,12 +285,10 @@ public:
         
         Translation com = _robot->com().respectToWorld();
         
-        if(isInsideConvexHull(com.template block<2,1>(0,0), _robot->getSupportPolygon()))
-        {
+        if(isInsideConvexHull(com.template block<2,1>(0,0), _robot->getSupportPolygon())) {
             this->_error.template block<2,1>(0,0).setZero();
         }
-        else
-        {
+        else {
             if(fromCenter)
             {
                 this->_error.template block<2,1>(0,0) = com.template block<2,1>(0,0) 
@@ -314,15 +302,13 @@ public:
             }
         }
         
-        if(fromCenter)
-        {
+        if(fromCenter) {
             if( com[2] < this->min_height || this->max_height < com[2] )
                 this->_error[2] = com[2] - 0.5*(this->min_height+this->max_height);
             else
                 this->_error[2] = 0;
         }
-        else
-        {
+        else {
             if( com[2] < this->min_height )
                 this->_error[2] = com[2] - this->min_height;
             else if( this->max_height < com[2] )
@@ -331,6 +317,9 @@ public:
                 this->_error[2] = 0;
         }
         
+        if(this->_error.norm() < this->_robot->zeroValue)
+            this->_error.setZero();
+
         return this->_error;
     }
 
@@ -379,12 +368,12 @@ public:
         gradient.setZero();
         Validity v = Validity::Valid();
 
+        v &= _addConstraintGradient(gradient, this->_robot->balance());
+        _update(configuration-gradient);
+
         for(size_t i=0; i<this->_robot->numManips(); ++i) {
             v &= _addConstraintGradient(gradient, this->_robot->manip(i).constraint());
         }
-
-        _update(configuration-gradient);
-        v &= _addConstraintGradient(gradient, this->_robot->balance());
 
         if(this->gradient_weights.size() == gradient.size())
             for(int i=0; i<this->gradient_weights.size(); ++i)
@@ -422,7 +411,6 @@ public:
             this->_robot->balance()->setConfiguration();
             this->_robot->balance()->computeJacobian();
             for(size_t j=0; j<joints.size(); ++j) {
-                
                 int joint = _getIndex(joints[j]); if(joint < 0) continue;
                 for(size_t k=0; k<joints.size(); ++k) {
                     this->_Jacobian(6*this->_robot->numManips()+k, joint) =

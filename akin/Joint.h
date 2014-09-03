@@ -23,6 +23,8 @@ public:
         JOINT_TYPE_SIZE
     } Type;
 
+    static std::string type_to_string(Type myJointType);
+
 };
 
 class ProtectedJointProperties
@@ -56,8 +58,6 @@ public:
 
     friend class Link;
     friend class Robot;
-    
-    static std::string type_to_string(Type myJointType);
 
     /*!
      * \fn value(double newJointValue)
