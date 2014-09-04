@@ -30,8 +30,12 @@ public:
         
         drchubo->manip(DrcHubo::MANIP_L_FOOT).mode = Manipulator::SUPPORT;
 //        std::vector<KinTranslation>& sg = drchubo->manip(DrcHubo::MANIP_L_FOOT).supportGeometry;
+
 //        sg.clear();
 //        sg.push_back(KinTranslation(Translation(0,0,0), drchubo->manip(DrcHubo::MANIP_L_FOOT), "support"));
+
+//        for(size_t i=0; i<sg.size(); ++i)
+//            sg[i] = 0.1*sg[i];
         
         drchubo->manip(DrcHubo::MANIP_R_FOOT).mode = Manipulator::ANALYTICAL;
         rf_baseTf = drchubo->manip(DrcHubo::MANIP_R_FOOT).respectToWorld();
@@ -59,7 +63,7 @@ public:
         
         std::cout << "Center: " << drchubo->getSupportCenter().transpose() << std::endl;
 
-        drchubo->solver().max_steps = 20;
+        drchubo->solver().max_steps = 50;
         drchubo->solver().max_attempts = 1;
 
         time = 0;
@@ -82,17 +86,18 @@ public:
         drchubo->manip(DrcHubo::MANIP_R_FOOT).constraint()->target = rf_targetTf;
 //        drchubo->manip(DrcHubo::MANIP_R_FOOT).ik(rf_config, rf_targetTf, Frame::World());
 
-        if(drchubo->solve())
-        {
-            cout << "Solved!" << endl;
-        }
-        else
-        {
-            cout << "FAILED:\t";
-            for(int i=0; i<drchubo->task()->getErrorDimension(); ++i)
-                cout << drchubo->task()->getErrorComponent(i) << " \t";
-            cout << endl << endl;
-        }
+        drchubo->solve();
+//        if(drchubo->solve())
+//        {
+//            cout << "Solved!" << endl;
+//        }
+//        else
+//        {
+//            cout << "FAILED:\t";
+//            for(int i=0; i<drchubo->task()->getErrorDimension(); ++i)
+//                cout << drchubo->task()->getErrorComponent(i) << " \t";
+//            cout << endl << endl;
+//        }
         
 //        drchubo->manip(DrcHubo::MANIP_L_FOOT).solver(Manipulator::SUPPORT).max_steps = 1;
 //        Eigen::VectorXd config = 
