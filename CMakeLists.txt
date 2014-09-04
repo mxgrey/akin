@@ -31,7 +31,7 @@ add_subdirectory(osgAkin)
 include_directories(${OpenSceneGraph_INCLUDE_DIRS})
 add_definitions(${OpenSourceGraph_DEFINITIONS})
 
-link_libraries(akin osg osgViewer osgDB osgAkin)
+link_libraries(akin osg osgViewer osgDB osgGA osgUtil osgAkin)
 
 option(URDF_PARSING "include urdf parsing" ON)
 

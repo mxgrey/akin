@@ -14,6 +14,7 @@ namespace osgAkin {
 typedef std::map<akin::Frame*,osg::MatrixTransform*> FrameMtfMap;
 typedef std::map<akin::Frame*,osg::Geode*> FrameGeodeMap;
 typedef std::map<akin::KinObject*,osg::Group*> ObjectGroupMap;
+typedef std::map<osg::Node*,akin::KinObject*> NodeObjectMap;
 
 class KinTree : public osg::Group
 {
@@ -26,6 +27,8 @@ public:
     
     void update();
     void initialize();
+
+    const NodeObjectMap& getNodeObjectMap() const;
     
 protected:
     
@@ -57,6 +60,7 @@ protected:
     FrameMtfMap _frameMtfMap;
     FrameGeodeMap _frameGeodeMap;
     ObjectGroupMap _objectGroupMap;
+    NodeObjectMap _nodeObjectMap;
 
     bool _initialized;
     

@@ -86,6 +86,8 @@ void KinTree::initialize()
     _initialized = true;
 }
 
+const NodeObjectMap& KinTree::getNodeObjectMap() const { return _nodeObjectMap; }
+
 void KinTree::_findTrueRoot()
 {
     while(!_root->refFrame().isWorld())
@@ -194,6 +196,7 @@ osg::Group* KinTree::_makeObjectGroup(KinObject &object)
 {
     osg::Group* objectGroup = new osg::Group;
     _objectGroupMap[&object] = objectGroup;
+    _nodeObjectMap[objectGroup] = &object;
     return objectGroup;
 }
 

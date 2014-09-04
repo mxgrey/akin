@@ -143,11 +143,7 @@ void Manipulator::resetConstraint(Mode m)
         return;
     
     ManipConstraintBase* constraint;
-    if(FREE==m)
-    {
-        constraint = new NullManipConstraint(parentRobot());
-    }
-    else if(LINKAGE==m || SUPPORT==m)
+    if(LINKAGE==m || SUPPORT==m)
     {
         std::vector<size_t> joints;
         const Joint* current = &parentLink().parentJoint();
@@ -171,6 +167,10 @@ void Manipulator::resetConstraint(Mode m)
         constraint = new NullAnalyticalIK;
     }
     else if(CUSTOM==m)
+    {
+        constraint = new NullManipConstraint(parentRobot());
+    }
+    else
     {
         constraint = new NullManipConstraint(parentRobot());
     }

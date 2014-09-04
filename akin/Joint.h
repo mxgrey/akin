@@ -193,6 +193,7 @@ public:
     
     Joint& upstreamJoint();
     const Joint& upstreamJoint() const;
+
     Joint& downstreamJoint(size_t num);
     const Joint& downstreamJoint(size_t num) const;
     size_t numDownstreamJoints() const;
