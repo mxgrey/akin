@@ -44,7 +44,7 @@ public:
         valid.reserve(8);
         getGoalTransform(lastConfig);
 
-        const akin::Link& baseLink = this->_robot->joint(this->_joints[0]).const_upstreamLink();
+        const akin::Link& baseLink = this->_robot->joint(this->_joints[0]).upstreamLink();
         
         B = (baseLink.respectToWorld()*waist).inverse()
             * this->_goalTf.respectToWorld() * footRotationInv;

@@ -58,15 +58,15 @@ double Joint::value() const { return _value; }
 void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame) const
 {
     z_i = _reversed ?
-            Vec3(-const_childLink().respectToRef().rotation()*_axis) :
-            Vec3(const_childLink().respectToRef().rotation()*_axis);
+            Vec3(-childLink().respectToRef().rotation()*_axis) :
+            Vec3(childLink().respectToRef().rotation()*_axis);
     
     // Put z_i into the reference frame
     if(refFrame.isWorld())
-        z_i = const_childLink().respectToWorld().rotation()*z_i;
+        z_i = childLink().respectToWorld().rotation()*z_i;
     else
         z_i = refFrame.respectToWorld().rotation().transpose()
-              *const_childLink().respectToWorld().rotation()*z_i;
+              *childLink().respectToWorld().rotation()*z_i;
 }
 
 Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point, 
@@ -75,7 +75,7 @@ Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point,
     if(type()==REVOLUTE)
     {
         return z_i.cross( point.withRespectTo(refFrame)
-                          - const_childLink().withRespectTo(refFrame).translation() );
+                          - childLink().withRespectTo(refFrame).translation() );
     }
     else if(type()==PRISMATIC)
         return z_i;
@@ -98,7 +98,7 @@ Vec3 Joint::Jacobian_rotOnly(const KinTranslation &point, const Frame &refFrame,
 {
     if(checkDependence)
     {
-        if(!point.descendsFrom(const_childLink()))
+        if(!point.descendsFrom(childLink()))
             return Vec3::Zero();
     }
     
@@ -113,7 +113,7 @@ Vec3 Joint::Jacobian_posOnly(const KinTranslation &point, const Frame &refFrame,
 {
     if(checkDependence)
     {
-        if(!point.descendsFrom(const_childLink()))
+        if(!point.descendsFrom(childLink()))
             return Vec3::Zero();
     }
     
@@ -128,7 +128,7 @@ Screw Joint::Jacobian(const KinTranslation& point, const Frame &refFrame,
 {
     if(checkDependence)
     {
-        if(!point.descendsFrom(const_childLink()))
+        if(!point.descendsFrom(childLink()))
             return Screw::Zero();
     }
     
@@ -315,40 +315,40 @@ bool Joint::name(const string &new_name)
 }
 
 Link& Joint::parentLink() { return *_parentLink; }
-const Link& Joint::const_parentLink() const { return const_cast<Joint*>(this)->parentLink(); }
+const Link& Joint::parentLink() const { return const_cast<Joint*>(this)->parentLink(); }
 
 Link& Joint::childLink() { return *_childLink; }
-const Link& Joint::const_childLink() const { return const_cast<Joint*>(this)->childLink(); }
+const Link& Joint::childLink() const { return const_cast<Joint*>(this)->childLink(); }
 
 Joint& Joint::parentJoint() { return _parentLink->parentJoint(); }
-const Joint& Joint::const_parentJoint() const { return const_cast<Joint*>(this)->parentJoint(); }
+const Joint& Joint::parentJoint() const { return const_cast<Joint*>(this)->parentJoint(); }
 
 Joint& Joint::childJoint(size_t num) { return _childLink->childJoint(num); }
-const Joint& Joint::const_childJoint(size_t num) const
+const Joint& Joint::childJoint(size_t num) const
     { return const_cast<Joint*>(this)->childJoint(num); }
 
 size_t Joint::numChildJoints() const { return _childLink->numChildJoints(); }
 
 Link& Joint::upstreamLink() { return *_upstreamLink; }
-const Link& Joint::const_upstreamLink() const { return const_cast<Joint*>(this)->upstreamLink(); }
+const Link& Joint::upstreamLink() const { return const_cast<Joint*>(this)->upstreamLink(); }
 
 Link& Joint::downstreamLink() { return *_downstreamLink; }
-const Link& Joint::const_downstreamLink() const
+const Link& Joint::downstreamLink() const
     { return const_cast<Joint*>(this)->downstreamLink(); }
 
 Joint& Joint::upstreamJoint() { return _upstreamLink->upstreamJoint(); }
-const Joint& Joint::const_upstreamJoint() const 
+const Joint& Joint::upstreamJoint() const 
     { return const_cast<Joint*>(this)->upstreamJoint(); }
 
 Joint& Joint::downstreamJoint(size_t num) { return _downstreamLink->downstreamJoint(num); }
-const Joint& Joint::const_downstreamJoint(size_t num) const
+const Joint& Joint::downstreamJoint(size_t num) const
     { return const_cast<Joint*>(this)->downstreamJoint(num); }
 
 size_t Joint::numDownstreamJoints() const { return _downstreamLink->numDownstreamJoints(); }
 
 bool Joint::belongsTo(const Robot &someRobot) const { return &someRobot == _myRobot; }
 Robot& Joint::robot() { return *_myRobot; }
-const Robot& Joint::const_robot() const { return const_cast<Joint*>(this)->robot(); }
+const Robot& Joint::robot() const { return const_cast<Joint*>(this)->robot(); }
 
 bool Joint::isDummy() const { return _isDummy; }
 
@@ -363,9 +363,9 @@ std::ostream& operator<<(std::ostream& oStrStream, akin::Joint::Type type)
 std::ostream& operator<<(std::ostream& oStrStream, const akin::Joint& someJoint)
 {
     oStrStream << "Joint named '" << someJoint.name() << "' with ID " << someJoint.id()
-               << " connects Parent Link '" << someJoint.const_parentLink().name() << "' to Child '" 
-               << someJoint.const_childLink().name() << "' for robot '" 
-               << someJoint.const_robot().name() << "'\n";
+               << " connects Parent Link '" << someJoint.parentLink().name() << "' to Child '" 
+               << someJoint.childLink().name() << "' for robot '" 
+               << someJoint.robot().name() << "'\n";
     if(someJoint.isReversed())
         oStrStream << "[Parent/Child are currently kinematically reversed]\n";
     oStrStream << "Axis: <" << someJoint.axis().transpose() << "> (" << someJoint.type() 

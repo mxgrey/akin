@@ -130,7 +130,7 @@ KinObject::~KinObject()
 }
 
 Frame& KinObject::refFrame() const { return *_referenceFrame; }
-const Frame& KinObject::const_refFrame() const { return *_referenceFrame; }
+//const Frame& KinObject::refFrame() const { return *_referenceFrame; }
 const std::string& KinObject::name() const { return _name; }
 bool KinObject::name(const std::string& newName) { _name = newName; return true; }
 
@@ -214,15 +214,15 @@ size_t KinObject::numRegisteredObjects() const { return _registeredObjects.size(
 
 bool KinObject::descendsFrom(const Frame &someFrame) const
 {
-    if(&const_refFrame() == &someFrame)
+    if(&refFrame() == &someFrame)
         return true;
     
-    const Frame* descentCheck = &const_refFrame();
+    const Frame* descentCheck = &refFrame();
     while(!descentCheck->isWorld())
     {
-        if(&descentCheck->const_refFrame() == &someFrame)
+        if(&descentCheck->refFrame() == &someFrame)
             return true;
-        descentCheck = &descentCheck->const_refFrame();
+        descentCheck = &descentCheck->refFrame();
     }
 
     return false;

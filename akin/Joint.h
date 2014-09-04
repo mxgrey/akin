@@ -175,33 +175,31 @@ public:
      */
     bool name(const std::string& new_name);
 
-
-//    virtual void parentLink(Link& new_parent_link);
     Link& parentLink();
-    const Link& const_parentLink() const;
+    const Link& parentLink() const;
     Link& childLink();
-    const Link& const_childLink() const;
+    const Link& childLink() const;
     
     Joint& parentJoint();
-    const Joint& const_parentJoint() const;
+    const Joint& parentJoint() const;
     Joint& childJoint(size_t num);
-    const Joint& const_childJoint(size_t num) const;
+    const Joint& childJoint(size_t num) const;
     size_t numChildJoints() const;
     
     Link& upstreamLink();
-    const Link& const_upstreamLink() const;
+    const Link& upstreamLink() const;
     Link& downstreamLink();
-    const Link& const_downstreamLink() const;
+    const Link& downstreamLink() const;
     
     Joint& upstreamJoint();
-    const Joint& const_upstreamJoint() const;
+    const Joint& upstreamJoint() const;
     Joint& downstreamJoint(size_t num);
-    const Joint& const_downstreamJoint(size_t num) const;
+    const Joint& downstreamJoint(size_t num) const;
     size_t numDownstreamJoints() const;
 
     bool belongsTo(const Robot& someRobot) const;
     Robot& robot();
-    const Robot& const_robot() const;
+    const Robot& robot() const;
     
     bool isDummy() const;
     

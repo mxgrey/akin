@@ -105,7 +105,7 @@ Link& Link::parentLink()
     return parentJoint().parentLink();
 }
 
-const Link& Link::const_parentLink() const
+const Link& Link::parentLink() const
 {
     return const_cast<Link*>(this)->parentLink();
 }
@@ -119,7 +119,7 @@ Joint& Link::parentJoint()
     return *_parentJoint;
 }
 
-const Joint& Link::const_parentJoint() const
+const Joint& Link::parentJoint() const
 {
     return const_cast<Link*>(this)->parentJoint();
 }
@@ -135,7 +135,7 @@ Link& Link::childLink(size_t num)
     return childJoint(num).childLink();
 }
 
-const Link& Link::const_childLink(size_t num) const
+const Link& Link::childLink(size_t num) const
 {
     return const_cast<Link*>(this)->childLink(num);
 }
@@ -151,7 +151,7 @@ Joint& Link::childJoint(size_t num)
     return *_childJoints[num];
 }
 
-const Joint& Link::const_childJoint(size_t num) const
+const Joint& Link::childJoint(size_t num) const
 {
     return const_cast<Link*>(this)->childJoint(num);
 }
@@ -168,7 +168,7 @@ Joint& Link::upstreamJoint()
     return *_upstreamJoint;
 }
 
-const Joint& Link::const_upstreamJoint() const
+const Joint& Link::upstreamJoint() const
 {
     return const_cast<Link*>(this)->upstreamJoint();
 }
@@ -178,7 +178,7 @@ Link& Link::upstreamLink()
     return upstreamJoint().upstreamLink();
 }
 
-const Link& Link::const_upstreamLink() const
+const Link& Link::upstreamLink() const
 {
     return const_cast<Link*>(this)->upstreamLink();
 }
@@ -194,7 +194,7 @@ Joint& Link::downstreamJoint(size_t num)
     return *_downstreamJoints[num];
 }
 
-const Joint& Link::const_downstreamJoint(size_t num) const
+const Joint& Link::downstreamJoint(size_t num) const
 {
     return const_cast<Link*>(this)->downstreamJoint(num);
 }
@@ -210,7 +210,7 @@ Link& Link::downstreamLink(size_t num)
     return downstreamJoint(num).downstreamLink();
 }
 
-const Link& Link::const_downstreamLink(size_t num) const
+const Link& Link::downstreamLink(size_t num) const
 {
     return const_cast<Link*>(this)->downstreamLink(num);
 }
@@ -229,7 +229,7 @@ Manipulator& Link::manip(size_t manipNum)
     return *_manips[manipNum];
 }
 
-const Manipulator& Link::const_manip(size_t manipNum) const
+const Manipulator& Link::manip(size_t manipNum) const
 {
     return const_cast<Link*>(this)->manip(manipNum);
 }
@@ -244,7 +244,7 @@ Robot& Link::robot()
     return *_myRobot;
 }
 
-const Robot& Link::const_robot() const
+const Robot& Link::robot() const
 {
     return *_myRobot;
 }
@@ -271,7 +271,7 @@ std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
             oStrStream << "with ";
         else
             oStrStream << " has ";
-        oStrStream << "parent joint " << someLink.const_parentJoint().name();
+        oStrStream << "parent joint " << someLink.parentJoint().name();
     }
     
     oStrStream << "\n";
@@ -285,7 +285,7 @@ std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
         oStrStream << "Child joints are: ";
         for(size_t i=0; i<someLink.numChildJoints(); ++i)
         {
-            oStrStream << someLink.const_childJoint(i).name();
+            oStrStream << someLink.childJoint(i).name();
             if(i+1 < someLink.numChildJoints())
                 oStrStream << ", ";
         }

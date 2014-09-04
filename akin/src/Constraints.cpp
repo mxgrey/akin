@@ -293,8 +293,8 @@ bool ManipConstraintBase::_reconfigure() {
     _dependency.clear();
     for(int i=0; i<getConfigurationDimension(); ++i)
     {
-        const Joint& j = this->_robot->const_joint(this->_joints[i]);
-        if(_manip->descendsFrom(j.const_childLink()))
+        const Joint& j = this->_robot->joint(this->_joints[i]);
+        if(_manip->descendsFrom(j.childLink()))
             _dependency.push_back(true);
         else
             _dependency.push_back(false);

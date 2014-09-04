@@ -125,11 +125,11 @@ public:
     void forceSupportUpdate();
     
     Frame& refFrame();
-    const Frame& const_refFrame() const;
+    const Frame& refFrame() const;
     bool changeRefFrame(Frame& newRefFrame);
     
     Frame& frame();
-    const Frame& const_frame() const;
+    const Frame& frame() const;
     
     const KinTranslation& com() const;
     Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(), 
@@ -138,12 +138,12 @@ public:
     double mass(const Link& startLink, Explorer::policy p = Explorer::DOWNSTREAM) const;
 
     CenterOfMassConstraintBase* balance();
-    const CenterOfMassConstraintBase* const_balance() const;
+    const CenterOfMassConstraintBase* balance() const;
     void setBalanceConstraint(CenterOfMassConstraintBase* newConstraint, bool ownConstraint=true);
     void setDefaultBalanceConstraint();
 
     RobotConstraintBase* task();
-    const RobotConstraintBase* const_task() const;
+    const RobotConstraintBase* task() const;
     void setTaskConstraint(RobotConstraintBase* newConstraint, bool ownConstraint=true);
     void setDefaultTaskConstraint();
 
@@ -181,15 +181,15 @@ public:
     Joint& joint(size_t jointNum);
     Joint& joint(const std::string& jointName);
     size_t getJointIndex(const std::string& jointName) const;
-    const Joint& const_joint(size_t jointNum) const;
-    const Joint& const_joint(const std::string& jointName) const;
+    const Joint& joint(size_t jointNum) const;
+    const Joint& joint(const std::string& jointName) const;
     size_t numJoints() const;
 
     Link& link(size_t linkNum);
     Link& link(const std::string& linkName);
     size_t getLinkIndex(const std::string& linkName) const;
-    const Link& const_link(size_t linkNum) const;
-    const Link& const_link(const std::string& linkName) const;
+    const Link& link(size_t linkNum) const;
+    const Link& link(const std::string& linkName) const;
     size_t numLinks() const;
     
     int addManipulator(Frame& attachment, const std::string& name, 
@@ -198,8 +198,8 @@ public:
     Manipulator& manip(size_t manipNum);
     Manipulator& manip(const std::string& manipName);
     size_t getManipIndex(const std::string& manipName) const;
-    const Manipulator& const_manip(size_t manipNum) const;
-    const Manipulator& const_manip(const std::string& manipName) const;
+    const Manipulator& manip(size_t manipNum) const;
+    const Manipulator& manip(const std::string& manipName) const;
     size_t numManips() const;
 
     bool owns(const Link& someLink) const;
@@ -211,12 +211,12 @@ public:
     bool checkForManipName(const std::string& name) const;
 
     Link& anchorLink();
-    const Link& const_anchorLink() const;
+    const Link& anchorLink() const;
     void anchorLink(Link&);
     void anchorLink(size_t);
 
     Link& rootLink();
-    const Link& const_rootLink() const;
+    const Link& rootLink() const;
     
     void enforceJointLimits(bool enforce);
     inline bool enforcingJointLimits() { return _enforceJointLimits; }

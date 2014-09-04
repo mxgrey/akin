@@ -53,7 +53,7 @@ public:
     int attachItem(Body* item);
     
     Body* item(size_t itemNum);
-    const Body* const_item(size_t itemNum) const;
+    const Body* item(size_t itemNum) const;
     size_t numItems() const;
     
     bool detachItem(Body* item);
@@ -65,7 +65,7 @@ public:
     int attachRobot(Robot* robot);
     
     Robot* robot(size_t robotNum);
-    const Robot* const_robot(size_t robotNum) const;
+    const Robot* robot(size_t robotNum) const;
     size_t numRobots() const;
     
     bool detachRobot(Robot* robot);
@@ -75,10 +75,10 @@ public:
     const double& mass() const;
     
     Robot& parentRobot();
-    const Robot& const_parentRobot() const;
+    const Robot& parentRobot() const;
     
     Link& parentLink();
-    const Link& const_parentLink() const;
+    const Link& parentLink() const;
     
     bool changeRefFrame(Frame &newRefFrame);
     

@@ -209,7 +209,7 @@ public:
       * most convenient. The default reference frame for a KinObject is the World Frame.
       */
     Frame& refFrame() const;
-    const Frame& const_refFrame() const;
+//    const Frame& refFrame() const;
 
     /*!
       * \fn name()

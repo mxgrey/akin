@@ -136,7 +136,7 @@ public:
         {
             if(_dependency[i])
                 this->_Jacobian.template block<6,1>(0,i) = 
-                        this->_robot->const_joint(this->_joints[i]).Jacobian(
+                        this->_robot->joint(this->_joints[i]).Jacobian(
                         _manip->point(), target.refFrame(), false);
             else
                 this->_Jacobian.template block<6,1>(0,i) = Error::Zero();
@@ -247,7 +247,7 @@ public:
         double total_mass = _robot->mass();
         
         for(size_t i=0; i<this->_joints.size(); ++i) {
-            _ex.reset(this->_robot->const_joint(_joints[i]).const_childLink(), 
+            _ex.reset(this->_robot->joint(_joints[i]).childLink(),
                       Robot::Explorer::DOWNSTREAM);
             
             Translation p;
@@ -261,7 +261,7 @@ public:
                 
                 for(size_t m=0; m<nextLink->numManips(); ++m)
                 {
-                    const Manipulator& manip = nextLink->const_manip(m);
+                    const Manipulator& manip = nextLink->manip(m);
                     mass_l = manip.mass();
                     p += mass_l*manip.com().respectToWorld();
                     mass += mass_l;
@@ -271,7 +271,7 @@ public:
             _point = p/mass;
             
             this->_Jacobian.template block<3,1>(0,i) = mass/total_mass*
-                    this->_robot->const_joint(this->_joints[i]).Jacobian_posOnly(
+                    this->_robot->joint(this->_joints[i]).Jacobian_posOnly(
                         _point, Frame::World(), false);
         }
         

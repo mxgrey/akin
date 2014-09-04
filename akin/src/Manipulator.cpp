@@ -23,7 +23,7 @@ Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &mani
     for(size_t i=0; i<NUM_MODES; ++i)
         _ownConstraint[i] = false;
     
-    if(!const_parentLink().isDummy())
+    if(!parentLink().isDummy())
     {
         resetConstraints();
     }
@@ -150,20 +150,20 @@ void Manipulator::resetConstraint(Mode m)
     else if(LINKAGE==m || SUPPORT==m)
     {
         std::vector<size_t> joints;
-        const Joint* current = &const_parentLink().const_parentJoint();
+        const Joint* current = &parentLink().parentJoint();
         do {
             
             joints.push_back(current->id());
-            current = &current->const_parentJoint();
+            current = &current->parentJoint();
             
-        } while(current->numChildJoints()==1 && !current->const_childLink().isAnchor());
+        } while(current->numChildJoints()==1 && !current->childLink().isAnchor());
         
         constraint = new ManipConstraintX(joints.size(), *this, joints);
     }
     else if(FULLBODY==m)
     {
-        std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->const_joint(DOF_POS_X),
-                                                            const_parentLink().const_parentJoint());
+        std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->joint(DOF_POS_X),
+                                                            parentLink().parentJoint());
         constraint = new ManipConstraintX(joints.size(), *this, joints);
     }
     else if(ANALYTICAL==m)
@@ -211,7 +211,7 @@ Body* Manipulator::item(size_t itemNum)
     return _items[itemNum];
 }
 
-const Body* Manipulator::const_item(size_t itemNum) const
+const Body* Manipulator::item(size_t itemNum) const
 {
     return const_cast<Manipulator*>(this)->item(itemNum);
 }
@@ -293,7 +293,7 @@ Robot* Manipulator::robot(size_t robotNum)
     return _robots[robotNum];
 }
 
-const Robot* Manipulator::const_robot(size_t robotNum) const
+const Robot* Manipulator::robot(size_t robotNum) const
 {
     return const_cast<Manipulator*>(this)->robot(robotNum);
 }
@@ -331,13 +331,13 @@ Robot& Manipulator::parentRobot()
     return *_myRobot;
 }
 
-const Robot& Manipulator::const_parentRobot() const
+const Robot& Manipulator::parentRobot() const
 {
     return const_cast<Manipulator*>(this)->parentRobot();
 }
 
 Link& Manipulator::parentLink() { return *_myLink; }
-const Link& Manipulator::const_parentLink() const { return *_myLink; }
+const Link& Manipulator::parentLink() const { return *_myLink; }
 
 bool Manipulator::changeRefFrame(Frame &newRefFrame)
 {

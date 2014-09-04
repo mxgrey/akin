@@ -24,20 +24,20 @@ bool Robot::_needSupportUpdate() const
     for(size_t i=0; i<_supportMemory.size(); ++i)
     {
         bool usedToBeSupport = _supportMemory[i].support;
-        if( ( (!usedToBeSupport) && (const_manip(i).mode == Manipulator::SUPPORT) ) ||
-            (   usedToBeSupport  && (const_manip(i).mode != Manipulator::SUPPORT) ) )
+        if( ( (!usedToBeSupport) && (manip(i).mode == Manipulator::SUPPORT) ) ||
+            (   usedToBeSupport  && (manip(i).mode != Manipulator::SUPPORT) ) )
             return true;
-        if( const_manip(i).mode == Manipulator::SUPPORT 
+        if( manip(i).mode == Manipulator::SUPPORT 
                 && _supportTrackers[i]->needsUpdate() )
         {
-            if(const_manip(i).respectToWorld().diff(_supportMemory[i].tf).norm() > zeroValue)
+            if(manip(i).respectToWorld().diff(_supportMemory[i].tf).norm() > zeroValue)
                 return true;
         }
     }
     
     for(size_t i=_supportMemory.size(); i<numManips(); ++i)
     {
-        if( const_manip(i).mode == Manipulator::SUPPORT )
+        if( manip(i).mode == Manipulator::SUPPORT )
             return true;
     }
     
@@ -86,9 +86,9 @@ std::vector<Eigen::Vector2d> Robot::computeSupportPolgon() const
 
     for(size_t i=0; i<numManips(); ++i)
     {
-        if(Manipulator::SUPPORT == const_manip(i).mode)
+        if(Manipulator::SUPPORT == manip(i).mode)
         {
-            const std::vector<KinTranslation>& points = const_manip(i).supportGeometry;
+            const std::vector<KinTranslation>& points = manip(i).supportGeometry;
             for(size_t j=0; j<points.size(); ++j)
             {
                 const KinTranslation& p = points[j];
@@ -264,7 +264,7 @@ Eigen::VectorXd Robot::getConfig(const std::vector<size_t>& joints) const
 {
     Eigen::VectorXd config(joints.size());
     for(size_t i=0; i<joints.size(); ++i)
-        config[i] = const_joint(joints[i]).value();
+        config[i] = joint(joints[i]).value();
     return config;
 }
 
@@ -290,7 +290,7 @@ Frame& Robot::refFrame()
     return _root_dummy_links.front()->refFrame();
 }
 
-const Frame& Robot::const_refFrame() const
+const Frame& Robot::refFrame() const
 {
     return const_cast<Robot*>(this)->refFrame();
 }
@@ -307,14 +307,14 @@ Frame& Robot::frame()
     return *_root;
 }
 
-const Frame& Robot::const_frame() const
+const Frame& Robot::frame() const
 {
     return const_cast<Robot*>(this)->frame();
 }
 
 const KinTranslation& Robot::com() const
 {
-    _com = com(const_anchorLink(), _com.refFrame());
+    _com = com(anchorLink(), _com.refFrame());
     return _com;
 }
 
@@ -334,7 +334,7 @@ Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
         
         for(size_t i=0; i<current->numManips(); ++i)
         {
-            const Manipulator& manip_ = current->const_manip(i);
+            const Manipulator& manip_ = current->manip(i);
             lmass = manip_.mass();
             fcom += lmass*manip_.com().withRespectTo(referenceFrame);
             fmass += lmass;
@@ -366,7 +366,7 @@ double Robot::mass(const Link &startLink, Explorer::policy p) const
         
         for(size_t i=0; i<current->numManips(); ++i)
         {
-            const Manipulator& manip_ = current->const_manip(i);
+            const Manipulator& manip_ = current->manip(i);
             mass_ += manip_.mass();
         }
         
@@ -378,12 +378,12 @@ double Robot::mass(const Link &startLink, Explorer::policy p) const
 
 const double& Robot::mass() const
 {
-    _mass = mass(const_anchorLink());
+    _mass = mass(anchorLink());
     return _mass;
 }
 
 CenterOfMassConstraintBase* Robot::balance() { return _balance; }
-const CenterOfMassConstraintBase* Robot::const_balance() const { return _balance; }
+const CenterOfMassConstraintBase* Robot::balance() const { return _balance; }
 
 void Robot::setBalanceConstraint(CenterOfMassConstraintBase *newConstraint, bool ownConstraint)
 {
@@ -406,7 +406,7 @@ void Robot::name(string newName)
 }
 
 RobotConstraintBase* Robot::task() { return _task; }
-const RobotConstraintBase* Robot::const_task() const { return _task; }
+const RobotConstraintBase* Robot::task() const { return _task; }
 
 void Robot::setTaskConstraint(RobotConstraintBase *newConstraint, bool ownConstraint)
 {
@@ -634,9 +634,9 @@ Joint& Robot::joint(const string &jointName)
     return joint(getJointIndex(jointName));
 }
 
-const Joint& Robot::const_joint(const string &jointName) const
+const Joint& Robot::joint(const string &jointName) const
 {
-    return const_joint(getJointIndex(jointName));
+    return joint(getJointIndex(jointName));
 }
 
 Joint& Robot::joint(size_t jointNum)
@@ -655,7 +655,7 @@ Joint& Robot::joint(size_t jointNum)
     return *_joints[jointNum];
 }
 
-const Joint& Robot::const_joint(size_t jointNum) const
+const Joint& Robot::joint(size_t jointNum) const
 {
     return const_cast<Robot*>(this)->joint(jointNum);
 }
@@ -679,15 +679,15 @@ Link& Robot::link(const string &linkName)
     return link(getLinkIndex(linkName));
 }
 
-const Link& Robot::const_link(const string &linkName) const
+const Link& Robot::link(const string &linkName) const
 {
-    return const_link(getLinkIndex(linkName));
+    return link(getLinkIndex(linkName));
 }
 
 size_t Robot::numLinks() const { return _links.size(); }
 
 Link& Robot::anchorLink() { return *_anchor; }
-const Link& Robot::const_anchorLink() const { return *_anchor; }
+const Link& Robot::anchorLink() const { return *_anchor; }
 
 void Robot::anchorLink(Link &)
 {
@@ -700,7 +700,7 @@ void Robot::anchorLink(size_t )
 }
 
 Link& Robot::rootLink() { return *_root; }
-const Link& Robot::const_rootLink() const { return *_root; }
+const Link& Robot::rootLink() const { return *_root; }
 
 Link& Robot::link(size_t linkNum)
 {
@@ -720,7 +720,7 @@ Link& Robot::link(size_t linkNum)
     return *_links[linkNum];
 }
 
-const Link& Robot::const_link(size_t linkNum) const
+const Link& Robot::link(size_t linkNum) const
 {
     return const_cast<Robot*>(this)->link(linkNum);
 }
@@ -773,7 +773,7 @@ size_t Robot::getManipIndex(const string &manipName) const
     return i->second;
 }
 
-const Manipulator& Robot::const_manip(const string &manipName) const
+const Manipulator& Robot::manip(const string &manipName) const
 {
     return const_cast<Robot*>(this)->manip(manipName);
 }
@@ -790,7 +790,7 @@ Manipulator& Robot::manip(size_t manipNum)
     return *_manips[manipNum];
 }
 
-const Manipulator& Robot::const_manip(size_t manipNum) const
+const Manipulator& Robot::manip(size_t manipNum) const
 {
     return const_cast<Robot*>(this)->manip(manipNum);
 }
@@ -1030,7 +1030,7 @@ void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLi
     _path.clear();
     _temp.clear();
     
-    if(!startLink.const_robot().owns(endLink))
+    if(!startLink.robot().owns(endLink))
         return;
     
     if(startLink.descendsFrom(endLink))
@@ -1039,7 +1039,7 @@ void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLi
         while(current != &endLink)
         {
             _path.push_back(current);
-            current = &current->const_parentLink();
+            current = &current->parentLink();
         }
         _path.push_back(current);
     }
@@ -1049,7 +1049,7 @@ void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLi
         while(current != &startLink)
         {
             _temp.push_back(current);
-            current = &current->const_parentLink();
+            current = &current->parentLink();
         }
         _temp.push_back(current);
         
@@ -1062,7 +1062,7 @@ void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLi
         while(!current->isRoot())
         {
             _path.push_back(current);
-            current = &current->const_parentLink();
+            current = &current->parentLink();
         }
         _path.push_back(current);
         
@@ -1070,7 +1070,7 @@ void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLi
         while(!current->isRoot())
         {
             _temp.push_back(current);
-            current = &current->const_parentLink();
+            current = &current->parentLink();
         }
         
         for(size_t i=_temp.size(); i>0; --i)
@@ -1094,12 +1094,12 @@ void Robot::Explorer::reset(const Link &startLink, policy p)
 
 void Robot::Explorer::reset(const Joint &startJoint, const Joint &endJoint)
 {
-    reset(startJoint.const_childLink(), endJoint.const_childLink());
+    reset(startJoint.childLink(), endJoint.childLink());
 }
 
 void Robot::Explorer::reset(const Joint &startJoint, policy p)
 {
-    reset(startJoint.const_childLink(), p);
+    reset(startJoint.childLink(), p);
 }
 
 const Link* Robot::Explorer::currentLink() const
@@ -1126,7 +1126,7 @@ const Joint* Robot::Explorer::currentJoint() const
     if(link == NULL)
         return NULL;
     
-    return &currentLink()->const_parentJoint();
+    return &currentLink()->parentJoint();
 }
 
 Joint* Robot::Explorer::nonconst_currentJoint() const
@@ -1162,7 +1162,7 @@ const Link* Robot::Explorer::nextLink()
             Recorder& t = _recorder.back();
             if(t.count < (int)(t.link->numDownstreamLinks()))
             {
-                _recorder.push_back(Recorder(&t.link->const_downstreamLink(t.count), 0));
+                _recorder.push_back(Recorder(&t.link->downstreamLink(t.count), 0));
                 ++t.count;
                 return _recorder.back().link;
             }
@@ -1190,19 +1190,19 @@ const Link* Robot::Explorer::nextLink()
             Recorder& t = _recorder.back();
             if(t.count == -1)
             {
-                if(t.link->const_upstreamLink().isDummy())
+                if(t.link->upstreamLink().isDummy())
                 {
                     ++t.count;
                 }
                 else if(_recorder.size() == 1)
                 {
-                    _recorder.push_back(Recorder(&t.link->const_upstreamLink(), -1));
+                    _recorder.push_back(Recorder(&t.link->upstreamLink(), -1));
                     ++t.count;
                     return _recorder.back().link;
                 }
-                else if(&t.link->const_upstreamLink() != _recorder[_recorder.size()-2].link)
+                else if(&t.link->upstreamLink() != _recorder[_recorder.size()-2].link)
                 {
-                    _recorder.push_back(Recorder(&t.link->const_upstreamLink(), -1));
+                    _recorder.push_back(Recorder(&t.link->upstreamLink(), -1));
                     ++t.count;
                     return _recorder.back().link;
                 }
@@ -1217,9 +1217,9 @@ const Link* Robot::Explorer::nextLink()
                 {
                     ++t.count;
                 }
-                else if(&t.link->const_downstreamLink(t.count) != _recorder[_recorder.size()-2].link)
+                else if(&t.link->downstreamLink(t.count) != _recorder[_recorder.size()-2].link)
                 {
-                    _recorder.push_back(Recorder(&t.link->const_downstreamLink(t.count), -1));
+                    _recorder.push_back(Recorder(&t.link->downstreamLink(t.count), -1));
                     ++t.count;
                     if(_recorder.back().link->isDummy())
                         std::cout << "Dummy found as downstream #" << t.count-1 << " of " 
@@ -1250,7 +1250,7 @@ const Joint* Robot::Explorer::nextJoint()
     if(link == NULL)
         return NULL;
     
-    return &link->const_parentJoint();
+    return &link->parentJoint();
 }
 
 Joint* Robot::Explorer::nonconst_nextJoint()
