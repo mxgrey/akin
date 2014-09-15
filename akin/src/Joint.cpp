@@ -284,10 +284,24 @@ const Vec3& Joint::axis() const { return _axis; }
 
 void Joint::baseTransform(const Transform &newBaseTf)
 {
-    _baseTransform = newBaseTf; _computeRefTransform();
+    _baseTransform = newBaseTf;
+    _computeRefTransform();
 }
 
 const Transform& Joint::baseTransform() const { return _baseTransform; }
+
+void Joint::dh_parameters(double d, double theta, double r, double alpha)
+{
+    _axis = Axis(0,0,1);
+    _baseTransform.setIdentity();
+    _baseTransform.translate(Eigen::Vector3d(r, 0, 0));
+}
+
+void Joint::dh_parameters(const Eigen::Vector4d& newDHParameters)
+{
+    dh_parameters(newDHParameters[0], newDHParameters[1],
+                  newDHParameters[2], newDHParameters[3]);
+}
 
 size_t Joint::id() const { return _id; }
 

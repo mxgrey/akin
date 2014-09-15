@@ -44,6 +44,8 @@ public:
     double _min;
     double _max;
 
+    double _velocity;
+
     PublicJointProperties::Type _myType;
 
     size_t _id;
@@ -72,6 +74,9 @@ public:
      * \return
      */
     double value() const;
+
+    void velocity(double newJointVelocity);
+    double velocity() const;
     
     Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
                       bool checkDependence=true) const;
@@ -146,6 +151,10 @@ public:
      * \return
      */
     const Transform& baseTransform() const;
+
+    void dh_parameters(double d, double theta, double r, double alpha);
+    void dh_parameters(const Eigen::Vector4d& newDHParameters);
+    Eigen::Vector4d dh_parameters() const;
 
     /*!
      * \fn id()

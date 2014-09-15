@@ -21,20 +21,6 @@ public:
     {
         (*this) << linear, angular;
     }
-    
-    inline Screw(const Eigen::Matrix<double,6,1>& screw) :
-        Eigen::Matrix<double,6,1>(screw)
-    {
-        
-    }
-    
-    inline Screw(const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>,
-                 Eigen::Matrix<double, 6, 1> >& vec) :
-        Eigen::Matrix<double, 6, 1>(vec)
-    {
-        
-    }
-    
 
     template<typename OtherDerived>
     Screw(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Matrix<double,6,1>(other) { }
