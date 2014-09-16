@@ -210,12 +210,12 @@ public:
     void relativeLinearVelocity(const Velocity& v);
 
     const Velocity& angularVelocity() const;
-    Velocity angularVelocity(const Frame& withRespectTo) const;
+    Velocity angularVelocity(const Frame& withRespectToFrame) const;
     const Velocity& relativeAngularVelocity() const;
     void relativeAngularVelocity(const Velocity& w);
 
     const Velocity& velocity(coord_t type) const;
-    Velocity velocity(coord_t type, const Frame& withRespectTo=Frame::World()) const;
+    Velocity velocity(coord_t type, const Frame& withRespectToFrame=Frame::World()) const;
     Screw velocity(const Frame& withRespectTo=Frame::World()) const;
     
     void relativeVelocity(const Velocity& v, coord_t type = LINEAR);

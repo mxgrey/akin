@@ -265,10 +265,11 @@ Velocity Frame::linearVelocity(const Frame& withRespectToFrame) const
     else if(&withRespectToFrame == &refFrame())
         return relativeLinearVelocity();
 
-    return linearVelocity() - withRespectToFrame.linearVelocity()
+    return withRespectToFrame.respectToWorld().rotation().transpose()*
+            (linearVelocity() - withRespectToFrame.linearVelocity()
             - withRespectToFrame.angularVelocity().cross(
                 respectToWorld().translation()
-                - withRespectToFrame.respectToWorld().translation());
+                - withRespectToFrame.respectToWorld().translation()));
 }
 
 const Velocity& Frame::relativeLinearVelocity() const
@@ -302,14 +303,15 @@ const Velocity& Frame::angularVelocity() const
     return _angularV_wrtWorld;
 }
 
-Velocity Frame::angularVelocity(const Frame &withRespectTo) const
+Velocity Frame::angularVelocity(const Frame &withRespectToFrame) const
 {
-    if(withRespectTo.isWorld())
+    if(withRespectToFrame.isWorld())
         return angularVelocity();
-    else if(&withRespectTo == &refFrame())
+    else if(&withRespectToFrame == &refFrame())
         return relativeAngularVelocity();
 
-    return angularVelocity() - withRespectTo.angularVelocity();
+    return withRespectToFrame.respectToWorld().rotation().transpose()*
+            (angularVelocity() - withRespectToFrame.angularVelocity());
 }
 
 const Velocity& Frame::relativeAngularVelocity() const
@@ -342,14 +344,14 @@ const Velocity& Frame::velocity(coord_t type) const
     return linearVelocity();
 }
 
-Velocity Frame::velocity(coord_t type, const Frame &withRespectTo) const
+Velocity Frame::velocity(coord_t type, const Frame &withRespectToFrame) const
 {
     if(LINEAR==type)
-        return linearVelocity(withRespectTo);
+        return linearVelocity(withRespectToFrame);
     else if(ANGULAR==type)
-        return angularVelocity(withRespectTo);
+        return angularVelocity(withRespectToFrame);
 
-    return linearVelocity(withRespectTo);
+    return linearVelocity(withRespectToFrame);
 }
 
 void Frame::demandPoseUpdate() const { _update(); }
