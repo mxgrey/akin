@@ -84,7 +84,14 @@ public:
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
 
     virtual ~Frame();
+    
+    typedef enum {
 
+        LINEAR,
+        ANGULAR
+
+    } coord_t;
+    
     /*!
       * \fn World()
       * \brief Returns the World Frame
@@ -193,9 +200,27 @@ public:
       * updates to any relevant kinematic trees.
       */
     Transform withRespectTo(const Frame& otherFrame) const;
+    
+    
+    // TODO: Give a lot of thought to this API
+    // TODO: Move these velocity-related things into the Frame class
+    const Velocity& linearVelocity() const;
+    Velocity linearVelocity(const Frame& withRespectTo);
+    const Velocity& relativeLinearVelocity() const;
+    void relativelinearVelocity(const Velocity& v);
 
+    const Velocity& angularVelocity(const Frame& respectTo=Frame::World()) const;
+    Velocity relativeAngularVelocity() const;
+    void relativeAngularVelocity(const Velocity& w);
+
+    const Velocity& velocity(coord_t type = LINEAR, 
+                                     const Frame& respectTo=Frame::World()) const;
+    
+    void relativeVelocity(const Velocity& v, coord_t type = LINEAR);
+    void relativeVelocity(const Screw& v_w);
+    
     /*!
-     * \fn forceUpdate();
+     * \fn demandPoseUpdate();
      * \brief Forces the frame to update itself
      *
      * This function is the same as _update(). The reason its name differs is to
@@ -209,15 +234,25 @@ public:
      * akin produces, please report this as an issue on Github, and try to provide
      * enough detail to recreate the problem.
      */
-    void forceUpdate();
+    void demandPoseUpdate();
+    
+    void notifyVelUpdate();
+    void demandVelUpdate();
 
 protected:
     
     void _update() const;
+    void _velUpdate() const;
 
     Transform _respectToRef;
     mutable Transform _respectToWorld;
-
+    
+    Velocity _relLinearV;
+    Velocity _relAngularV;
+    
+    Velocity _linearV;
+    Velocity _angularV;
+    
     std::vector<Frame*> _childFrames;
 
     void _gainChildFrame(Frame* child);

@@ -242,7 +242,7 @@ Transform Frame::withRespectTo(const Frame &otherFrame) const
     return otherFrame.respectToWorld().inverse() * respectToWorld();
 }
 
-void Frame::forceUpdate() { _update(); }
+void Frame::demandPoseUpdate() { _update(); }
 
 void Frame::_update() const
 {
