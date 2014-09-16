@@ -129,9 +129,11 @@ typedef KinTranslation KinVec3;
  * This is useful for representing velocities and differences between Points or
  * differences between Translations.
  */
-class FreeVector : public Translation
+class FreeVector : public Eigen::Vector3d
 {
 public:
+
+    typedef Eigen::Vector3d Base;
 
     inline FreeVector(double x=0, double y=0, double z=0)
     {
@@ -141,6 +143,17 @@ public:
     inline FreeVector(const Eigen::Vector3d& vec)
     {
         (Eigen::Vector3d&)(*this) = vec;
+    }
+
+    // This constructor allows you to construct MyVectorType from Eigen expressions
+    template<typename OtherDerived>
+    FreeVector(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Vector3d(other) { }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    FreeVector & operator= (const Eigen::MatrixBase <OtherDerived>& other)
+    {
+        this->Base::operator=(other);
+        return *this;
     }
 
 };
@@ -173,7 +186,6 @@ protected:
  * \brief A FreeVector behaves the same way a Velocity would be expected to, so they are typedefed
  */
 typedef FreeVector Velocity;
-typedef KinFreeVector KinVelocity;
 
 /*!
  * \class Axis
@@ -201,7 +213,6 @@ public:
         (Eigen::Vector3d&)(*this) = vec.normalized();
         return *this;
     }
-
 };
 
 class KinAxis : public Axis, public KinObject

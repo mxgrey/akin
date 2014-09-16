@@ -277,7 +277,7 @@ public:
       * \fn needsUpdate()
       * \brief Returns true if this object needs to update itself
       */
-    bool needsUpdate();
+    bool needsUpdate() const;
     
     /*!
       * \fn childObject()

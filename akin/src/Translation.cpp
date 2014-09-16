@@ -111,8 +111,7 @@ void KinFreeVector::_update() const
 
 const Axis& KinAxis::respectToWorld() const
 {
-//    if(_needsUpdate)
-        _update();
+    _update();
 
     return _respectToWorld;
 }

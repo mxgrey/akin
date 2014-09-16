@@ -253,7 +253,7 @@ void KinObject::notifyUpdate()
     }
 }
 
-bool KinObject::needsUpdate() { return _needsUpdate; }
+bool KinObject::needsUpdate() const { return _needsUpdate; }
 
 void KinObject::_loseParent(akin::KinObject*)
 {

@@ -205,16 +205,18 @@ public:
     // TODO: Give a lot of thought to this API
     // TODO: Move these velocity-related things into the Frame class
     const Velocity& linearVelocity() const;
-    Velocity linearVelocity(const Frame& withRespectTo);
+    Velocity linearVelocity(const Frame& withRespectToFrame) const;
     const Velocity& relativeLinearVelocity() const;
-    void relativelinearVelocity(const Velocity& v);
+    void relativeLinearVelocity(const Velocity& v);
 
-    const Velocity& angularVelocity(const Frame& respectTo=Frame::World()) const;
-    Velocity relativeAngularVelocity() const;
+    const Velocity& angularVelocity() const;
+    Velocity angularVelocity(const Frame& withRespectTo) const;
+    const Velocity& relativeAngularVelocity() const;
     void relativeAngularVelocity(const Velocity& w);
 
-    const Velocity& velocity(coord_t type = LINEAR, 
-                                     const Frame& respectTo=Frame::World()) const;
+    const Velocity& velocity(coord_t type) const;
+    Velocity velocity(coord_t type, const Frame& withRespectTo=Frame::World()) const;
+    Screw velocity(const Frame& withRespectTo=Frame::World()) const;
     
     void relativeVelocity(const Velocity& v, coord_t type = LINEAR);
     void relativeVelocity(const Screw& v_w);
@@ -234,24 +236,27 @@ public:
      * akin produces, please report this as an issue on Github, and try to provide
      * enough detail to recreate the problem.
      */
-    void demandPoseUpdate();
+    void demandPoseUpdate() const;
     
     void notifyVelUpdate();
-    void demandVelUpdate();
+    bool needsVelUpdate() const;
+    void demandVelUpdate() const;
 
 protected:
     
     void _update() const;
     void _velUpdate() const;
 
+    mutable bool _needsVelUpdate;
+
     Transform _respectToRef;
     mutable Transform _respectToWorld;
     
-    Velocity _relLinearV;
-    Velocity _relAngularV;
+    Velocity _relativeLinearV;
+    Velocity _relativeAngularV;
     
-    Velocity _linearV;
-    Velocity _angularV;
+    mutable Velocity _linearV_wrtWorld;
+    mutable Velocity _angularV_wrtWorld;
     
     std::vector<Frame*> _childFrames;
 

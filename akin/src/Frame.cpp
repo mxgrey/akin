@@ -54,6 +54,7 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
 {
     _isFrame = true;
     referenceFrame._gainChildFrame(this);
+    _needsVelUpdate = true;
 }
 
 Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
@@ -64,6 +65,7 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
 {
     _isFrame = true;
     referenceFrame._gainChildFrame(this);
+    _needsVelUpdate = true;
 }
 
 
@@ -81,7 +83,10 @@ void Frame::_kinitialize(const Frame &other)
     _isFrame = true;
     _respectToRef = other.respectToRef();
     other.refFrame()._gainChildFrame(this);
+    _needsUpdate = false;
     notifyUpdate();
+    _needsVelUpdate = false;
+    notifyVelUpdate();
 }
 
 Frame::~Frame()
@@ -205,7 +210,7 @@ void Frame::respectToRef(const Transform &newTf)
     if(!verb.Assert(!isWorld(), verbosity::ASSERT_CASUAL,
                     "Cannot change relative transform of the World Frame!",
                     " You have attempted to change the location of the World Frame"
-                    " using the respectToRef function, but the World Frame must remain"
+                    " using the respectToRef(~) function, but the World Frame must remain"
                     " a static identity transform"))
     {
         return;
@@ -242,7 +247,128 @@ Transform Frame::withRespectTo(const Frame &otherFrame) const
     return otherFrame.respectToWorld().inverse() * respectToWorld();
 }
 
-void Frame::demandPoseUpdate() { _update(); }
+const Velocity& Frame::linearVelocity() const
+{
+    if(_isWorld)
+        return _relativeLinearV;
+
+    if(_needsUpdate || _needsVelUpdate)
+        _velUpdate();
+
+    return _linearV_wrtWorld;
+}
+
+Velocity Frame::linearVelocity(const Frame& withRespectToFrame) const
+{
+    if(withRespectToFrame.isWorld())
+        return linearVelocity();
+    else if(&withRespectToFrame == &refFrame())
+        return relativeLinearVelocity();
+
+    return linearVelocity() - withRespectToFrame.linearVelocity()
+            - withRespectToFrame.angularVelocity().cross(
+                respectToWorld().translation()
+                - withRespectToFrame.respectToWorld().translation());
+}
+
+const Velocity& Frame::relativeLinearVelocity() const
+{
+    return _relativeLinearV;
+}
+
+void Frame::relativeLinearVelocity(const Velocity &v)
+{
+    if(!verb.Assert(!isWorld(), verbosity::ASSERT_CASUAL,
+                    "Cannot change the velocity of the World Frame!",
+                    " You have attempted to change the relative linear velocity of the"
+                    " World Frame using the relativeLinearVelocity(~) function, but"
+                    " the World Frame must remain static."))
+    {
+        return;
+    }
+
+    _relativeLinearV = v;
+    notifyVelUpdate();
+}
+
+const Velocity& Frame::angularVelocity() const
+{
+    if(_isWorld)
+        return _relativeAngularV;
+
+    if(_needsUpdate || _needsVelUpdate)
+        _velUpdate();
+
+    return _angularV_wrtWorld;
+}
+
+Velocity Frame::angularVelocity(const Frame &withRespectTo) const
+{
+    if(withRespectTo.isWorld())
+        return angularVelocity();
+    else if(&withRespectTo == &refFrame())
+        return relativeAngularVelocity();
+
+    return angularVelocity() - withRespectTo.angularVelocity();
+}
+
+const Velocity& Frame::relativeAngularVelocity() const
+{
+    return _relativeAngularV;
+}
+
+void Frame::relativeAngularVelocity(const Velocity& w)
+{
+    if(!verb.Assert(!isWorld(), verbosity::ASSERT_CASUAL,
+                    "Cannot change the velocity of the World Frame!",
+                    " You have attempted to change the relative angular velocity of the"
+                    " World Frame using the relativeAngularVelocity(~) function, but"
+                    " the World Frame must remain static."))
+    {
+        return;
+    }
+
+    _relativeAngularV = w;
+    notifyVelUpdate();
+}
+
+const Velocity& Frame::velocity(coord_t type) const
+{
+    if(LINEAR==type)
+        return linearVelocity();
+    else if(ANGULAR==type)
+        return angularVelocity();
+
+    return linearVelocity();
+}
+
+Velocity Frame::velocity(coord_t type, const Frame &withRespectTo) const
+{
+    if(LINEAR==type)
+        return linearVelocity(withRespectTo);
+    else if(ANGULAR==type)
+        return angularVelocity(withRespectTo);
+
+    return linearVelocity(withRespectTo);
+}
+
+void Frame::demandPoseUpdate() const { _update(); }
+
+void Frame::notifyVelUpdate()
+{
+    if(_needsVelUpdate)
+    {
+        return;
+    }
+
+    _needsVelUpdate = true;
+    for(size_t i=0; i<numChildFrames(); ++i)
+        childFrame(i).notifyVelUpdate();
+}
+
+bool Frame::needsVelUpdate() const { return _needsVelUpdate; }
+
+void Frame::demandVelUpdate() const { _velUpdate(); }
 
 void Frame::_update() const
 {
@@ -251,6 +377,18 @@ void Frame::_update() const
     _respectToWorld = refFrame().respectToWorld() * _respectToRef;
 
     _needsUpdate = false;
+}
+
+void Frame::_velUpdate() const
+{
+    verb.debug() << "Updating velocity of frame '"+name()+"'"; verb.end();
+
+    _linearV_wrtWorld = refFrame().linearVelocity() + _relativeLinearV
+            + refFrame().angularVelocity().cross(_respectToRef.translation());
+
+    _angularV_wrtWorld = refFrame().angularVelocity() + _relativeAngularV;
+
+    _needsVelUpdate = false;
 }
 
 std::ostream& operator<<(std::ostream& oStrStream, const akin::Frame& mFrame)
