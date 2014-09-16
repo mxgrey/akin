@@ -385,10 +385,13 @@ void Frame::_velUpdate() const
 {
     verb.debug() << "Updating velocity of frame '"+name()+"'"; verb.end();
 
-    _linearV_wrtWorld = refFrame().linearVelocity() + _relativeLinearV
-            + refFrame().angularVelocity().cross(_respectToRef.translation());
+    _linearV_wrtWorld = refFrame().linearVelocity() 
+                        + refFrame().respectToWorld().rotation()*_relativeLinearV
+            + refFrame().angularVelocity().cross(
+                            refFrame().respectToWorld().rotation()*_respectToRef.translation());
 
-    _angularV_wrtWorld = refFrame().angularVelocity() + _relativeAngularV;
+    _angularV_wrtWorld = refFrame().angularVelocity() 
+                         + refFrame().respectToWorld().rotation()*_relativeAngularV;
 
     _needsVelUpdate = false;
 }
