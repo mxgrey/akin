@@ -39,45 +39,45 @@ void Hubo2Plus::_setup_manipulators()
     joint(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
 
     // Left Hand Constraints
-    manip(MANIP_L_HAND).setConstraint(Manipulator::LINKAGE,
-            new ManipConstraint<7>(manip(MANIP_L_HAND),
+    manip(LEFT_HAND).setConstraint(Manipulator::LINKAGE,
+            new ManipConstraint<7>(manip(LEFT_HAND),
                         Robot::Explorer::getIdPath(joint("LSP"),joint("LWR"))));
 
     // Right Hand Constraints
-    manip(MANIP_R_HAND).setConstraint(Manipulator::LINKAGE,
-            new ManipConstraint<7>(manip(MANIP_R_HAND),
+    manip(RIGHT_HAND).setConstraint(Manipulator::LINKAGE,
+            new ManipConstraint<7>(manip(RIGHT_HAND),
                         Robot::Explorer::getIdPath(joint("RSP"),joint("RWR"))));
 
     // Left Foot Constraints
-    manip(MANIP_L_FOOT).setConstraint(Manipulator::LINKAGE,
-            new ManipConstraint<6>(manip(MANIP_L_FOOT),
+    manip(LEFT_FOOT).setConstraint(Manipulator::LINKAGE,
+            new ManipConstraint<6>(manip(LEFT_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
 
-    manip(MANIP_L_FOOT).setConstraint(Manipulator::ANALYTICAL, 
-            new HuboLegIK<6>(manip(MANIP_L_FOOT),
+    manip(LEFT_FOOT).setConstraint(Manipulator::ANALYTICAL, 
+            new HuboLegIK<6>(manip(LEFT_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
     
-    manip(MANIP_L_FOOT).setConstraint(Manipulator::SUPPORT, 
-            new HuboLegIK<6>(manip(MANIP_L_FOOT),
+    manip(LEFT_FOOT).setConstraint(Manipulator::SUPPORT, 
+            new HuboLegIK<6>(manip(LEFT_FOOT),
                         Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
     
 
     // Right Foot Constraints
-    manip(MANIP_R_FOOT).setConstraint(Manipulator::LINKAGE,
-            new ManipConstraint<6>(manip(MANIP_R_FOOT),
+    manip(RIGHT_FOOT).setConstraint(Manipulator::LINKAGE,
+            new ManipConstraint<6>(manip(RIGHT_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
 
-    manip(MANIP_R_FOOT).setConstraint(Manipulator::ANALYTICAL, 
-            new HuboLegIK<6>(manip(MANIP_R_FOOT),
+    manip(RIGHT_FOOT).setConstraint(Manipulator::ANALYTICAL, 
+            new HuboLegIK<6>(manip(RIGHT_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
     
-    manip(MANIP_R_FOOT).setConstraint(Manipulator::SUPPORT, 
-            new HuboLegIK<6>(manip(MANIP_R_FOOT),
+    manip(RIGHT_FOOT).setConstraint(Manipulator::SUPPORT, 
+            new HuboLegIK<6>(manip(RIGHT_FOOT),
                         Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
     
     for(size_t i=0; i<2; ++i)
     {
-        size_t m = i==0? MANIP_L_FOOT : MANIP_R_FOOT;
+        size_t m = i==0? LEFT_FOOT : RIGHT_FOOT;
         std::string name = i==0? "lfoot" : "rfoot";
         
         std::vector<KinTranslation>& sg = manip(m).supportGeometry;

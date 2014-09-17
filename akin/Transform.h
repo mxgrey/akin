@@ -114,11 +114,6 @@ public:
         return FreeVector(rotation() * (Eigen::Vector3d&)(other));
     }
 
-    inline akin::Axis operator*(const akin::Axis& other) const
-    {
-        return Axis(rotation() * (Eigen::Vector3d&)(other));
-    }
-
     inline akin::Rotation operator*(const akin::Rotation& other) const
     {
         return Rotation(rotation() * (Eigen::Quaterniond&)(other));

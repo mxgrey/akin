@@ -63,13 +63,15 @@ class Rotation : public Eigen::Quaterniond
 {
 public:
 
+    typedef Eigen::Quaterniond Base;
+
     /*!
      * \fn Rotation(double angle, Axis rotation_axis)
      * \brief Angle-Axis style constructor
      * \param angle
      * \param rotation_axis
      */
-    inline Rotation(double angle, const Axis& rotation_axis) :
+    inline Rotation(double angle, const Eigen::Vector3d& rotation_axis) :
         Eigen::Quaterniond(Eigen::AngleAxisd(angle, rotation_axis))
     {
 
@@ -97,6 +99,17 @@ public:
         Eigen::Quaterniond(someMatrix)
     {
 
+    }
+
+    // This constructor allows you to construct MyVectorType from Eigen expressions
+    template<typename OtherDerived>
+    Rotation(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Quaterniond(other) { }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Rotation & operator= (const Eigen::MatrixBase <OtherDerived>& other)
+    {
+        this->Base::operator=(other);
+        return *this;
     }
 };
 

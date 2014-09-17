@@ -74,8 +74,8 @@ public:
       * \brief Constructor for frames
       * 
       */
-    Frame(Frame& referenceFrame,
-          std::string frameName,
+    Frame(Frame& referenceFrame = World(),
+          std::string frameName = "arbitrary_frame",
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     
     Frame(const Transform& relativeTf,
@@ -220,6 +220,8 @@ public:
     
     void relativeVelocity(const Velocity& v, coord_t type = LINEAR);
     void relativeVelocity(const Screw& v_w);
+
+    virtual void notifyUpdate();
     
     /*!
      * \fn demandPoseUpdate();

@@ -354,6 +354,12 @@ Velocity Frame::velocity(coord_t type, const Frame &withRespectToFrame) const
     return linearVelocity(withRespectToFrame);
 }
 
+void Frame::notifyUpdate()
+{
+    KinObject::notifyUpdate();
+    notifyVelUpdate();
+}
+
 void Frame::demandPoseUpdate() const { _update(); }
 
 void Frame::notifyVelUpdate()

@@ -123,9 +123,9 @@ bool SolverX::_satisfy(Eigen::VectorXd& config, ConstraintBase* constraint, size
     if(config.size() != min_limits.size() || config.size() != max_limits.size())
     {
         std::cout << "Configuration-Space sizes do not match:\n" 
-                  << " -- Input:" << config.size() 
-                  << " | Min:" << min_limits.size() 
-                  << " | Max:" << max_limits.size() << std::endl;
+                  << " -- Input Dimensions:" << config.size()
+                  << " | Min Limit Dimensions:" << min_limits.size()
+                  << " | Max Limit Dimensions:" << max_limits.size() << std::endl;
         return false;
     }
     

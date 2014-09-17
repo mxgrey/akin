@@ -12,8 +12,8 @@ int main(int , char* [])
     DrcHubo hubo("../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
                  "../../../resources/drchubo");
     
-    size_t left = DrcHubo::MANIP_L_FOOT;
-    size_t right = DrcHubo::MANIP_R_FOOT;
+    size_t left = DrcHubo::LEFT_FOOT;
+    size_t right = DrcHubo::RIGHT_FOOT;
     
     hubo.manip(left).mode = Manipulator::SUPPORT;
     hubo.manip(right).mode = Manipulator::SUPPORT;

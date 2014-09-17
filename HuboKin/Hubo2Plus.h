@@ -10,10 +10,10 @@ class Hubo2Plus : public akin::Robot
 public:
 
     enum {
-        MANIP_L_HAND = 0,
-        MANIP_R_HAND,
-        MANIP_L_FOOT,
-        MANIP_R_FOOT
+        LEFT_HAND = 0,
+        RIGHT_HAND,
+        LEFT_FOOT,
+        RIGHT_FOOT
     };
 
     Hubo2Plus(const std::string& urdf_file,
