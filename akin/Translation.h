@@ -198,27 +198,51 @@ class Axis : public FreeVector
 {
 public:
 
-    inline Axis(double x=0, double y=0, double z=0)
+    inline bool valid() const { return _valid; }
+    
+    inline Axis(double x=0, double y=0, double z=0) :
+        FreeVector(x,y,z),
+        _valid(true)
     {
-        (Eigen::Vector3d&)(*this) = Eigen::Vector3d(x,y,z).normalized();
+        _validate();
     }
     
-    inline Axis(const Translation& vec)
+    inline Axis(const Translation& vec) :
+        FreeVector(vec),
+        _valid(true)
     {
-        (Eigen::Vector3d&)(*this) = vec.normalized();
+        _validate();
     }
 
-    inline Axis(const FreeVector& vec)
+    inline Axis(const FreeVector& vec) :
+        FreeVector(vec),
+        _valid(true)
     {
-        (Eigen::Vector3d&)(*this) = vec.normalized();
+        _validate();
     }
     
     inline Axis& operator=(const Eigen::Vector3d& vec)
     {
-        (Eigen::Vector3d&)(*this) = vec.normalized();
+        (Eigen::Vector3d&)(*this) = vec;
+        _validate();
         return *this;
     }
 
+protected:
+    bool _valid;
+    
+    inline void _validate()
+    {
+        double _norm = norm();
+        if(_norm > 0)
+        {
+            (Eigen::Vector3d&)(*this) = (Eigen::Vector3d&)(*this)/_norm;
+            _valid = true;
+        }
+        else
+            _valid = false;
+    }
+    
 
 };
 

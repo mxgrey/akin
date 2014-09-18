@@ -71,10 +71,21 @@ public:
      * \param angle
      * \param rotation_axis
      */
-    inline Rotation(double angle, const Eigen::Vector3d& rotation_axis) :
+    inline Rotation(double angle, const Axis& rotation_axis) :
         Eigen::Quaterniond(Eigen::AngleAxisd(angle, rotation_axis))
     {
-
+        if(!rotation_axis.valid())
+            setIdentity();
+    }
+    
+    inline Rotation(const FreeVector& angular_displacement)
+    {
+        double _norm = angular_displacement.norm();
+        if(_norm == 0)
+            setIdentity();
+        else
+            (Eigen::Quaterniond&)(*this) = Eigen::Quaterniond(
+                                    Eigen::AngleAxisd(_norm, angular_displacement/_norm));
     }
 
     inline Rotation(const Eigen::AngleAxisd& someRotation) :
@@ -95,18 +106,21 @@ public:
         
     }
 
-    inline Rotation(const Eigen::RotationBase<Eigen::Quaternion<double>,3>::RotationMatrixType someMatrix) :
-        Eigen::Quaterniond(someMatrix)
-    {
+//    inline Rotation(const Eigen::RotationBase<Eigen::Quaternion<double>,3>::RotationMatrixType someMatrix) :
+//        Eigen::Quaterniond(someMatrix)
+//    {
 
-    }
+//    }
 
     // This constructor allows you to construct MyVectorType from Eigen expressions
     template<typename OtherDerived>
-    Rotation(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Quaterniond(other) { }
+    Rotation(const Eigen::RotationBase<OtherDerived, 3>& other) : Eigen::Quaterniond(other) { }
+    template<typename OtherDerived>
+    Rotation(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Quaterniond(other){ }
+    
     // This method allows you to assign Eigen expressions to MyVectorType
     template<typename OtherDerived>
-    Rotation & operator= (const Eigen::MatrixBase <OtherDerived>& other)
+    Rotation & operator= (const Eigen::RotationBase <OtherDerived, 3>& other)
     {
         this->Base::operator=(other);
         return *this;

@@ -49,10 +49,10 @@ public:
 //            }
 
 //            cout << "\n_________________" << endl;
-            cout << getFrame(0).childFrame(0).childFrame(0).linearVelocity().transpose()
-                 << "\t|\t"
-                 << getFrame(0).childFrame(0).linearVelocity().transpose()
-                 << endl;
+//            cout << getFrame(0).childFrame(0).childFrame(0).linearVelocity().transpose()
+//                 << "\t|\t"
+//                 << getFrame(0).childFrame(0).linearVelocity().transpose()
+//                 << endl;
         }
 
         Frame* frame = &getFrame(0);
@@ -86,6 +86,16 @@ public:
                                       + frame->linearVelocity()*dt*10);
             vels[counter]->updateVertices();
 
+            Frame& follower = getFrame(counter+1);
+            const Transform& tff = follower.respectToRef();
+            tf.setIdentity();
+            tf.translate(tff.translation());
+            tf.translate(frame->linearVelocity()*dt);
+            tf.rotate(Rotation(Velocity(frame->angularVelocity()*dt)));
+            tf.rotate(tff.rotation());
+            
+            follower.respectToRef(tf);
+            
 
             if(frame->numChildFrames()==0)
                 frame = NULL;
@@ -149,7 +159,15 @@ int main(int, char* [])
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
     B.relativeAngularVelocity(Velocity(0,0,1));
-
+    
+    Frame Af(A.respectToWorld(), Frame::World(), "A follower");
+    node->addRootFrame(Af);
+    Frame Bf(B.respectToWorld(), Frame::World(), "B follower");
+    node->addRootFrame(Bf);
+    Frame Cf(C.respectToWorld(), Frame::World(), "C follower");
+    node->addRootFrame(Cf);
+    
+    
     node->addRootFrame(Frame::World());
 
     osgViewer::Viewer viewer;
