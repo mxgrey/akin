@@ -12,7 +12,7 @@ class CustomNode : public AkinNode
 {
 public:
 
-    CustomNode() : elapsed_time(0), dt(0.01), report_time(0.01), iterations(0), paused(false)
+    CustomNode() : elapsed_time(0), dt(0.001), report_time(0.01), iterations(0), paused(false)
     {
         geode = new osg::Geode;
         geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
@@ -153,12 +153,15 @@ int main(int, char* [])
     hevent->myNode = node;
 
     Frame A(Frame::World(), "A");
-    Frame B(Transform(Translation(1,0,0)), A, "B");
-    Frame C(Transform(Translation(1,0,0)), B, "C");
+    Frame B(Transform(Translation(0,0,0)), A, "B");
+    Frame C(Transform(Translation(0,0.5,0)), B, "C");
+    Frame D(Transform(Translation(1,0,0)), C, "D");
 
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
+    B.relativeLinearVelocity(Velocity(0.1,0,0));
     B.relativeAngularVelocity(Velocity(0,0,1));
+    C.relativeAngularVelocity(Velocity(0,1,0));
     
     Frame Af(A.respectToWorld(), Frame::World(), "A follower");
     node->addRootFrame(Af);
@@ -166,7 +169,8 @@ int main(int, char* [])
     node->addRootFrame(Bf);
     Frame Cf(C.respectToWorld(), Frame::World(), "C follower");
     node->addRootFrame(Cf);
-    
+    Frame Df(D.respectToWorld(), Frame::World(), "D follower");
+    node->addRootFrame(Df);
     
     node->addRootFrame(Frame::World());
 
