@@ -54,6 +54,16 @@ public:
 //                 << getFrame(0).childFrame(0).linearVelocity().transpose()
 //                 << endl;
         }
+        
+        const Transform& tfr = referenceFrame->respectToRef();
+        Velocity v = referenceFrame->relativeLinearVelocity();
+        Velocity w = referenceFrame->relativeAngularVelocity();
+        Transform tf;
+        tf.translate(tfr.translation());
+        tf.translate(v*dt);
+        tf.rotate(Rotation(Velocity(w*dt)));
+        tf.rotate(tfr.rotation());
+        referenceFrame->respectToRef(tf);
 
         Frame* frame = &getFrame(0);
 
@@ -61,10 +71,10 @@ public:
         while(frame)
         {
             const Transform& tf0 = frame->respectToRef();
-            Velocity v = frame->relativeLinearVelocity();
-            Velocity w = frame->relativeAngularVelocity();
+            v = frame->relativeLinearVelocity();
+            w = frame->relativeAngularVelocity();
 
-            Transform tf;
+            tf.setIdentity();
             tf.translate(tf0.translation());
             tf.translate(v*dt);
             tf.rotate(Rotation(w.norm()*dt, w));
@@ -86,12 +96,12 @@ public:
                                       + frame->linearVelocity()*dt*10);
             vels[counter]->updateVertices();
 
-            Frame& follower = getFrame(counter+1);
+            Frame& follower = *followers[counter];
             const Transform& tff = follower.respectToRef();
             tf.setIdentity();
             tf.translate(tff.translation());
-            tf.translate(frame->linearVelocity()*dt);
-            tf.rotate(Rotation(Velocity(frame->angularVelocity()*dt)));
+            tf.translate(frame->linearVelocity(*referenceFrame)*dt);
+            tf.rotate(Rotation(Velocity(frame->angularVelocity(*referenceFrame)*dt)));
             tf.rotate(tff.rotation());
             
             follower.respectToRef(tf);
@@ -107,6 +117,9 @@ public:
 
         AkinNode::update();
     }
+    
+    Frame* referenceFrame;
+    std::vector<Frame*> followers;
 
     double elapsed_time;
     double dt;
@@ -151,6 +164,13 @@ int main(int, char* [])
     osg::ref_ptr<CustomNode> node = new CustomNode;
     osg::ref_ptr<CustomEventHandler> hevent = new CustomEventHandler;
     hevent->myNode = node;
+    
+//    node->referenceFrame = &Frame::World();
+    Frame ref(Frame::World(), "Ref");
+    node->referenceFrame = &ref;
+    ref.respectToRef(Transform(Translation(0,1,1),Rotation(20*DEG,Axis(1,1,0))));
+    ref.relativeLinearVelocity(Velocity(0,0,-1));
+    ref.relativeAngularVelocity(Velocity(1,0.2,-0.3));
 
     Frame A(Frame::World(), "A");
     Frame B(Transform(Translation(0,0,0)), A, "B");
@@ -159,20 +179,20 @@ int main(int, char* [])
 
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
-    B.relativeLinearVelocity(Velocity(0.1,0,0));
+    B.relativeLinearVelocity(Velocity(0.2,0,0));
     B.relativeAngularVelocity(Velocity(0,0,1));
     C.relativeAngularVelocity(Velocity(0,1,0));
     
-    Frame Af(A.respectToWorld(), Frame::World(), "A follower");
-    node->addRootFrame(Af);
-    Frame Bf(B.respectToWorld(), Frame::World(), "B follower");
-    node->addRootFrame(Bf);
-    Frame Cf(C.respectToWorld(), Frame::World(), "C follower");
-    node->addRootFrame(Cf);
-    Frame Df(D.respectToWorld(), Frame::World(), "D follower");
-    node->addRootFrame(Df);
+    Frame Af(A.withRespectTo(*node->referenceFrame), *node->referenceFrame, "A follower");
+    node->followers.push_back(&Af);
+    Frame Bf(B.withRespectTo(*node->referenceFrame), *node->referenceFrame, "B follower");
+    node->followers.push_back(&Bf);
+    Frame Cf(C.withRespectTo(*node->referenceFrame), *node->referenceFrame, "C follower");
+    node->followers.push_back(&Cf);
+    Frame Df(D.withRespectTo(*node->referenceFrame), *node->referenceFrame, "D follower");
+    node->followers.push_back(&Df);
     
-    node->addRootFrame(Frame::World());
+    node->addRootFrame(*node->referenceFrame);
 
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3,0.3,0.3,1.0));

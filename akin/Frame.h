@@ -269,7 +269,7 @@ protected:
 
 private:
 
-    Frame(bool);
+    explicit Frame(bool);
 
     bool _isWorld;
 };
