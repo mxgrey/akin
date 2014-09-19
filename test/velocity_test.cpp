@@ -33,26 +33,8 @@ public:
         {
             ++iterations;
             elapsed_time = 0;
-//            Frame* frame = &getFrame(0);
-//            cout << "(Iteration " << iterations << ")\n";
-//            while(frame)
-//            {
-//                cout << "Frame " << frame->name() << ": <"
-//                     << frame->linearVelocity().transpose() << "> | <"
-//                     << frame->relativeLinearVelocity().transpose() << ">"
-//                     << "\n";
 
-//                if(frame->numChildFrames()==0)
-//                    frame = NULL;
-//                else
-//                    frame = &frame->childFrame(0);
-//            }
-
-//            cout << "\n_________________" << endl;
-//            cout << getFrame(0).childFrame(0).childFrame(0).linearVelocity().transpose()
-//                 << "\t|\t"
-//                 << getFrame(0).childFrame(0).linearVelocity().transpose()
-//                 << endl;
+            // Print messages here if desired
         }
         
         const Transform& tfr = referenceFrame->respectToRef();
@@ -169,7 +151,7 @@ int main(int, char* [])
     Frame ref(Frame::World(), "Ref");
     node->referenceFrame = &ref;
     ref.respectToRef(Transform(Translation(0,1,1),Rotation(20*DEG,Axis(1,1,0))));
-    ref.relativeLinearVelocity(Velocity(0,0,-1));
+    ref.relativeLinearVelocity(Velocity(0,0,-0.2));
     ref.relativeAngularVelocity(Velocity(1,0.2,-0.3));
 
     Frame A(Frame::World(), "A");
@@ -179,8 +161,8 @@ int main(int, char* [])
 
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
-    B.relativeLinearVelocity(Velocity(0.2,0,0));
-    B.relativeAngularVelocity(Velocity(0,0,1));
+    B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
+    B.relativeAngularVelocity(Velocity(1,1,1));
     C.relativeAngularVelocity(Velocity(0,1,0));
     
     Frame Af(A.withRespectTo(*node->referenceFrame), *node->referenceFrame, "A follower");

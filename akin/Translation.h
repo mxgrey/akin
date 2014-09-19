@@ -186,6 +186,7 @@ protected:
  * \brief A FreeVector behaves the same way a Velocity would be expected to, so they are typedefed
  */
 typedef FreeVector Velocity;
+typedef FreeVector Acceleration;
 
 /*!
  * \class Axis

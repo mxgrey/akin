@@ -12,11 +12,15 @@ Body::Body(Frame &referenceFrame, const string &bodyName) :
     com.setZero();
 }
 
+Translation Body::getCom(const Frame &withRespectToFrame) const
+{
+    return com.withRespectTo(withRespectToFrame);
+}
 
-
-
-
-
+double Body::getMass() const
+{
+    return mass;
+}
 
 
 

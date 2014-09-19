@@ -200,16 +200,15 @@ protected:
 
 typedef ManipConstraint<Eigen::Dynamic> ManipConstraintX;
 
-class CenterOfMassConstraintBase : public virtual RobotConstraintBase
+class BalanceConstraintBase : public virtual RobotConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    virtual ~CenterOfMassConstraintBase();
+    virtual ~BalanceConstraintBase();
 
-    CenterOfMassConstraintBase();
+    BalanceConstraintBase();
 
     bool useRobotSupportPolygon;
-//    std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > supportConvexHull;
     std::vector<Eigen::Vector2d> supportConvexHull;
     double min_height;
     double max_height;
@@ -218,7 +217,7 @@ public:
 
 template<int Q>
 class CenterOfMassConstraint : public RobotJacobianConstraint<Q,3>,
-        public virtual CenterOfMassConstraintBase
+        public virtual BalanceConstraintBase
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -5,7 +5,7 @@
 
 namespace akin {
 
-class BodyBase
+class InertiaBase
 {
 public:
 
@@ -14,9 +14,13 @@ public:
     // This class will be inherited by both Body and Robot so that either can
     // be attached to a manipulator using the same API.
 
+    virtual Translation getCom(const Frame& withRespectToFrame = Frame::World()) const = 0;
+    virtual double getMass() const = 0;
+
+
 };
 
-class Body : public Frame
+class Body : public Frame, public InertiaBase
 {
 public:
     
@@ -24,6 +28,9 @@ public:
     
     KinTranslation com;
     double mass;
+
+    Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
+    double getMass() const;
     
 protected:
     

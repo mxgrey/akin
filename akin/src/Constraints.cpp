@@ -319,7 +319,7 @@ int NullManipConstraint::getErrorDimension() { return 6; }
 
 ///////////// CenterOfMassConstraintBase
 
-CenterOfMassConstraintBase::CenterOfMassConstraintBase() :
+BalanceConstraintBase::BalanceConstraintBase() :
     useRobotSupportPolygon(true),
     min_height(-INFINITY),
     max_height( INFINITY)
@@ -327,7 +327,7 @@ CenterOfMassConstraintBase::CenterOfMassConstraintBase() :
 
 }
 
-CenterOfMassConstraintBase::~CenterOfMassConstraintBase() { }
+BalanceConstraintBase::~BalanceConstraintBase() { }
 
 ///////////// Analytical IK
 

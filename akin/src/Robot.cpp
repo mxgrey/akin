@@ -19,6 +19,8 @@ Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_le
     _initializeRobot(referenceFrame, report_level);
 }
 
+
+
 bool Robot::_needSupportUpdate() const 
 {
     for(size_t i=0; i<_supportMemory.size(); ++i)
@@ -312,80 +314,11 @@ const Frame& Robot::frame() const
     return const_cast<Robot*>(this)->frame();
 }
 
-const KinTranslation& Robot::com() const
-{
-    _com = com(anchorLink(), _com.refFrame());
-    return _com;
-}
 
-Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
-                       Explorer::policy p) const
-{
-    Translation fcom;
-    double fmass = 0, lmass = 0;
-    
-    _crawler.reset(startLink, p);
-    const Link* current = _crawler.nextLink();
-    while(current != NULL)
-    {
-        lmass = current->mass;
-        fcom += lmass*current->com.withRespectTo(referenceFrame);
-        fmass += lmass;
-        
-        for(size_t i=0; i<current->numManips(); ++i)
-        {
-            const Manipulator& manip_ = current->manip(i);
-            lmass = manip_.mass();
-            fcom += lmass*manip_.com().withRespectTo(referenceFrame);
-            fmass += lmass;
-        }
-        
-        current = _crawler.nextLink();
-    }
-    
-//    if( verb.Assert(fmass > 0, verbosity::ASSERT_CASUAL,
-//                    "Center of Mass requested for Robot '"+name()+"' starting at Link '"
-//                    +startLink.name()+"', but there was no mass at all!") )
-    if( fmass > 0 )
-        fcom = fcom/fmass;
-    else
-        fcom.setZero();
-    
-    return fcom;
-}
+BalanceConstraintBase* Robot::balance() { return _balance; }
+const BalanceConstraintBase* Robot::balance() const { return _balance; }
 
-double Robot::mass(const Link &startLink, Explorer::policy p) const
-{
-    double mass_ = 0;
-    
-    _crawler.reset(startLink, p);
-    const Link* current = _crawler.nextLink();
-    while(current != NULL)
-    {
-        mass_ += current->mass;
-        
-        for(size_t i=0; i<current->numManips(); ++i)
-        {
-            const Manipulator& manip_ = current->manip(i);
-            mass_ += manip_.mass();
-        }
-        
-        current = _crawler.nextLink();
-    }
-    
-    return mass_;
-}
-
-const double& Robot::mass() const
-{
-    _mass = mass(anchorLink());
-    return _mass;
-}
-
-CenterOfMassConstraintBase* Robot::balance() { return _balance; }
-const CenterOfMassConstraintBase* Robot::balance() const { return _balance; }
-
-void Robot::setBalanceConstraint(CenterOfMassConstraintBase *newConstraint, bool ownConstraint)
+void Robot::setBalanceConstraint(BalanceConstraintBase *newConstraint, bool ownConstraint)
 {
     if(_ownsBalance)
         delete _balance;
@@ -446,6 +379,86 @@ bool Robot::solve()
     setConfig(_task->getJoints(), _taskConfig);
 
     return result;
+}
+
+const KinTranslation& Robot::com() const
+{
+    _com = com(anchorLink(), _com.refFrame());
+    return _com;
+}
+
+Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
+                       Explorer::policy p) const
+{
+    Translation fcom;
+    double fmass = 0, lmass = 0;
+
+    _crawler.reset(startLink, p);
+    const Link* current = _crawler.nextLink();
+    while(current != NULL)
+    {
+        lmass = current->mass;
+        fcom += lmass*current->com.withRespectTo(referenceFrame);
+        fmass += lmass;
+
+        for(size_t i=0; i<current->numManips(); ++i)
+        {
+            const Manipulator& manip_ = current->manip(i);
+            lmass = manip_.mass();
+            fcom += lmass*manip_.com().withRespectTo(referenceFrame);
+            fmass += lmass;
+        }
+
+        current = _crawler.nextLink();
+    }
+
+//    if( verb.Assert(fmass > 0, verbosity::ASSERT_CASUAL,
+//                    "Center of Mass requested for Robot '"+name()+"' starting at Link '"
+//                    +startLink.name()+"', but there was no mass at all!") )
+    if( fmass > 0 )
+        fcom = fcom/fmass;
+    else
+        fcom.setZero();
+
+    return fcom;
+}
+
+double Robot::mass(const Link &startLink, Explorer::policy p) const
+{
+    double mass_ = 0;
+
+    _crawler.reset(startLink, p);
+    const Link* current = _crawler.nextLink();
+    while(current != NULL)
+    {
+        mass_ += current->mass;
+
+        for(size_t i=0; i<current->numManips(); ++i)
+        {
+            const Manipulator& manip_ = current->manip(i);
+            mass_ += manip_.mass();
+        }
+
+        current = _crawler.nextLink();
+    }
+
+    return mass_;
+}
+
+const double& Robot::mass() const
+{
+    _mass = mass(anchorLink());
+    return _mass;
+}
+
+Translation Robot::getCom(const Frame &withRespectToFrame) const
+{
+    return com().withRespectTo(withRespectToFrame);
+}
+
+double Robot::getMass() const
+{
+    return mass();
 }
 
 const string& Robot::name() const { return _name; }

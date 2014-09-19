@@ -201,9 +201,7 @@ public:
       */
     Transform withRespectTo(const Frame& otherFrame) const;
     
-    
-    // TODO: Give a lot of thought to this API
-    // TODO: Move these velocity-related things into the Frame class
+    // Velocity API ---------------------------------------------------------
     const Velocity& linearVelocity() const;
     Velocity linearVelocity(const Frame& withRespectToFrame) const;
     const Velocity& relativeLinearVelocity() const;
@@ -215,12 +213,33 @@ public:
     void relativeAngularVelocity(const Velocity& w);
 
     const Velocity& velocity(coord_t type) const;
-    Velocity velocity(coord_t type, const Frame& withRespectToFrame=Frame::World()) const;
-    Screw velocity(const Frame& withRespectTo=Frame::World()) const;
-    
+    Velocity velocity(coord_t type, const Frame& withRespectToFrame) const;
     void relativeVelocity(const Velocity& v, coord_t type = LINEAR);
+
+    Screw velocity(const Frame& withRespectToFrame=Frame::World()) const;
+    Screw relativeVelocity() const;
     void relativeVelocity(const Screw& v_w);
 
+    // Acceleration API ------------------------------------------------------
+    const Acceleration& linearAcceleration() const;
+    Acceleration linearAcceleration(const Frame& withRespectToFrame) const;
+    const Acceleration& relativeLinearAcceleration() const;
+    void relativeLinearAcceleration(const Acceleration& a);
+
+    const Acceleration& angularAcceleration() const;
+    Acceleration angularAcceleration(const Frame& withRespectToFrame) const;
+    const Acceleration& relativeAngularAcceleration() const;
+    void relativeAngularAcceleration(const Acceleration& w_dot);
+
+    const Acceleration& acceleration(coord_t type) const;
+    Acceleration acceleration(coord_t type, const Frame& withRespectToFrame) const;
+    void relativeAcceleration(const Acceleration& a, coord_t type = LINEAR);
+
+    Screw acceleration(const Frame& withRespectToFrame=Frame::World()) const;
+    Screw relativeAcceleration() const;
+    void relativeAcceleration(const Screw& a_wdot);
+
+    // Update functions -------------------------------------------------------
     virtual void notifyUpdate();
     
     /*!
@@ -244,21 +263,31 @@ public:
     bool needsVelUpdate() const;
     void demandVelUpdate() const;
 
+    void notifyAccUpdate();
+    bool needsAccUpdate() const;
+    void demandAccUpdate() const;
+
 protected:
     
     void _update() const;
     void _velUpdate() const;
+    void _accUpdate() const;
 
     mutable bool _needsVelUpdate;
+    mutable bool _needsAccUpdate;
 
     Transform _respectToRef;
     mutable Transform _respectToWorld;
     
-    Velocity _relativeLinearV;
-    Velocity _relativeAngularV;
-    
-    mutable Velocity _linearV_wrtWorld;
-    mutable Velocity _angularV_wrtWorld;
+    Velocity _relativeLinearVel;
+    Velocity _relativeAngularVel;
+    mutable Velocity _linearVel_wrtWorld;
+    mutable Velocity _angularVel_wrtWorld;
+
+    Acceleration _relativeLinearAcc;
+    Acceleration _relativeAngularAcc;
+    mutable Acceleration _linearAcc_wrtWorld;
+    mutable Acceleration _angularAcc_wrtWorld;
     
     std::vector<Frame*> _childFrames;
 

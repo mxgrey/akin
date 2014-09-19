@@ -10,7 +10,7 @@
 namespace akin {
 
 class RobotConstraintBase;
-class CenterOfMassConstraintBase;
+class BalanceConstraintBase;
 
 
 typedef std::map<std::string,size_t> StringMap;
@@ -30,7 +30,7 @@ enum {
     DOF_INVALID = (size_t)(-1)
 };
 
-class Robot
+class Robot : public InertiaBase
 {
 public:
 
@@ -130,16 +130,11 @@ public:
     
     Frame& frame();
     const Frame& frame() const;
-    
-    const KinTranslation& com() const;
-    Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(), 
-                    Explorer::policy p = Explorer::DOWNSTREAM) const;
-    const double& mass() const;
-    double mass(const Link& startLink, Explorer::policy p = Explorer::DOWNSTREAM) const;
 
-    CenterOfMassConstraintBase* balance();
-    const CenterOfMassConstraintBase* balance() const;
-    void setBalanceConstraint(CenterOfMassConstraintBase* newConstraint, bool ownConstraint=true);
+    // Constraint management functions
+    BalanceConstraintBase* balance();
+    const BalanceConstraintBase* balance() const;
+    void setBalanceConstraint(BalanceConstraintBase* newConstraint, bool ownConstraint=true);
     void setDefaultBalanceConstraint();
 
     RobotConstraintBase* task();
@@ -151,6 +146,17 @@ public:
 
     RobotSolverX& solver();
     bool solve();
+
+    // Inertia functions
+    const KinTranslation& com() const;
+    Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(),
+                    Explorer::policy p = Explorer::DOWNSTREAM) const;
+    const double& mass() const;
+    double mass(const Link& startLink, Explorer::policy p = Explorer::DOWNSTREAM) const;
+
+    Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
+    double getMass() const;
+
 
     void name(std::string newName);
     const std::string& name() const;
@@ -268,7 +274,7 @@ protected:
     Manipulator* _dummyManip;
     Geometry _dummyGeometry;
 
-    CenterOfMassConstraintBase* _balance;
+    BalanceConstraintBase* _balance;
     bool _ownsBalance;
 
     RobotConstraintBase* _task;
