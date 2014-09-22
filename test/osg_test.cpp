@@ -220,19 +220,19 @@ void line_test()
 
 FramePtrArray createTrees()
 {
-    Frame* rootFrame = new Frame(Transform(Translation(1,0,0)), akin::Frame::World(), "rootFrame");
+    Frame* rootFrame = new Frame(Transform(Translation(1,0,0), Rotation()), akin::Frame::World(), "rootFrame");
     Frame* secondFrame = new Frame(Transform(Translation(1,0,1),
                                 Rotation(90*M_PI/180, Axis(0,0,1))), *rootFrame, "secondFrame");
-    Frame* thirdFrame = new Frame(Transform(Translation(0,0,1)), *secondFrame, "thirdFrame");
-    new Frame(Transform(Translation(0, 1, 0.5)), *thirdFrame, "thirdFrame");
+    Frame* thirdFrame = new Frame(Transform(Translation(0,0,1), Rotation()), *secondFrame, "thirdFrame");
+    new Frame(Transform(Translation(0, 1, 0.5), Rotation()), *thirdFrame, "thirdFrame");
 
     Frame* newBranch = new Frame(Transform(Translation(-1,0,0),
                               Rotation(45*M_PI/180, Axis(0,1,0))), *secondFrame, "newBranch");
-    new Frame(Transform(Translation(0.1, 0.5, -0.3)), *newBranch, "more");
+    new Frame(Transform(Translation(0.1, 0.5, -0.3), Rotation()), *newBranch, "more");
 
-    Frame* otherRoot = new Frame(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
-    Frame* otherSecond = new Frame(Transform(Translation(0,1,1)), *otherRoot, "otherSecond");
-    new Frame(Transform(Translation(-1,0,0)), *otherSecond, "otherThird");
+    Frame* otherRoot = new Frame(Transform(Translation(-1,0,0), Rotation()), akin::Frame::World(), "otherRoot");
+    Frame* otherSecond = new Frame(Transform(Translation(0,1,1), Rotation()), *otherRoot, "otherSecond");
+    new Frame(Transform(Translation(-1,0,0), Rotation()), *otherSecond, "otherThird");
 
     FramePtrArray trees;
     trees.push_back(rootFrame);

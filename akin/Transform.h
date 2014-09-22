@@ -61,6 +61,9 @@ namespace akin {
 class Transform : public Eigen::Isometry3d
 {
 public:
+
+    typedef Eigen::Isometry3d Base;
+
     /*!
       * \fn Transform()
       * \brief Every akin::Transform is initialized to identity unless the copy constructor is used
@@ -71,11 +74,18 @@ public:
 
     }
     
-    inline Transform(const Translation& translation, const Rotation& rotation = Rotation::Identity()) :
+    inline Transform(const Translation& translation, const Rotation& rotation) :
         Eigen::Isometry3d(Eigen::Isometry3d::Identity())
     {
         translate(translation);
         rotate(rotation);
+    }
+
+    inline Transform(const Screw& screw) :
+        Eigen::Isometry3d(Eigen::Isometry3d::Identity())
+    {
+        translate(screw.block<3,1>(0,0));
+        rotate(Rotation(FreeVector(screw.block<3,1>(3,0))));
     }
 
     inline Transform(const Eigen::Isometry3d& tf) :

@@ -29,17 +29,17 @@ bool Joint::value(double newJointValue)
         return false;
     }
     
-    if(newJointValue < _min)
+    if(newJointValue < _minValue)
     {
         if(_myRobot->enforcingJointLimits())
-            newJointValue = _min;
+            newJointValue = _minValue;
         inBounds = false;
     }
     
-    if(newJointValue > _max)
+    if(newJointValue > _maxValue)
     {
         if(_myRobot->enforcingJointLimits())
-            newJointValue = _max;
+            newJointValue = _maxValue;
         inBounds = false;
     }
     
@@ -54,6 +54,91 @@ bool Joint::value(double newJointValue)
 }
 
 double Joint::value() const { return _value; }
+
+bool Joint::velocity(double newJointVelocity)
+{
+    bool inBounds = true;
+
+    if(newJointVelocity != newJointVelocity)
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set velocity for joint '"
+                    +name()+"' to Nan!");
+        return false;
+    }
+
+    if(fabs(newJointVelocity) > _maxSpeed)
+    {
+        if(_myRobot->enforcingJointLimits())
+            newJointVelocity = newJointVelocity>0? _maxSpeed : -_maxSpeed;
+        inBounds = false;
+    }
+
+    if(newJointVelocity==_velocity)
+        return true;
+
+    _velocity = newJointVelocity;
+
+    Frame::coord_t C;
+    if(REVOLUTE == _myType)
+        C = Frame::ANGULAR;
+    else if(PRISMATIC == _myType)
+        C = Frame::LINEAR;
+    else
+        return false;
+
+    if(_reversed)
+        _downstreamLink->relativeVelocity(
+                    -_velocity*_downstreamLink->respectToRef().rotation()*_axis, C);
+        // TODO: Test the crap out of this _reversed case
+    else
+        _downstreamLink->relativeVelocity(_velocity*_baseTransform.rotation()*_axis, C);
+
+    return inBounds;
+}
+
+double Joint::velocity() const { return _velocity; }
+
+bool Joint::acceleration(double newJointAcceleration)
+{
+    bool inBounds = true;
+
+    if(newJointAcceleration != newJointAcceleration)
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set acceleration for joint '"
+                    +name()+"' to NaN!");
+        return false;
+    }
+
+    if(fabs(newJointAcceleration) > _maxAcceleration)
+    {
+        if(_myRobot->enforcingJointLimits())
+            newJointAcceleration = newJointAcceleration>0? _maxAcceleration : -_maxAcceleration;
+        inBounds = false;
+    }
+
+    if(newJointAcceleration==_acceleration)
+        return true;
+
+    _acceleration = newJointAcceleration;
+
+    Frame::coord_t C;
+    if(REVOLUTE == _myType)
+        C = Frame::ANGULAR;
+    else if(PRISMATIC == _myType)
+        C = Frame::LINEAR;
+    else
+        return false;
+
+    if(_reversed)
+        _downstreamLink->relativeAcceleration(
+                    -_acceleration*_downstreamLink->respectToRef().rotation()*_axis, C);
+        // TODO: Test the crap out of this _reversed case
+    else
+        _downstreamLink->relativeAcceleration(
+                    _acceleration*_baseTransform.rotation()*_axis, C);
+
+    return inBounds;
+}
 
 void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame) const
 {
@@ -149,7 +234,7 @@ void Joint::_computeRefTransform()
     }
     else if(PRISMATIC == _myType)
     {
-        respectToRef = respectToRef * Transform(_value*_axis);
+        respectToRef = respectToRef * Transform(_value*_axis, Rotation());
     }
     
     // Handle if the kinematic direction is reversed
@@ -172,8 +257,8 @@ ProtectedJointProperties::ProtectedJointProperties(
     _baseTransform(mBaseTransform),
     _axis(mJointAxis),
     _value(0),
-    _min(minimumValue),
-    _max(maximumValue),
+    _minValue(minimumValue),
+    _maxValue(maximumValue),
     _myType(mType),
     _id(jointID),
     _name(jointName),
@@ -228,9 +313,9 @@ Joint& Joint::operator=(const Joint& otherJoint)
 bool Joint::min(double newMinValue)
 {
     bool inBounds = true;
-    if(newMinValue > _max)
+    if(newMinValue > _maxValue)
     {
-        newMinValue = _max;
+        newMinValue = _maxValue;
         inBounds = false;
     }
     
@@ -239,14 +324,14 @@ bool Joint::min(double newMinValue)
     return inBounds;
 }
 
-double Joint::min() const { return _min; }
+double Joint::min() const { return _minValue; }
 
 bool Joint::max(double newMaxValue)
 {
     bool inBounds = true;
-    if(newMaxValue < _min)
+    if(newMaxValue < _minValue)
     {
-        newMaxValue = _min;
+        newMaxValue = _minValue;
         inBounds = false;
     }
     
@@ -255,7 +340,7 @@ bool Joint::max(double newMaxValue)
     return inBounds;
 }
 
-double Joint::max() const { return _max; }
+double Joint::max() const { return _maxValue; }
 
 bool Joint::withinLimits() const
 {

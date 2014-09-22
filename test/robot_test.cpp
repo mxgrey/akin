@@ -103,7 +103,8 @@ Robot& build_manual_robot()
 //    }
     cout << "Size of links: " << robot.numLinks() << endl;
     
-    int newID = robot.createJointLinkPair(0, "first_link", "first_joint", Transform(Translation(1,0,0)),
+    int newID = robot.createJointLinkPair(0, "first_link", "first_joint",
+                                          Transform(Translation(1,0,0), Rotation()),
                                           Axis(1,0,0), Joint::REVOLUTE, -M_PI, M_PI);
     
     cout << "created first pair" << endl;
@@ -117,7 +118,8 @@ Robot& build_manual_robot()
         return robot;
     }
     
-    newID = robot.createJointLinkPair(newID, "second_link", "second_joint", Transform(Translation(0,0,1)),
+    newID = robot.createJointLinkPair(newID, "second_link", "second_joint",
+                                      Transform(Translation(0,0,1), Rotation()),
                                       Axis(0,0,1), Joint::PRISMATIC, -10, 10);
     
     robot.joint(0).value(180*M_PI/180);

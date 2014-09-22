@@ -31,7 +31,7 @@ public:
         this->Base::operator=(other);
         return *this;
     }
-    
+
 };
 
 

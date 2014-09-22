@@ -55,12 +55,12 @@ void run_demo()
     Frame frame_B(base_frame, "B");
     Frame frame_C(frame_B, "C");
     
-    frame_A.respectToRef( Transform( Translation(0, 1, 0) ) );
+    frame_A.respectToRef( Transform( Translation(0, 1, 0), Rotation() ) );
     frame_B.respectToRef( Transform( Translation(0,-1, 0),
                                      Rotation(90.0*M_PI/180.0, Axis(1, 0, 0)) ) );
 
     
-    frame_C.respectToRef( Transform( Translation(3, 0, 0) ) );
+    frame_C.respectToRef( Transform( Translation(3, 0, 0), Rotation() ) );
 
     cout << frame_A << endl;
     cout << frame_B << endl;
@@ -68,7 +68,7 @@ void run_demo()
     
     cout << "Frame C wrt A:" << endl << frame_C.withRespectTo(frame_A) << endl;
     
-    base_frame.respectToRef( Transform( Translation(0, 0, 10) ));
+    base_frame.respectToRef( Transform( Translation(0, 0, 10), Rotation() ));
     cout << "\n\nNOW AFTER MOVING THE BASE FRAME: " << endl << endl;
     
     cout << frame_A << endl;
@@ -88,7 +88,7 @@ void run_demo()
     B_prime.respectToRef( frame_B.respectToRef() );
     C_prime.respectToRef( frame_C.respectToRef() );
     
-    other_base.respectToRef( Transform( Translation(0, 0, -10) ) );
+    other_base.respectToRef( Transform( Translation(0, 0, -10), Rotation() ) );
     
     cout << "\n\nCREATED A NEW VERSION OF THE FRAMES IN A DIFFERENT BASE FRAME:" << endl;
     

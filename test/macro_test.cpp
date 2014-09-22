@@ -49,7 +49,7 @@ using namespace std;
 
 void test_KinMacro()
 {
-    Transform tf(Translation(1, 2, 3));
+    Transform tf(Translation(1, 2, 3), Rotation());
     
     Frame baseFrame(Frame::World(), "baseFrame", verbosity::DEBUG);
     

@@ -1,4 +1,5 @@
 
+
 #include "../osgAkin/AkinCallback.h"
 #include "osgGA/GUIEventHandler"
 #include "../osgAkin/Line.h"
@@ -7,6 +8,103 @@
 using namespace akin;
 using namespace osgAkin;
 using namespace std;
+
+typedef Eigen::Matrix<double,12,1> FrameDerivative;
+
+class FrameState
+{
+public:
+
+    Transform x;
+    Screw v;
+
+    FrameState& integrate(const FrameDerivative& f_dt)
+    {
+        Transform xi;
+        xi.translate(x.translation());
+        xi.translate(f_dt.block<3,1>(0,0));
+        xi.rotate(Rotation(FreeVector(f_dt.block<3,1>(3,0))));
+        xi.rotate(xi.rotation());
+
+        x = xi;
+
+        v += f_dt.block<6,1>(6,0);
+
+        return *this;
+    }
+};
+
+typedef std::vector<FrameState> StateVector;
+typedef std::vector<FrameDerivative> DerivVector;
+
+DerivVector operator+(const DerivVector& dv1, const DerivVector& dv2)
+{
+    assert( dv1.size() == dv2.size() );
+    DerivVector result(dv1.size());
+
+    for(size_t i=0; i<dv1.size(); ++i)
+        result[i] = dv1[i]+dv2[i];
+
+    return result;
+}
+
+StateVector integrate(const StateVector& sv, const DerivVector& f_dt)
+{
+    assert( sv.size() == f_dt.size() );
+
+    StateVector result(sv.size());
+
+    for(size_t i=0; i<result.size(); ++i)
+        result[i].integrate(f_dt[i]);
+
+    return result;
+}
+
+void setStates(const std::vector<Frame*> targets, const StateVector& sv)
+{
+    assert( targets.size() == sv.size() );
+    for(size_t i=0; i<sv.size(); ++i)
+    {
+        Frame& F = *targets[i];
+        F.respectToRef(sv[i].x);
+        F.relativeVelocity(sv[i].v);
+    }
+}
+
+DerivVector getRelativeDerivatives(const std::vector<Frame*> targets,
+                                   const Frame& reference,
+                                   const StateVector& sv)
+{
+    DerivVector dv(sv.size());
+
+    setStates(targets, sv);
+
+    for(size_t i=0; i<dv.size(); ++i)
+    {
+        Frame& F = *targets[i];
+        dv[i].block<6,1>(0,0) = F.velocity(reference);
+        dv[i].block<6,1>(6,0) = F.acceleration(reference);
+    }
+
+    return dv;
+}
+
+DerivVector getPersonalDerivatives(const std::vector<Frame*> targets,
+                                   const StateVector& sv)
+{
+    DerivVector dv(sv.size());
+
+    setStates(targets, sv);
+
+    for(size_t i=0; i<dv.size(); ++i)
+    {
+        Frame& F = *targets[i];
+        dv[i].block<6,1>(0,0) = F.relativeVelocity();
+        dv[i].block<6,1>(6,0) = F.relativeAcceleration();
+    }
+
+    return dv;
+}
 
 class CustomNode : public AkinNode
 {
@@ -36,7 +134,7 @@ public:
 
             // Print messages here if desired
         }
-        
+
         const Transform& tfr = referenceFrame->respectToRef();
         Velocity v = referenceFrame->relativeLinearVelocity();
         Velocity w = referenceFrame->relativeAngularVelocity();
@@ -85,9 +183,9 @@ public:
             tf.translate(frame->linearVelocity(*referenceFrame)*dt);
             tf.rotate(Rotation(Velocity(frame->angularVelocity(*referenceFrame)*dt)));
             tf.rotate(tff.rotation());
-            
+
             follower.respectToRef(tf);
-            
+
 
             if(frame->numChildFrames()==0)
                 frame = NULL;
@@ -99,9 +197,12 @@ public:
 
         AkinNode::update();
     }
-    
+
     Frame* referenceFrame;
+    std::vector<Frame*> targets;
     std::vector<Frame*> followers;
+
+
 
     double elapsed_time;
     double dt;
@@ -146,7 +247,7 @@ int main(int, char* [])
     osg::ref_ptr<CustomNode> node = new CustomNode;
     osg::ref_ptr<CustomEventHandler> hevent = new CustomEventHandler;
     hevent->myNode = node;
-    
+
 //    node->referenceFrame = &Frame::World();
     Frame ref(Frame::World(), "Ref");
     node->referenceFrame = &ref;
@@ -155,16 +256,20 @@ int main(int, char* [])
     ref.relativeAngularVelocity(Velocity(1,0.2,-0.3));
 
     Frame A(Frame::World(), "A");
+    node->targets.push_back(&A);
     Frame B(Transform(Translation(0,0,0), Rotation()), A, "B");
+    node->targets.push_back(&B);
     Frame C(Transform(Translation(0,0.5,0), Rotation()), B, "C");
+    node->targets.push_back(&C);
     Frame D(Transform(Translation(1,0,0), Rotation()), C, "D");
+    node->targets.push_back(&D);
 
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
     B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
     B.relativeAngularVelocity(Velocity(1,1,1));
     C.relativeAngularVelocity(Velocity(0,1,0));
-    
+
     Frame Af(A.withRespectTo(*node->referenceFrame), *node->referenceFrame, "A follower");
     node->followers.push_back(&Af);
     Frame Bf(B.withRespectTo(*node->referenceFrame), *node->referenceFrame, "B follower");
@@ -173,7 +278,7 @@ int main(int, char* [])
     node->followers.push_back(&Cf);
     Frame Df(D.withRespectTo(*node->referenceFrame), *node->referenceFrame, "D follower");
     node->followers.push_back(&Df);
-    
+
     node->addRootFrame(*node->referenceFrame);
 
     osgViewer::Viewer viewer;

@@ -41,10 +41,14 @@ public:
     Vec3 _axis;
 
     double _value;
-    double _min;
-    double _max;
+    double _minValue;
+    double _maxValue;
 
     double _velocity;
+    double _maxSpeed;
+
+    double _acceleration;
+    double _maxAcceleration;
 
     PublicJointProperties::Type _myType;
 
@@ -75,8 +79,11 @@ public:
      */
     double value() const;
 
-    void velocity(double newJointVelocity);
+    bool velocity(double newJointVelocity);
     double velocity() const;
+
+    bool acceleration(double newJointAcceleration);
+    double acceleration() const;
     
     Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
                       bool checkDependence=true) const;
@@ -112,6 +119,12 @@ public:
      * \return This joint's maximum value
      */
     double max() const;
+
+    void maxSpeed(double newMaxSpeed);
+    double maxSpeed() const;
+
+    void maxAcceleration(double newMaxAcceleration);
+    double maxAcceleration() const;
     
     bool withinLimits() const;
     bool withinLimits(double someValue) const;
