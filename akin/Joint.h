@@ -152,10 +152,6 @@ public:
      */
     const Transform& baseTransform() const;
 
-    void dh_parameters(double d, double theta, double r, double alpha);
-    void dh_parameters(const Eigen::Vector4d& newDHParameters);
-    Eigen::Vector4d dh_parameters() const;
-
     /*!
      * \fn id()
      * \brief Get this joint's index ID
