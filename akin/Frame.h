@@ -214,7 +214,7 @@ public:
 
     const Velocity& velocity(coord_t type) const;
     Velocity velocity(coord_t type, const Frame& withRespectToFrame) const;
-    void relativeVelocity(const Velocity& v, coord_t type = LINEAR);
+    void relativeVelocity(const Velocity& v, coord_t type);
 
     Screw velocity(const Frame& withRespectToFrame=Frame::World()) const;
     Screw relativeVelocity() const;
@@ -233,7 +233,7 @@ public:
 
     const Acceleration& acceleration(coord_t type) const;
     Acceleration acceleration(coord_t type, const Frame& withRespectToFrame) const;
-    void relativeAcceleration(const Acceleration& a, coord_t type = LINEAR);
+    void relativeAcceleration(const Acceleration& a, coord_t type);
 
     Screw acceleration(const Frame& withRespectToFrame=Frame::World()) const;
     Screw relativeAcceleration() const;

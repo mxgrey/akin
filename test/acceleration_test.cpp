@@ -24,7 +24,7 @@ public:
         xi.translate(x.translation());
         xi.translate(f_dt.block<3,1>(0,0));
         xi.rotate(Rotation(FreeVector(f_dt.block<3,1>(3,0))));
-        xi.rotate(xi.rotation());
+        xi.rotate(x.rotation());
 
         x = xi;
 
@@ -48,14 +48,25 @@ DerivVector operator+(const DerivVector& dv1, const DerivVector& dv2)
     return result;
 }
 
+DerivVector operator*(const DerivVector& dv, double dt)
+{
+    DerivVector result(dv.size());
+    for(size_t i=0; i<dv.size(); ++i)
+        result[i] = dv[i]*dt;
+    
+    return result;
+}
+
 StateVector integrate(const StateVector& sv, const DerivVector& f_dt)
 {
     assert( sv.size() == f_dt.size() );
 
-    StateVector result(sv.size());
+    StateVector result = sv;
 
     for(size_t i=0; i<result.size(); ++i)
+    {
         result[i].integrate(f_dt[i]);
+    }
 
     return result;
 }
@@ -68,6 +79,17 @@ void setStates(const std::vector<Frame*> targets, const StateVector& sv)
         Frame& F = *targets[i];
         F.respectToRef(sv[i].x);
         F.relativeVelocity(sv[i].v);
+    }
+}
+
+void getStates(const std::vector<Frame*> targets, StateVector& sv)
+{
+    assert( targets.size() == sv.size() );
+    for(size_t i=0; i<sv.size(); ++i)
+    {
+        Frame& F = *targets[i];
+        sv[i].x = F.respectToRef();
+        sv[i].v = F.relativeVelocity();
     }
 }
 
@@ -110,7 +132,7 @@ class CustomNode : public AkinNode
 {
 public:
 
-    CustomNode() : elapsed_time(0), dt(0.001), report_time(0.01), iterations(0), paused(false)
+    CustomNode() : elapsed_time(0), dt(0.001), report_time(1.0), iterations(0), paused(false)
     {
         geode = new osg::Geode;
         geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
@@ -130,70 +152,51 @@ public:
         if(elapsed_time >= report_time)
         {
             ++iterations;
-            elapsed_time = 0;
+//            elapsed_time = 0;
+            elapsed_time = -report_time;
+            
+            std::cout << "Iteration #" << iterations << "\n";
+            
+            for(size_t i=0; i<targets.size(); ++i)
+            {
+                Frame& T = *targets[i];
+                T.relativeAcceleration(-T.relativeAcceleration());
+                
+                Frame& F = *followers[i];
+                Screw diff = T.respectToWorld().diff(F.respectToWorld());
+                std::cout << "(" << diff.norm() << ")\t" << diff.transpose() << "\n";
+            }
+            std::cout << std::endl;
 
             // Print messages here if desired
+            
         }
+        
+        sv.resize(targets.size());
+        getStates(targets, sv);
 
-        const Transform& tfr = referenceFrame->respectToRef();
-        Velocity v = referenceFrame->relativeLinearVelocity();
-        Velocity w = referenceFrame->relativeAngularVelocity();
-        Transform tf;
-        tf.translate(tfr.translation());
-        tf.translate(v*dt);
-        tf.rotate(Rotation(Velocity(w*dt)));
-        tf.rotate(tfr.rotation());
-        referenceFrame->respectToRef(tf);
-
-        Frame* frame = &getFrame(0);
-
-        size_t counter = 0;
-        while(frame)
-        {
-            const Transform& tf0 = frame->respectToRef();
-            v = frame->relativeLinearVelocity();
-            w = frame->relativeAngularVelocity();
-
-            tf.setIdentity();
-            tf.translate(tf0.translation());
-            tf.translate(v*dt);
-            tf.rotate(Rotation(w.norm()*dt, w));
-            tf.rotate(tf0.rotation());
-
-            frame->respectToRef(tf);
-
-            if(vels.size() == counter)
-            {
-                vels.push_back(new osgAkin::Line);
-                vels[counter]->addVertex(Translation());
-                vels[counter]->addVertex(Translation());
-                vels[counter]->setColor(osg::Vec4(1,0,1,1));
-                geode->addDrawable(vels[counter]);
-            }
-
-            vels[counter]->moveVertex(0, frame->respectToWorld().translation());
-            vels[counter]->moveVertex(1, frame->respectToWorld().translation()
-                                      + frame->linearVelocity()*dt*10);
-            vels[counter]->updateVertices();
-
-            Frame& follower = *followers[counter];
-            const Transform& tff = follower.respectToRef();
-            tf.setIdentity();
-            tf.translate(tff.translation());
-            tf.translate(frame->linearVelocity(*referenceFrame)*dt);
-            tf.rotate(Rotation(Velocity(frame->angularVelocity(*referenceFrame)*dt)));
-            tf.rotate(tff.rotation());
-
-            follower.respectToRef(tf);
-
-
-            if(frame->numChildFrames()==0)
-                frame = NULL;
-            else
-                frame = &frame->childFrame(0);
-
-            ++counter;
-        }
+        k[0] = getPersonalDerivatives(targets, sv);
+        kr[0] = getRelativeDerivatives(targets, *referenceFrame, sv);
+        
+        k[1] = getPersonalDerivatives(targets, integrate(sv, k[0]*(dt/2)) );
+        kr[1] = getRelativeDerivatives(targets, *referenceFrame, integrate(sv, kr[0]*(dt/2)) );
+        
+        k[2] = getPersonalDerivatives(targets, integrate(sv, k[1]*(dt/2)) );
+        kr[2] = getRelativeDerivatives(targets, *referenceFrame, integrate(sv, kr[1]*(dt/2)) );
+        
+        k[3] = getPersonalDerivatives(targets, integrate(sv, k[2]*dt) );
+        kr[3] = getRelativeDerivatives(targets, *referenceFrame, integrate(sv, kr[2]*dt) );
+        
+        dx = (k[0]+k[1]*2+k[2]*2+k[3])*(dt/6);
+        dxr = (kr[0]+kr[1]*2+kr[2]*2+kr[3])*(dt/6);
+        
+        sv = integrate(sv, dx);
+        setStates(targets, sv);
+        
+        svr.resize(followers.size());
+        getStates(followers, svr);
+        svr = integrate(svr, dxr);
+        setStates(followers, svr);
 
         AkinNode::update();
     }
@@ -202,7 +205,12 @@ public:
     std::vector<Frame*> targets;
     std::vector<Frame*> followers;
 
-
+    StateVector sv;
+    StateVector svr;
+    DerivVector k[4];
+    DerivVector kr[4];
+    DerivVector dx;
+    DerivVector dxr;
 
     double elapsed_time;
     double dt;
@@ -269,17 +277,33 @@ int main(int, char* [])
     B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
     B.relativeAngularVelocity(Velocity(1,1,1));
     C.relativeAngularVelocity(Velocity(0,1,0));
+    
+//    double scale = 5;
+//    A.relativeAngularAcceleration(Acceleration(0,0,1)*scale);
+//    B.relativeLinearAcceleration(Acceleration(1,1,0)/2*scale);
+//    D.relativeLinearAcceleration(Acceleration(0.5,1,2)/4*scale);
 
     Frame Af(A.withRespectTo(*node->referenceFrame), *node->referenceFrame, "A follower");
+    Af.relativeVelocity(A.velocity(Af.refFrame()));
     node->followers.push_back(&Af);
     Frame Bf(B.withRespectTo(*node->referenceFrame), *node->referenceFrame, "B follower");
+    Bf.relativeVelocity(B.velocity(Bf.refFrame()));
     node->followers.push_back(&Bf);
     Frame Cf(C.withRespectTo(*node->referenceFrame), *node->referenceFrame, "C follower");
+    Cf.relativeVelocity(C.velocity(Cf.refFrame()));
     node->followers.push_back(&Cf);
     Frame Df(D.withRespectTo(*node->referenceFrame), *node->referenceFrame, "D follower");
+    Df.relativeVelocity(D.velocity(Df.refFrame()));
     node->followers.push_back(&Df);
 
     node->addRootFrame(*node->referenceFrame);
+    
+    if(!node->referenceFrame->isWorld())
+    {
+        node->targets.push_back(node->referenceFrame);
+        Frame* Rf = new Frame(Transform::Identity(), *node->referenceFrame, "Ref follower");
+        node->followers.push_back(Rf);
+    }
 
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3,0.3,0.3,1.0));
