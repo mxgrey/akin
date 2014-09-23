@@ -13,7 +13,6 @@ Link::Link(Robot *mRobot, Frame &referenceFrame, string linkName, size_t mID, bo
     _upstreamJoint(NULL),
     _myRobot(mRobot)
 {
-    _needsUpdate = true;
     _isLink = true;
 }
 

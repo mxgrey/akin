@@ -1,4 +1,4 @@
 akin
 ====
 
-Abstract Kinematics library
+A Kinodynamics library

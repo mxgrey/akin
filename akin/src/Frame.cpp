@@ -77,6 +77,9 @@ Frame::Frame(bool) :
     _isWorld(true)
 {
     _isFrame = true;
+    _needsUpdate = false;
+    _needsVelUpdate = false;
+    _needsAccUpdate = false;
 }
 
 void Frame::_kinitialize(const Frame &other)
@@ -256,7 +259,7 @@ const Velocity& Frame::linearVelocity() const
     if(_isWorld)
         return _relativeLinearVel;
 
-    if(_needsUpdate || _needsVelUpdate)
+    if( _referenceFrame->_needsUpdate || _needsVelUpdate)
         _velUpdate();
 
     return _linearVel_wrtWorld;
@@ -301,7 +304,7 @@ const Velocity& Frame::angularVelocity() const
     if(_isWorld)
         return _relativeAngularVel;
 
-    if(_needsUpdate || _needsVelUpdate)
+    if( _referenceFrame->_needsUpdate || _needsVelUpdate)
         _velUpdate();
 
     return _angularVel_wrtWorld;
@@ -387,8 +390,10 @@ const Acceleration& Frame::linearAcceleration() const
     if(_isWorld)
         return _relativeLinearAcc;
 
-    if(_needsUpdate || _needsVelUpdate || _needsAccUpdate)
+    if(_needsAccUpdate)
+    {
         _accUpdate();
+    }
 
     return _linearAcc_wrtWorld;
 }
@@ -438,8 +443,10 @@ const Acceleration& Frame::angularAcceleration() const
     if(_isWorld)
         return _relativeAngularAcc;
 
-    if(_needsUpdate || _needsVelUpdate || _needsAccUpdate)
+    if(_needsAccUpdate)
+    {
         _accUpdate();
+    }
 
     return _angularAcc_wrtWorld;
 }
@@ -525,6 +532,13 @@ void Frame::notifyUpdate()
 {
     KinObject::notifyUpdate();
     notifyVelUpdate();
+
+    if(isWorld())
+    {
+        _needsUpdate = false;
+        _needsVelUpdate = false;
+        _needsAccUpdate = false;
+    }
 }
 
 void Frame::demandPoseUpdate() const { _update(); }
@@ -596,6 +610,16 @@ void Frame::_accUpdate() const
             + 2*refFrame().angularVelocity().cross(
                     refFrame().respectToWorld().rotation()*_relativeLinearVel)
             + refFrame().angularAcceleration().cross(refFrame().angularAcceleration().cross(pr));
+
+    std::cout << name()
+              << "\t(1) " << refFrame().linearAcceleration().transpose()
+              << "\t(2) " << (refFrame().respectToWorld().rotation()*_relativeLinearAcc).transpose()
+              << "\t(3) " << (refFrame().angularAcceleration().cross(pr)).transpose()
+              << "\t(4) " << (2*refFrame().angularVelocity().cross(
+                     refFrame().respectToWorld().rotation()*_relativeLinearVel)).transpose()
+              << "\t(5) " << (refFrame().angularAcceleration().cross(refFrame()
+                                    .angularAcceleration().cross(pr))).transpose()
+              << "\n";
 
     _angularAcc_wrtWorld = refFrame().angularAcceleration()
                          + refFrame().respectToWorld().rotation()*_relativeAngularAcc
