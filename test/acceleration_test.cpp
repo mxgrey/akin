@@ -102,10 +102,8 @@ DerivVector getRelativeDerivatives(const std::vector<Frame*>& targets,
 {
     DerivVector dv(sv.size());
 
-    std::cout << "set states" << std::endl;
     setStates(targets, sv);
-    std::cout << "set follower states" << std::endl;
-    setStates(targets, svf);
+    setStates(followers, svf);
 
     if(useVelocity)
     {
@@ -122,9 +120,7 @@ DerivVector getRelativeDerivatives(const std::vector<Frame*>& targets,
         {
             Frame& T = *targets[i];
             Frame& F = *followers[i];
-            std::cout << "get follower velocity" << std::endl;
             dv[i].block<6,1>(0,0) = F.velocity(reference);
-            std::cout << "get acceleration" << std::endl;
             dv[i].block<6,1>(6,0) = T.acceleration(reference);
         }
     }
@@ -137,15 +133,12 @@ DerivVector getPersonalDerivatives(const std::vector<Frame*> targets,
 {
     DerivVector dv(sv.size());
 
-    std::cout << "set states" << std::endl;
     setStates(targets, sv);
 
     for(size_t i=0; i<dv.size(); ++i)
     {
         Frame& F = *targets[i];
-        std::cout << "get velocity" << std::endl;
         dv[i].block<6,1>(0,0) = F.relativeVelocity();
-        std::cout << "get acceleration" << std::endl;
         dv[i].block<6,1>(6,0) = F.relativeAcceleration();
     }
 
@@ -156,7 +149,7 @@ class CustomNode : public AkinNode
 {
 public:
 
-    CustomNode() : elapsed_time(0), dt(0.001), report_time(1.0), iterations(0), paused(false)
+    CustomNode() : elapsed_time(0), dt(0.1), report_time(0.1), iterations(0), paused(false)
     {
         geode = new osg::Geode;
         geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
@@ -176,29 +169,29 @@ public:
         if(elapsed_time >= report_time)
         {
             ++iterations;
-//            elapsed_time = 0;
-            elapsed_time = -report_time;
+            elapsed_time = 0;
+//            elapsed_time = -report_time;
             
-//            std::cout << "Iteration #" << iterations << "\n";
+            std::cout << "Timestamp #" << iterations << "\n";
             
-//            for(size_t i=0; i<targets.size(); ++i)
-//            {
-//                Frame& T = *targets[i];
-//                T.relativeAcceleration(-T.relativeAcceleration());
+            for(size_t i=0; i<targets.size(); ++i)
+            {
+                Frame& T = *targets[i];
+                T.relativeAcceleration(-T.relativeAcceleration());
                 
-//                Frame& F = *followers[i];
-//                Screw diff = T.respectToWorld().diff(F.respectToWorld());
-//                std::cout << "(" << diff.norm() << ")\t" << diff.transpose() << "\n";
-//            }
-//            std::cout << std::endl;
+                Frame& F = *followers[i];
+                Screw diff = T.respectToWorld().diff(F.respectToWorld());
+                std::cout << "(" << diff.norm() << ")\t" << diff.transpose() << "\n";
+            }
+            std::cout << std::endl;
 
             // Print messages here if desired
             
         }
 
-        std::cout << targets[1]->name() << "\t"
-                  << targets[1]->acceleration(*referenceFrame).transpose()
-                  << std::endl;
+//        std::cout << targets[1]->name() << " start\t"
+//                  << targets[1]->acceleration(*referenceFrame).transpose()
+//                  << std::endl;
         
         sv.resize(targets.size());
         getStates(targets, sv);
@@ -206,21 +199,21 @@ public:
         svf.resize(followers.size());
         getStates(followers, svf);
 
-        std::cout << "RK1" << std::endl;
+//        std::cout << "RK1" << std::endl;
         k[0] = getPersonalDerivatives(targets, sv);
         kf[0] = getRelativeDerivatives(targets, followers, *referenceFrame, sv, svf);
         
-        std::cout << "RK2" << std::endl;
+//        std::cout << "RK2" << std::endl;
         k[1] = getPersonalDerivatives(targets, integrate(sv, k[0]*(dt/2)) );
         kf[1] = getRelativeDerivatives(targets, followers, *referenceFrame,
                                        integrate(sv, k[0]*(dt/2)), integrate(svf, kf[0]*(dt/2)) );
         
-        std::cout << "RK3" << std::endl;
+//        std::cout << "RK3" << std::endl;
         k[2] = getPersonalDerivatives(targets, integrate(sv, k[1]*(dt/2)) );
         kf[2] = getRelativeDerivatives(targets, followers, *referenceFrame,
                                        integrate(sv, k[1]*(dt/2)), integrate(svf, kf[1]*(dt/2)) );
         
-        std::cout << "RK4" << std::endl;
+//        std::cout << "RK4" << std::endl;
         k[3] = getPersonalDerivatives(targets, integrate(sv, k[2]*dt) );
         kf[3] = getRelativeDerivatives(targets, followers, *referenceFrame,
                                        integrate(sv, k[2]*dt), integrate(svf, kf[2]*dt) );
@@ -228,13 +221,41 @@ public:
         dx = (k[0]+k[1]*2+k[2]*2+k[3])*(dt/6);
         dxf = (kf[0]+kf[1]*2+kf[2]*2+kf[3])*(dt/6);
         
+//        for(size_t i=0; i<4; ++i)
+//        {
+//            std::cout << "k" << i+1 << ": ";
+//            for(size_t j=0; j<kf[i].size(); ++j)
+//                std::cout << kf[i][j].transpose() << " | ";
+//            std::cout << "\n";
+//        }
+        
+//        std::cout << "dx/dt: ";
+//        for(size_t j=0; j<dxf.size(); ++j)
+//            std::cout << dxf[j].transpose()/dt << " | ";
+//        std::cout << "\n";
+                
         sv = integrate(sv, dx);
         setStates(targets, sv);
+        
+//        std::cout << "Final\n";
+//        for(size_t i=0; i<sv.size(); ++i)
+//            std::cout << sv[i].x.matrix() << "\n" << svtest[i].v.transpose() << "\n";
 
         svf = integrate(svf, dxf);
         setStates(followers, svf);
+        
+//        std::cout << targets[1]->name() << " final\t"
+//                  << targets[1]->acceleration(*referenceFrame).transpose()
+//                  << std::endl;
+        
+//        Eigen::AngleAxisd aa(targets[1]->respectToWorld().rotation());
+//        double theta = aa.angle();
+//        std::cout << "2WxP:\t" 
+//                  << -0.4*sin(theta)-0.4*cos(theta) << "\t" 
+//                  <<  0.4*cos(theta)-0.4*sin(theta) << "\t" 
+//                  << 0 << "\n";
 
-        std::cout << std::endl;
+//        std::cout << std::endl;
 
         AkinNode::update();
     }
@@ -312,13 +333,13 @@ int main(int, char* [])
 
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
-//    B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
+    B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
 //    B.relativeAngularVelocity(Velocity(1,1,1));
 //    C.relativeAngularVelocity(Velocity(0,1,0));
     
-    double scale = 1;
+//    double scale = 1;
 //    A.relativeAngularAcceleration(Acceleration(0,0,1)*scale);
-    B.relativeLinearAcceleration(Acceleration(1,1,0)/2*scale);
+//    B.relativeLinearAcceleration(Acceleration(1,1,0)/2*scale);
 //    D.relativeLinearAcceleration(Acceleration(0.5,1,2)/4*scale);
 
     Frame Af(A.withRespectTo(*node->referenceFrame), *node->referenceFrame, "A follower");
