@@ -609,7 +609,7 @@ void Frame::_accUpdate() const
                         + refFrame().angularAcceleration().cross(pr)
             + 2*refFrame().angularVelocity().cross(
                     refFrame().respectToWorld().rotation()*_relativeLinearVel)
-            + refFrame().angularAcceleration().cross(refFrame().angularAcceleration().cross(pr));
+            + refFrame().angularVelocity().cross(refFrame().angularVelocity().cross(pr));
 
 //    std::cout << name()
 //              << "\t(1) " << refFrame().linearAcceleration().transpose()
@@ -617,10 +617,12 @@ void Frame::_accUpdate() const
 //              << "\t(3) " << (refFrame().angularAcceleration().cross(pr)).transpose()
 //              << "\t(4) " << (2*refFrame().angularVelocity().cross(
 //                     refFrame().respectToWorld().rotation()*_relativeLinearVel)).transpose()
-//              << "\t(5) " << (refFrame().angularAcceleration().cross(refFrame()
-//                                    .angularAcceleration().cross(pr))).transpose()
+//              << "\t(5) " << (refFrame().angularVelocity().cross(refFrame()
+//                                    .angularVelocity().cross(pr))).transpose()
 //              << "\t(t) " << _linearAcc_wrtWorld.transpose()
 //              << "\n";
+
+//    std::cout << "pr: " << pr.transpose() << "\t"
 
     _angularAcc_wrtWorld = refFrame().angularAcceleration()
                          + refFrame().respectToWorld().rotation()*_relativeAngularAcc

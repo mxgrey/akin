@@ -156,6 +156,75 @@ public:
         addChild(geode);
     }
 
+    void RK4()
+    {
+        k[0] = getPersonalDerivatives(targets, sv);
+        kf[0] = getRelativeDerivatives(targets, followers, *referenceFrame, sv, svf);
+
+        k[1] = getPersonalDerivatives(targets, integrate(sv, k[0]*(dt/2)) );
+        kf[1] = getRelativeDerivatives(targets, followers, *referenceFrame,
+                                       integrate(sv, k[0]*(dt/2)), integrate(svf, kf[0]*(dt/2)) );
+
+        k[2] = getPersonalDerivatives(targets, integrate(sv, k[1]*(dt/2)) );
+        kf[2] = getRelativeDerivatives(targets, followers, *referenceFrame,
+                                       integrate(sv, k[1]*(dt/2)), integrate(svf, kf[1]*(dt/2)) );
+
+        k[3] = getPersonalDerivatives(targets, integrate(sv, k[2]*dt) );
+        kf[3] = getRelativeDerivatives(targets, followers, *referenceFrame,
+                                       integrate(sv, k[2]*dt), integrate(svf, kf[2]*dt) );
+
+        dx = (k[0]+k[1]*2+k[2]*2+k[3])*(dt/6);
+        dxf = (kf[0]+kf[1]*2+kf[2]*2+kf[3])*(dt/6);
+
+        sv = integrate(sv, dx);
+        svf = integrate(svf, dxf);
+    }
+
+    void forward_euler()
+    {
+        k[0] = getPersonalDerivatives(targets, sv);
+        kf[0] = getRelativeDerivatives(targets, followers, *referenceFrame, sv, svf);
+
+        sv = integrate(sv, k[0]*dt);
+        svf = integrate(svf, kf[0]*dt);
+    }
+
+    void backward_euler(bool fixedpoint_iteration=false)
+    {
+        if(fixedpoint_iteration)
+        {
+
+        }
+        else
+        {
+            k[0] = getPersonalDerivatives(targets, sv);
+            kf[0] = getRelativeDerivatives(targets, followers, *referenceFrame, sv, svf);
+
+            k[1] = getPersonalDerivatives(targets, integrate(sv, k[0]*dt));
+            kf[1] = getRelativeDerivatives(targets, followers, *referenceFrame,
+                                           integrate(sv, k[0]*dt), integrate(svf, kf[0]*dt));
+
+            sv = integrate(sv, k[1]*dt);
+            svf = integrate(svf, kf[1]*dt);
+        }
+    }
+
+    void trapezoidal()
+    {
+        k[0] = getPersonalDerivatives(targets, sv);
+        kf[0] = getRelativeDerivatives(targets, followers, *referenceFrame, sv, svf);
+
+        k[1] = getPersonalDerivatives(targets, integrate(sv, k[0]*dt));
+        kf[1] = getRelativeDerivatives(targets, followers, *referenceFrame,
+                                       integrate(sv, k[0]*dt), integrate(svf, kf[0]*dt));
+
+        dx = (k[0]+k[1])*(dt/2);
+        dxf = (kf[0]+kf[1])*(dt/2);
+
+        sv = integrate(sv, dx);
+        svf = integrate(svf, dxf);
+    }
+
     virtual void update()
     {
         if(paused)
@@ -170,7 +239,7 @@ public:
         {
             ++iterations;
             elapsed_time = 0;
-//            elapsed_time = -report_time;
+            elapsed_time = -report_time;
             
             std::cout << "Timestamp #" << iterations << "\n";
             
@@ -199,66 +268,22 @@ public:
         svf.resize(followers.size());
         getStates(followers, svf);
 
-//        std::cout << "RK1" << std::endl;
-        k[0] = getPersonalDerivatives(targets, sv);
-        kf[0] = getRelativeDerivatives(targets, followers, *referenceFrame, sv, svf);
-        
-//        std::cout << "RK2" << std::endl;
-        k[1] = getPersonalDerivatives(targets, integrate(sv, k[0]*(dt/2)) );
-        kf[1] = getRelativeDerivatives(targets, followers, *referenceFrame,
-                                       integrate(sv, k[0]*(dt/2)), integrate(svf, kf[0]*(dt/2)) );
-        
-//        std::cout << "RK3" << std::endl;
-        k[2] = getPersonalDerivatives(targets, integrate(sv, k[1]*(dt/2)) );
-        kf[2] = getRelativeDerivatives(targets, followers, *referenceFrame,
-                                       integrate(sv, k[1]*(dt/2)), integrate(svf, kf[1]*(dt/2)) );
-        
-//        std::cout << "RK4" << std::endl;
-        k[3] = getPersonalDerivatives(targets, integrate(sv, k[2]*dt) );
-        kf[3] = getRelativeDerivatives(targets, followers, *referenceFrame,
-                                       integrate(sv, k[2]*dt), integrate(svf, kf[2]*dt) );
-        
-        dx = (k[0]+k[1]*2+k[2]*2+k[3])*(dt/6);
-        dxf = (kf[0]+kf[1]*2+kf[2]*2+kf[3])*(dt/6);
-        
-//        for(size_t i=0; i<4; ++i)
-//        {
-//            std::cout << "k" << i+1 << ": ";
-//            for(size_t j=0; j<kf[i].size(); ++j)
-//                std::cout << kf[i][j].transpose() << " | ";
-//            std::cout << "\n";
-//        }
-        
-//        std::cout << "dx/dt: ";
-//        for(size_t j=0; j<dxf.size(); ++j)
-//            std::cout << dxf[j].transpose()/dt << " | ";
-//        std::cout << "\n";
-                
-        sv = integrate(sv, dx);
-        setStates(targets, sv);
-        
-//        std::cout << "Final\n";
-//        for(size_t i=0; i<sv.size(); ++i)
-//            std::cout << sv[i].x.matrix() << "\n" << svtest[i].v.transpose() << "\n";
+        RK4();
+//        forward_euler();
+//        backward_euler();
+//        trapezoidal();
 
-        svf = integrate(svf, dxf);
+        setStates(targets, sv);
+
         setStates(followers, svf);
         
-//        std::cout << targets[1]->name() << "\t\taccel\t"
-//                  << targets[1]->acceleration(*referenceFrame).transpose()
+//        std::cout << targets[1]->name() << "\t\tvel\t"
+//                  << targets[1]->velocity(*referenceFrame).transpose()
 //                  << "\n";
         
-//        std::cout << followers[1]->name() << "\t\taccel\t" 
-//                  << followers[1]->acceleration(*referenceFrame).transpose() 
+//        std::cout << followers[1]->name() << "\t\tvel\t"
+//                  << followers[1]->velocity(*referenceFrame).transpose()
 //                  << "\n";
-        
-        std::cout << targets[1]->name() << "\t\tvel\t" 
-                  << targets[1]->velocity(*referenceFrame).transpose() 
-                  << "\n";
-        
-        std::cout << followers[1]->name() << "\t\tvel\t" 
-                  << followers[1]->velocity(*referenceFrame).transpose() 
-                  << "\n";
         
 //        Eigen::AngleAxisd aa(targets[1]->respectToWorld().rotation());
 //        double theta = aa.angle();
@@ -267,7 +292,7 @@ public:
 //                  <<  0.4*cos(theta)-0.4*sin(theta) << "\t" 
 //                  << 0 << "\n";
 
-        std::cout << std::endl;
+//        std::cout << std::endl;
 
         AkinNode::update();
     }
@@ -327,32 +352,33 @@ int main(int, char* [])
     osg::ref_ptr<CustomEventHandler> hevent = new CustomEventHandler;
     hevent->myNode = node;
 
-    node->referenceFrame = &Frame::World();
-//    Frame ref(Frame::World(), "Ref");
-//    node->referenceFrame = &ref;
-//    ref.respectToRef(Transform(Translation(0,1,1),Rotation(20*DEG,Axis(1,1,0))));
+    double scale = 100;
+//    node->referenceFrame = &Frame::World();
+    Frame ref(Frame::World(), "Ref");
+    node->referenceFrame = &ref;
+    ref.respectToRef(Transform(Translation(0,1,1),Rotation(20*DEG,Axis(1,1,0))));
 //    ref.relativeLinearVelocity(Velocity(0,0,-0.2));
-//    ref.relativeAngularVelocity(Velocity(1,0.2,-0.3));
+    ref.relativeAngularVelocity(Velocity(1,0.2,-0.3));
+    ref.relativeLinearAcceleration(Acceleration(0,0,-1)*scale);
 
     Frame A(Frame::World(), "A");
     node->targets.push_back(&A);
     Frame B(Transform(Translation(0,0,0), Rotation()), A, "B");
     node->targets.push_back(&B);
-//    Frame C(Transform(Translation(0,0.5,0), Rotation()), B, "C");
-//    node->targets.push_back(&C);
-//    Frame D(Transform(Translation(1,0,0), Rotation()), C, "D");
-//    node->targets.push_back(&D);
+    Frame C(Transform(Translation(0,0.5,0), Rotation()), B, "C");
+    node->targets.push_back(&C);
+    Frame D(Transform(Translation(1,0,0), Rotation()), C, "D");
+    node->targets.push_back(&D);
 
     node->addRootFrame(A);
     A.relativeAngularVelocity(Velocity(0,0,1));
-    B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
+//    B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
 //    B.relativeAngularVelocity(Velocity(1,1,1));
-//    C.relativeAngularVelocity(Velocity(0,1,0));
-    
-//    double scale = 1;
-//    A.relativeAngularAcceleration(Acceleration(0,0,1)*scale);
-//    B.relativeLinearAcceleration(Acceleration(1,1,0)/2*scale);
-//    D.relativeLinearAcceleration(Acceleration(0.5,1,2)/4*scale);
+    C.relativeAngularVelocity(Velocity(0,1,0));
+
+    A.relativeAngularAcceleration(Acceleration(0,0,1)*scale);
+    B.relativeLinearAcceleration(Acceleration(1,1,0)/2*scale);
+    D.relativeLinearAcceleration(Acceleration(0.5,1,2)/4*scale);
 
     Frame Af(A.withRespectTo(*node->referenceFrame), *node->referenceFrame, "A follower");
     Af.relativeVelocity(A.velocity(Af.refFrame()));
@@ -360,12 +386,12 @@ int main(int, char* [])
     Frame Bf(B.withRespectTo(*node->referenceFrame), *node->referenceFrame, "B follower");
     Bf.relativeVelocity(B.velocity(Bf.refFrame()));
     node->followers.push_back(&Bf);
-//    Frame Cf(C.withRespectTo(*node->referenceFrame), *node->referenceFrame, "C follower");
-//    Cf.relativeVelocity(C.velocity(Cf.refFrame()));
-//    node->followers.push_back(&Cf);
-//    Frame Df(D.withRespectTo(*node->referenceFrame), *node->referenceFrame, "D follower");
-//    Df.relativeVelocity(D.velocity(Df.refFrame()));
-//    node->followers.push_back(&Df);
+    Frame Cf(C.withRespectTo(*node->referenceFrame), *node->referenceFrame, "C follower");
+    Cf.relativeVelocity(C.velocity(Cf.refFrame()));
+    node->followers.push_back(&Cf);
+    Frame Df(D.withRespectTo(*node->referenceFrame), *node->referenceFrame, "D follower");
+    Df.relativeVelocity(D.velocity(Df.refFrame()));
+    node->followers.push_back(&Df);
 
     node->addRootFrame(*node->referenceFrame);
     
