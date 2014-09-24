@@ -149,7 +149,7 @@ class CustomNode : public AkinNode
 {
 public:
 
-    CustomNode() : elapsed_time(0), dt(0.1), report_time(0.1), iterations(0), paused(false)
+    CustomNode() : elapsed_time(0), dt(0.001), report_time(0.1), iterations(0), paused(false)
     {
         geode = new osg::Geode;
         geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
@@ -244,9 +244,21 @@ public:
         svf = integrate(svf, dxf);
         setStates(followers, svf);
         
-//        std::cout << targets[1]->name() << " final\t"
+//        std::cout << targets[1]->name() << "\t\taccel\t"
 //                  << targets[1]->acceleration(*referenceFrame).transpose()
-//                  << std::endl;
+//                  << "\n";
+        
+//        std::cout << followers[1]->name() << "\t\taccel\t" 
+//                  << followers[1]->acceleration(*referenceFrame).transpose() 
+//                  << "\n";
+        
+        std::cout << targets[1]->name() << "\t\tvel\t" 
+                  << targets[1]->velocity(*referenceFrame).transpose() 
+                  << "\n";
+        
+        std::cout << followers[1]->name() << "\t\tvel\t" 
+                  << followers[1]->velocity(*referenceFrame).transpose() 
+                  << "\n";
         
 //        Eigen::AngleAxisd aa(targets[1]->respectToWorld().rotation());
 //        double theta = aa.angle();
@@ -255,7 +267,7 @@ public:
 //                  <<  0.4*cos(theta)-0.4*sin(theta) << "\t" 
 //                  << 0 << "\n";
 
-//        std::cout << std::endl;
+        std::cout << std::endl;
 
         AkinNode::update();
     }
