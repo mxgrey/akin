@@ -16,7 +16,12 @@ public:
 
     virtual Translation getCom(const Frame& withRespectToFrame = Frame::World()) const = 0;
     virtual double getMass() const = 0;
+    virtual Eigen::Matrix3d getInertiaTensor(
+            const Frame& withRespectToFrame = Frame::World()) const = 0;
 
+    virtual FreeVector getForces(const Frame& withRepsectToFrame = Frame::World()) const = 0;
+    virtual FreeVector getMoments(const Frame& withRespectToFrame = Frame::World()) const = 0;
+    virtual Screw getWrench(const Frame& withRespectToFrame = Frame::World()) const = 0;
 
 };
 
@@ -31,8 +36,17 @@ public:
 
     Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
     double getMass() const;
+    virtual Eigen::Matrix3d getInertiaTensor(const Frame &withRespectToFrame) const;
+
+    virtual FreeVector getForces(const Frame &withRespectToFrame) const;
+    virtual FreeVector getMoments(const Frame &withRespectToFrame) const;
+    Screw getWrench(const Frame &withRespectToFrame) const;
     
 protected:
+
+    Eigen::Matrix3d _inertiaTensor_wrtLocalFrame;
+    FreeVector _appliedForces_wrtWorld;
+    FreeVector _appliedMoments_wrtWorld;
     
 };
 

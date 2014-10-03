@@ -156,6 +156,11 @@ public:
 
     Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
     double getMass() const;
+    Eigen::Matrix3d getInertiaTensor(const Frame &withRespectToFrame) const;
+
+    FreeVector getForces(const Frame &withRepsectToFrame) const;
+    FreeVector getMoments(const Frame &withRespectToFrame) const;
+    Screw getWrench(const Frame &withRespectToFrame) const;
 
 
     void name(std::string newName);

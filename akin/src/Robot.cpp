@@ -461,6 +461,35 @@ double Robot::getMass() const
     return mass();
 }
 
+Eigen::Matrix3d Robot::getInertiaTensor(const Frame& withRespectToFrame) const
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "getInertiaTensor() is not implemented for Robot yet!");
+
+    return Eigen::Matrix3d::Identity();
+}
+
+FreeVector Robot::getForces(const Frame& withRepsectToFrame) const
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "getForces() is not implemented for Robot yet!");
+
+    return FreeVector::Zero();
+}
+
+FreeVector Robot::getMoments(const Frame &withRespectToFrame) const
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "getMoments() is not implemented for Robot yet!");
+
+    return FreeVector::Zero();
+}
+
+Screw Robot::getWrench(const Frame &withRespectToFrame) const
+{
+    return Screw(getForces(withRespectToFrame),getMoments(withRespectToFrame));
+}
+
 const string& Robot::name() const { return _name; }
 
 bool Robot::createRootLink(string rootLinkName)
