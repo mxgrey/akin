@@ -357,9 +357,9 @@ int main(int, char* [])
     Frame ref(Frame::World(), "Ref");
     node->referenceFrame = &ref;
     ref.respectToRef(Transform(Translation(0,1,1),Rotation(20*DEG,Axis(1,1,0))));
-//    ref.relativeLinearVelocity(Velocity(0,0,-0.2));
     ref.relativeAngularVelocity(Velocity(1,0.2,-0.3));
-    ref.relativeLinearAcceleration(Acceleration(0,0,-1)*scale);
+//    ref.relativeLinearAcceleration(Acceleration(0,0,-1)*scale);
+////    ref.relativeLinearVelocity(Velocity(0,0,-0.2));
 
     Frame A(Frame::World(), "A");
     node->targets.push_back(&A);
@@ -371,12 +371,12 @@ int main(int, char* [])
     node->targets.push_back(&D);
 
     node->addRootFrame(A);
-    A.relativeAngularVelocity(Velocity(0,0,1));
+//    A.relativeAngularVelocity(Velocity(0,0,1));
 //    B.relativeLinearVelocity(Velocity(0.2,0.2,0.05));
 //    B.relativeAngularVelocity(Velocity(1,1,1));
     C.relativeAngularVelocity(Velocity(0,1,0));
 
-    A.relativeAngularAcceleration(Acceleration(0,0,1)*scale);
+//    A.relativeAngularAcceleration(Acceleration(0,0,1)*scale);
     B.relativeLinearAcceleration(Acceleration(1,1,0)/2*scale);
     D.relativeLinearAcceleration(Acceleration(0.5,1,2)/4*scale);
 

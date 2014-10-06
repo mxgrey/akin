@@ -303,6 +303,21 @@ private:
     bool _isWorld;
 };
 
+Translation computeLocation(const Translation& ofPoint,
+                            const Frame& inFrame,
+                            const Frame& withRespectToFrame = Frame::World());
+
+Velocity computeVelocity(const Translation& ofPoint,
+                         const Velocity& withVelocity,
+                         const Frame& inFrame,
+                         const Frame& withRespectToFrame = Frame::World());
+
+Acceleration computeAcceleration(const Translation& ofPoint,
+                                 const Velocity& withVelocity,
+                                 const Acceleration& withAcceleration,
+                                 const Frame& inFrame,
+                                 const Frame& withRespectToFrame = Frame::World(), bool print=false);
+
 typedef std::vector<akin::Frame> FrameArray;
 typedef std::vector<akin::Frame*> FramePtrArray;
 
