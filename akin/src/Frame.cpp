@@ -254,9 +254,9 @@ Transform Frame::withRespectTo(const Frame &otherFrame) const
     return otherFrame.respectToWorld().inverse() * respectToWorld();
 }
 
-Translation computeLocation(const Translation& ofPoint,
-                         const Frame& inFrame,
-                         const Frame& withRespectToFrame)
+Translation akin::computeLocation(const Translation& ofPoint,
+                                  const Frame& inFrame,
+                                  const Frame& withRespectToFrame)
 {
     if(&inFrame == &withRespectToFrame)
         return ofPoint;
