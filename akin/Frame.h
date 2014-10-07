@@ -316,7 +316,7 @@ Acceleration computeAcceleration(const Translation& ofPoint,
                                  const Velocity& withVelocity,
                                  const Acceleration& withAcceleration,
                                  const Frame& inFrame,
-                                 const Frame& withRespectToFrame = Frame::World(), bool print=false);
+                                 const Frame& withRespectToFrame = Frame::World());
 
 typedef std::vector<akin::Frame> FrameArray;
 typedef std::vector<akin::Frame*> FramePtrArray;

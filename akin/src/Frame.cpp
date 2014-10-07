@@ -455,46 +455,20 @@ Acceleration Frame::linearAcceleration(const Frame &withRespectToFrame) const
     const Eigen::Vector3d& vr = linearVelocity()-withRespectToFrame.linearVelocity()
                      - withRespectToFrame.angularVelocity().cross(pr);
 
-//    return withRespectToFrame.respectToWorld().rotation().transpose()*
-//            (linearAcceleration() - withRespectToFrame.linearAcceleration()
-//             - withRespectToFrame.angularAcceleration().cross(pr)
-//             - 2*withRespectToFrame.angularVelocity().cross(vr)
-//             - withRespectToFrame.angularVelocity().cross(
-//                 withRespectToFrame.angularVelocity().cross(pr)));
-
-//    Eigen::Vector3d a = withRespectToFrame.respectToWorld().rotation().transpose()*
-//            (linearAcceleration() - withRespectToFrame.linearAcceleration()
-//             - withRespectToFrame.angularAcceleration().cross(pr)
-//             - 2*withRespectToFrame.angularVelocity().cross(vr)
-//             - withRespectToFrame.angularVelocity().cross(
-//                 withRespectToFrame.angularVelocity().cross(pr)));
-
-//    Eigen::Vector3d a = computeAcceleration(_respectToRef.translation(),
-//                                            _relativeLinearVel,
-//                                            _relativeLinearAcc,
-//                                            refFrame(),
-//                                            withRespectToFrame);
-
-//    if(name() == "D")
-//        std::cout << a.transpose() << std::endl;
-//    return a;
-
-    bool print = false;
-    if(name()=="B")
-        print = true;
-
-    return computeAcceleration(_respectToRef.translation(),
-                               _relativeLinearVel,
-                               _relativeLinearAcc,
-                               refFrame(),
-                               withRespectToFrame, print);
+    // TODO: Consider just using computeAcceleration(~) here
+    return withRespectToFrame.respectToWorld().rotation().transpose()*
+            (linearAcceleration() - withRespectToFrame.linearAcceleration()
+             - withRespectToFrame.angularAcceleration().cross(pr)
+             - 2*withRespectToFrame.angularVelocity().cross(vr)
+             - withRespectToFrame.angularVelocity().cross(
+                 withRespectToFrame.angularVelocity().cross(pr)));
 }
 
 Acceleration akin::computeAcceleration(const Translation &ofPoint,
                                        const Velocity &withVelocity,
                                        const Acceleration &withAcceleration,
                                        const Frame &inFrame,
-                                       const Frame &withRespectToFrame, bool print)
+                                       const Frame &withRespectToFrame)
 {
     if(&inFrame == &withRespectToFrame)
     {
@@ -514,8 +488,8 @@ Acceleration akin::computeAcceleration(const Translation &ofPoint,
     else if(inFrame.isWorld())
     {
         const Eigen::Vector3d& pr = ofPoint - withRespectToFrame.respectToWorld().translation();
-        const Eigen::Vector3d& vr = withVelocity - withRespectToFrame.linearVelocity();
         const Eigen::Vector3d& w = withRespectToFrame.angularVelocity();
+        const Eigen::Vector3d& vr = withVelocity - withRespectToFrame.linearVelocity() - w.cross(pr);
         const Eigen::Vector3d& alpha = withRespectToFrame.angularAcceleration();
 
         return withRespectToFrame.respectToWorld().rotation().transpose()*(
@@ -529,18 +503,8 @@ Acceleration akin::computeAcceleration(const Translation &ofPoint,
     const Eigen::Vector3d& w = inFrame.angularVelocity(withRespectToFrame);
     const Eigen::Vector3d& alpha = inFrame.angularAcceleration(withRespectToFrame);
 
-    if(print)
-        std::cout << alpha.cross(pr).transpose() << "\t|\t" << 2*w.cross(vr).transpose()
-              << "\t|\t" << w.cross(w.cross(pr)).transpose()
-              << std::endl;
-
-    return
-            inFrame.linearAcceleration(withRespectToFrame)
-           + T.rotation()*withAcceleration
-           + alpha.cross(pr)
-           + 2*w.cross(vr)
-           + w.cross(w.cross(pr))
-            ;
+    return inFrame.linearAcceleration(withRespectToFrame) + T.rotation()*withAcceleration
+           + alpha.cross(pr) + 2*w.cross(vr) + w.cross(w.cross(pr));
 }
 
 const Acceleration& Frame::relativeLinearAcceleration() const
