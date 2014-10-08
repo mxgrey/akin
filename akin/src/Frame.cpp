@@ -305,6 +305,7 @@ Velocity akin::computeVelocity(const Translation& ofPoint,
     else if(withRespectToFrame.isWorld())
     {
         // TODO: This has not been tested yet
+        // TODO: Consider whether this is really necessary
         return inFrame.linearVelocity()
              + inFrame.respectToWorld().rotation()*withVelocity
              + inFrame.angularVelocity().cross(
@@ -312,6 +313,7 @@ Velocity akin::computeVelocity(const Translation& ofPoint,
     }
     else if(inFrame.isWorld())
     {
+        // TODO: Consider whether this is really necessary
         return withRespectToFrame.respectToWorld().rotation().transpose()*(
                     withVelocity - withRespectToFrame.linearVelocity()
                     - withRespectToFrame.angularVelocity().cross(
@@ -455,7 +457,6 @@ Acceleration Frame::linearAcceleration(const Frame &withRespectToFrame) const
     const Eigen::Vector3d& vr = linearVelocity()-withRespectToFrame.linearVelocity()
                      - withRespectToFrame.angularVelocity().cross(pr);
 
-    // TODO: Consider just using computeAcceleration(~) here
     return withRespectToFrame.respectToWorld().rotation().transpose()*
             (linearAcceleration() - withRespectToFrame.linearAcceleration()
              - withRespectToFrame.angularAcceleration().cross(pr)
@@ -477,6 +478,7 @@ Acceleration akin::computeAcceleration(const Translation &ofPoint,
     else if(withRespectToFrame.isWorld())
     {
         // TODO: This has not been tested yet
+        // TODO: Consider whether this is really necessary
         const Eigen::Vector3d& pr = inFrame.respectToWorld()*ofPoint;
         const Eigen::Vector3d& vr = inFrame.respectToWorld().rotation()*withVelocity;
 
@@ -487,6 +489,7 @@ Acceleration akin::computeAcceleration(const Translation &ofPoint,
     }
     else if(inFrame.isWorld())
     {
+        // TODO: Consider whether this is really necessary
         const Eigen::Vector3d& pr = ofPoint - withRespectToFrame.respectToWorld().translation();
         const Eigen::Vector3d& w = withRespectToFrame.angularVelocity();
         const Eigen::Vector3d& vr = withVelocity - withRespectToFrame.linearVelocity() - w.cross(pr);
