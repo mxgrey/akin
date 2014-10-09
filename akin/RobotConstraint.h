@@ -130,7 +130,7 @@ public:
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
         if(!checkSetup()) { this->_Jacobian.setZero(); return this->_Jacobian; }
         
-        if(update) _update(config);
+        if(update) this->_update(config);
         
         for(size_t i=0; i<this->_joints.size(); ++i)
         {
@@ -148,7 +148,7 @@ public:
     virtual const Error& getError(const VectorQ& config, bool fromCenter=false, bool update=true) {
         if(!checkSetup()) { this->_error.setZero(); return this->_error; }
 
-        if(update) _update(config);
+        if(update) this->_update(config);
 
         this->_displacement = _manip->withRespectTo(target.refFrame()).diff(target.respectToRef());
 
@@ -241,7 +241,7 @@ public:
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
         if(!checkSetup()) { this->_Jacobian.setZero(); return this->_Jacobian; }
         
-        if(update) _update(config);
+        if(update) this->_update(config);
         
         double total_mass = _robot->mass();
         
@@ -280,7 +280,7 @@ public:
     virtual const Error& getError(const VectorQ &config, bool fromCenter=false, bool update=true) {
         if(!checkSetup()) { this->_error.setZero(); return this->_error; }
         
-        if(update) _update(config);
+        if(update) this->_update(config);
         
         Translation com = _robot->com().respectToWorld();
         
@@ -363,12 +363,12 @@ public:
     { _initializeRobotTaskDefaults(); }
 
     virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) {
-        _update(configuration);
+        this->_update(configuration);
         gradient.setZero();
         Validity v = Validity::Valid();
 
         v &= _addConstraintGradient(gradient, this->_robot->balance());
-        _update(configuration-gradient);
+        this->_update(configuration-gradient);
 
         for(size_t i=0; i<this->_robot->numManips(); ++i) {
             v &= _addConstraintGradient(gradient, this->_robot->manip(i).constraint());
@@ -382,7 +382,7 @@ public:
     }
 
     const Jacobian& getJacobian(const VectorQ &config, bool update) {
-        if(update) _update(config);
+        if(update) this->_update(config);
 
         getErrorDimension();
         this->_Jacobian.resize(this->_error_dim, Eigen::NoChange);
@@ -425,7 +425,7 @@ public:
     }
 
     virtual const Error& getError(const VectorQ &config, bool, bool update) {
-        if(update) _update(config);
+        if(update) this->_update(config);
 
         this->_error.resize(getErrorDimension());
         for(size_t i=0; i<this->_robot->numManips(); ++i) {

@@ -25,6 +25,59 @@ public:
 
 };
 
+typedef enum {
+
+    MASS = 0,
+
+    FIRST_MOMENT_X,
+    FIRST_MOMENT_Y,
+    FIRST_MOMENT_Z,
+
+    SECOND_MOMENT_XX,
+    SECOND_MOMENT_XY,
+    SECOND_MOMENT_XZ,
+
+    SECOND_MOMENT_YY,
+    SECOND_MOMENT_YZ,
+
+    SECOND_MOMENT_ZZ
+
+} inertia_param_t;
+
+class StandardInertiaParameters;
+class MinimalInertiaParameters;
+
+class InertiaParameters : public std::vector< std::pair<inertia_param_t,double> >
+{
+public:
+
+//    using std::vector< std::pair<inertia_param_t,double> >::vector;
+
+
+
+};
+
+class StandardInertiaParameters
+{
+public:
+
+    double mass;
+    Eigen::Vector3d centerOfMass;
+    Eigen::Matrix3d inertiaTensor;
+
+    InertiaParameters getParameters() const;
+
+};
+
+class MinimalInertiaParameters
+{
+public:
+
+    InertiaParameters parameters;
+
+
+};
+
 class Body : public Frame, public InertiaBase
 {
 public:

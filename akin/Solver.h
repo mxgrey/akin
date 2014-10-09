@@ -12,6 +12,7 @@ class SolverX
 public:
     
     SolverX();
+    inline virtual ~SolverX() { }
     
     virtual bool setMandatoryConstraint(ConstraintBase* constraint);
     ConstraintBase* getMandatoryConstraint();
@@ -50,6 +51,7 @@ class RobotSolverX : public SolverX
 public:
     
     RobotSolverX(Robot& robot);
+    inline virtual ~RobotSolverX() { }
     
     bool setMandatoryConstraint(RobotConstraintBase* constraint);
     bool setOptimalConstraint(RobotConstraintBase* constraint);
