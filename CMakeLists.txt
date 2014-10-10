@@ -8,7 +8,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 add_definitions("-Wall -Wextra")
 
-list( APPEND CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}" )
+list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 
 set(COMPILE_EVERYTHING ON)
 

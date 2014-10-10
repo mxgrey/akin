@@ -2,6 +2,7 @@
 #define AKIN_BODY_H
 
 #include "akin/Frame.h"
+#include <map>
 
 namespace akin {
 
@@ -40,20 +41,29 @@ typedef enum {
     SECOND_MOMENT_YY,
     SECOND_MOMENT_YZ,
 
-    SECOND_MOMENT_ZZ
+    SECOND_MOMENT_ZZ,
+    
+    NUM_INERTIA_PARAMS
 
 } inertia_param_t;
+
+std::string inertia_param_to_string(size_t param);
 
 class StandardInertiaParameters;
 class MinimalInertiaParameters;
 
-class InertiaParameters : public std::vector< std::pair<inertia_param_t,double> >
+typedef std::pair<size_t,double> InertiaValue;
+
+class InertiaParameters : public std::vector<InertiaValue>
 {
 public:
 
+    // TODO: Add this once C++11 functionality is attainable
 //    using std::vector< std::pair<inertia_param_t,double> >::vector;
-
-
+    
+    InertiaParameters();
+    InertiaParameters(const StandardInertiaParameters& parameters);
+    InertiaParameters(const MinimalInertiaParameters& parameters);
 
 };
 
@@ -66,15 +76,18 @@ public:
     Eigen::Matrix3d inertiaTensor;
 
     InertiaParameters getParameters() const;
+    bool setParameters(const InertiaParameters& parameters);
 
 };
+
+typedef std::map<size_t, std::vector<size_t> > InertiaGrouping;
 
 class MinimalInertiaParameters
 {
 public:
 
     InertiaParameters parameters;
-
+    InertiaGrouping grouping;
 
 };
 
@@ -84,8 +97,9 @@ public:
     
     Body(Frame& referenceFrame, const std::string& bodyName);
     
-    KinTranslation com;
     double mass;
+    KinTranslation com;
+    
 
     Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
     double getMass() const;
@@ -107,6 +121,12 @@ typedef std::vector<Body*> BodyPtrArray;
 
 } // namespace akin
 
-std::ostream& operator<<(std::ostream& oStrStream, const akin::Body& someBody);
+std::ostream& operator<<(std::ostream& stream, const akin::Body& someBody);
+
+std::ostream& operator<<(std::ostream& stream, const akin::InertiaParameters& params);
+std::ostream& operator<<(std::ostream& stream, const akin::InertiaGrouping& grouping);
+
+std::ostream& operator<<(std::ostream& stream, const akin::StandardInertiaParameters& standard);
+std::ostream& operator<<(std::ostream& stream, const akin::MinimalInertiaParameters& minimal);
 
 #endif // AKIN_BODY_H
