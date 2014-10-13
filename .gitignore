@@ -11,3 +11,14 @@
 *.lai
 *.la
 *.a
+
+# File backups
+*~
+*.swp
+*.autosave
+
+# User settings
+*.user
+
+# Build folder objects
+build/*
