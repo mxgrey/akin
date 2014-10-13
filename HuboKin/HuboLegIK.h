@@ -42,7 +42,7 @@ public:
         valid.clear();
         solutions.reserve(8);
         valid.reserve(8);
-        getGoalTransform(lastConfig);
+        this->getGoalTransform(lastConfig);
 
         const akin::Link& baseLink = this->_robot->joint(this->_joints[0]).upstreamLink();
         
@@ -72,7 +72,7 @@ public:
             if(sqrt_radical.imag() != 0)
                 isValid = false;
 
-            q5 = wrapToPi(atan2(-pz, alternatives(i,1)*sqrt_radical.real())-psi);
+            q5 = akin::wrapToPi(atan2(-pz, alternatives(i,1)*sqrt_radical.real())-psi);
 
             q6 = atan2(py, -(px+L6));
             C45 = cos(q4+q5);

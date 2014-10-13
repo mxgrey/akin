@@ -1,7 +1,7 @@
 
 #include "../Hubo2Plus.h"
 #include "../HuboLegIK.h"
-#include "akinUtils/urdfParsing.h"
+#include "urdfAkin/urdfParsing.h"
 
 using namespace akin;
 using namespace HuboKin;

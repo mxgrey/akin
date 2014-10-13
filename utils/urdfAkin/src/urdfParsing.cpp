@@ -1,5 +1,5 @@
 
-#include "akinUtils/urdfParsing.h"
+#include "urdfAkin/urdfParsing.h"
 
 #include <urdf_parser/urdf_parser.h>
 #include <urdf_model/model.h>

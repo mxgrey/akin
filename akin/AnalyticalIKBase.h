@@ -62,7 +62,7 @@ public:
 
     virtual Validity getGradient(VectorQ& gradient, const VectorQ& configuration) {
         _tempBest = configuration;
-        getError(configuration, this->computeErrorFromCenter);
+        this->getError(configuration, this->computeErrorFromCenter);
         Validity v = this->_computeCurrentValidity();
         if(v.valid) {
             gradient.setZero();
@@ -153,7 +153,7 @@ public:
     }
     
     const KinTransform& getGoalTransform(const VectorQ& config) {
-        getError(config, this->computeErrorFromCenter);
+        this->getError(config, this->computeErrorFromCenter);
         _goalTf.changeRefFrame(this->target.refFrame());
         
         Error _target_disp = this->_displacement - this->_error;

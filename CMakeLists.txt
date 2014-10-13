@@ -38,6 +38,7 @@ set(LIBRARY_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 set(HEADER_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/include)
 
 include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/utils)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
@@ -45,7 +46,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 add_subdirectory(akin)
 
 add_subdirectory(utils)
-include_directories(${PROJECT_SOURCE_DIR}/utils)
 
 if(build_HuboKin)
   if(build_urdfAkin)
