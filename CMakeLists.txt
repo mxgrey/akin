@@ -6,15 +6,21 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif(NOT CMAKE_BUILD_TYPE)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX /usr)
+  MESSAGE(STATUS "Setting installation prefix to ${CMAKE_INSTALL_PREFIX} by default")
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-option(build_minimal "Build only the core akin library" OFF)
+option(build_Core_Only "Build only the core akin library" OFF)
 option(build_osgAkin "Build OpenSceneGraph support for akin" ON)
 option(build_urdfAkin "Build URDF support for akin" ON)
+option(build_HuboKin "Build the Hubo extension of akin" ON)
 
-if(build_minimal)
+if(build_Core_Only)
   set(build_osgAkin OFF)
   set(build_urdfAkin OFF)
-endif(build_minimal)
+  set(build_HuboKin OFF)
+endif(build_Core_Only)
 
 set(COMPLETED_BUILD TRUE)
 
@@ -40,6 +46,17 @@ add_subdirectory(akin)
 
 add_subdirectory(utils)
 include_directories(${PROJECT_SOURCE_DIR}/utils)
+
+if(build_HuboKin)
+  if(build_urdfAkin)
+    MESSAGE(STATUS "Building HuboKin")
+    add_subdirectory(HuboKin)
+  else(build_urdfAkin)
+    MESSAGE(WARNING "Could NOT build HuboKin, because it depends on urdfAkin!")
+  endif(build_urdfAkin)
+else(build_HuboKin)
+  MESSAGE(STATUS "Ignoring HuboKin")
+endif(build_HuboKin)
 
 if(COMPLETED_BUILD)
 

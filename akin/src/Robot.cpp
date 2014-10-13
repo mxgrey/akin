@@ -460,24 +460,27 @@ double Robot::getMass() const
     return mass();
 }
 
-Eigen::Matrix3d Robot::getInertiaTensor(const Frame& withRespectToFrame) const
+Eigen::Matrix3d Robot::getInertiaTensor(const Frame& ) const
 {
+    // TODO FIXME
     verb.Assert(false, verbosity::ASSERT_CASUAL,
                 "getInertiaTensor() is not implemented for Robot yet!");
 
     return Eigen::Matrix3d::Identity();
 }
 
-FreeVector Robot::getForces(const Frame& withRepsectToFrame) const
+FreeVector Robot::getForces(const Frame& ) const
 {
+    // TODO FIXME
     verb.Assert(false, verbosity::ASSERT_CASUAL,
                 "getForces() is not implemented for Robot yet!");
 
     return FreeVector::Zero();
 }
 
-FreeVector Robot::getMoments(const Frame &withRespectToFrame) const
+FreeVector Robot::getMoments(const Frame &) const
 {
+    // TODO FIXME
     verb.Assert(false, verbosity::ASSERT_CASUAL,
                 "getMoments() is not implemented for Robot yet!");
 
