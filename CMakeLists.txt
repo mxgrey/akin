@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.3)
 project(akin)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -6,11 +6,22 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif(NOT CMAKE_BUILD_TYPE)
 
+
+option(build_minimal "Build only the core akin library" OFF)
+option(build_osgAkin "Build OpenSceneGraph support for akin" ON)
+option(build_urdfAkin "Build URDF support for akin" ON)
+
+if(build_minimal)
+  set(build_osgAkin OFF)
+  set(build_urdfAkin OFF)
+endif(build_minimal)
+
+set(COMPLETED_BUILD TRUE)
+
 add_definitions("-Wall -Wextra")
 
 list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 
-set(COMPILE_EVERYTHING ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -27,47 +38,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 add_subdirectory(akin)
 
-find_package(OpenSceneGraph)
-add_subdirectory(osgAkin)
+add_subdirectory(utils)
+include_directories(${PROJECT_SOURCE_DIR}/utils)
 
-include_directories(${OpenSceneGraph_INCLUDE_DIRS})
-add_definitions(${OpenSourceGraph_DEFINITIONS})
-
-link_libraries(akin osg osgViewer osgDB osgGA osgUtil osgAkin)
-
-option(URDF_PARSING "include urdf parsing" ON)
-
-if(URDF_PARSING)
-
-  find_package(urdfdom QUIET)
-  if(urdfdom_FOUND)
-    find_package( urdfdom_headers QUIET )
-    if(urdfdom_headers_FOUND)
-      include_directories( ${urdfdom_headers_INCLUDE_DIRS} )
-      include_directories( ${urdfdom_INCLUDE_DIRS} )
-
-      MESSAGE(STATUS "Found urdfdom -- We will compile a URDF parser")
-      file(GLOB urdf_source "urdf/*.cpp" "akinUtils/*.h")
-      list(SORT urdf_source)
-
-      link_libraries(${urdfdom_LIBRARIES})
-
-      add_subdirectory(akinUtils)
-
-      link_libraries(akinUtils)
-
-    else(urdfdom_headers_FOUND)
-      MESSAGE(STATUS "Could NOT find urdfdom *headers* -- We will NOT compile a URDF parser")
-      set(COMPILE_EVERYTHING OFF)
-    endif(urdfdom_headers_FOUND)
-  else( urdfdom_FOUND)
-    MESSAGE(STATUS "Could NOT find urdfdom -- We will NOT compile a URDF parser")
-    set(COMPILE_EVERYTHING OFF)
-  endif(urdfdom_FOUND)
-
-endif(URDF_PARSING)
-
-if(COMPILE_EVERYTHING)
+if(COMPLETED_BUILD)
 
     add_subdirectory(HuboKin)
 
@@ -101,8 +75,8 @@ if(COMPILE_EVERYTHING)
         target_link_libraries(${app_base} ${exec_dependencies})
     endforeach(app_src_file)
 
-else(COMPILE_EVERYTHING)
+else(COMPLETED_BUILD)
 
-    message(STATUS "\n The entire package was not compiled, so we will not generate apps and tests!")
+    message(STATUS "The entire package was NOT compiled, so we will not generate apps and tests!\n")
 
-endif(COMPILE_EVERYTHING)
+endif(COMPLETED_BUILD)

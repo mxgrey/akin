@@ -1,6 +1,5 @@
 
 #include "../Robot.h"
-#include "../../akinUtils/urdfParsing.h"
 #include "../RobotConstraint.h"
 #include "../Solver.h"
 
