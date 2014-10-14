@@ -200,14 +200,14 @@ Eigen::Matrix3d Body::getInertiaTensor(const Frame &withRespectToFrame) const
 FreeVector Body::getForces(const Frame& withRespectToFrame) const
 {
     if(withRespectToFrame.isWorld())
-        return _appliedForces_wrtWorld;
+        return _sumForces_wrtWorld();
 
-    if(this == &withRespectToFrame)
-        return respectToWorld().rotation().transpose()*_appliedForces_wrtWorld;
+//    if(this == &withRespectToFrame)
+//        return respectToWorld().rotation().transpose()*_sumForces_wrtWorld();
 
     const Eigen::Isometry3d& wrt = withRespectToFrame.respectToWorld();
 
-    return wrt.rotation().transpose()*_appliedForces_wrtWorld;
+    return wrt.rotation().transpose()*_sumForces_wrtWorld();
 }
 
 FreeVector Body::getMoments(const Frame &withRespectToFrame) const
@@ -226,6 +226,11 @@ FreeVector Body::getMoments(const Frame &withRespectToFrame) const
 Screw Body::getWrench(const Frame &withRespectToFrame) const
 {
     return Screw(getForces(withRespectToFrame),getMoments(withRespectToFrame));
+}
+
+Eigen::Vector3d Body::_sumForces_wrtWorld() const
+{
+    return _appliedForces_wrtWorld+mass*_gravity.respectToWorld();
 }
 
 std::ostream& operator<<(std::ostream& stream, const akin::Body& someBody)

@@ -104,6 +104,8 @@ public:
     const Robot& robot() const;
 
     bool isDummy() const;
+    
+    
 
 protected:
     

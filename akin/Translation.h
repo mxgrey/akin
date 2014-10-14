@@ -170,6 +170,7 @@ class KinFreeVector : public FreeVector, public KinObject
 public:
 
     KinMacro( KinFreeVector, FreeVector )
+    KinFreeVector();
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     const FreeVector& respectToWorld() const;
@@ -187,6 +188,9 @@ protected:
  */
 typedef FreeVector Velocity;
 typedef FreeVector Acceleration;
+
+typedef KinFreeVector KinVelocity;
+typedef KinFreeVector KinAcceleration;
 
 /*!
  * \class Axis

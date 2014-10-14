@@ -111,6 +111,7 @@ public:
     
 protected:
 
+    Eigen::Vector3d _sumForces_wrtWorld() const;
     Eigen::Matrix3d _inertiaTensor_wrtLocalFrame;
     FreeVector _appliedForces_wrtWorld;
     FreeVector _appliedMoments_wrtWorld;

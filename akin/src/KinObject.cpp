@@ -136,7 +136,7 @@ bool KinObject::name(const std::string& newName) { _name = newName; return true;
 
 const std::string& KinObject::type() const { return _type; }
 
-bool KinObject::changeRefFrame(Frame &newRefFrame)
+bool KinObject::changeRefFrame(Frame& newRefFrame)
 {
     if(_referenceFrame == &newRefFrame)
         return true;

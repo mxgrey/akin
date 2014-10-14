@@ -49,6 +49,7 @@ using namespace std;
 
 Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
+    _gravity(referenceFrame.gravity()),
     _isLink(false),
     _isWorld(false)
 {
@@ -61,6 +62,7 @@ Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_
 Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _respectToRef(relativeTf),
+    _gravity(referenceFrame.gravity()),
     _isLink(false),
     _isWorld(false)
 {
@@ -68,18 +70,6 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
     referenceFrame._gainChildFrame(this);
     _needsVelUpdate = true;
     _needsAccUpdate = true;
-}
-
-
-Frame::Frame(bool) :
-    KinObject(*this, "World", verbosity::LOG, "World Frame", true),
-    _isLink(false),
-    _isWorld(true)
-{
-    _isFrame = true;
-    _needsUpdate = false;
-    _needsVelUpdate = false;
-    _needsAccUpdate = false;
 }
 
 void Frame::_kinitialize(const Frame &other)
@@ -94,6 +84,7 @@ void Frame::_kinitialize(const Frame &other)
     notifyVelUpdate();
     _needsAccUpdate = false;
     notifyAccUpdate();
+    _gravity = other.gravity();
 }
 
 Frame::~Frame()
@@ -101,6 +92,18 @@ Frame::~Frame()
     for(size_t i=0; i < _registeredObjects.size(); ++i)
         _registeredObjects[i]->_loseParent(this);
     refFrame()._loseChildFrame(this);
+}
+
+Frame::Frame(bool) :
+    KinObject(*this, "World", verbosity::LOG, "World Frame", true),
+    _gravity(Eigen::Vector3d(0,0,-9.8),*this),
+    _isLink(false),
+    _isWorld(true)
+{
+    _isFrame = true;
+    _needsUpdate = false;
+    _needsVelUpdate = false;
+    _needsAccUpdate = false;
 }
 
 Frame& Frame::World()
@@ -618,6 +621,30 @@ void Frame::relativeAcceleration(const Screw& a_wdot)
 {
     relativeLinearAcceleration(a_wdot.block<3,1>(0,0));
     relativeAngularAcceleration(a_wdot.block<3,1>(3,0));
+}
+
+const KinAcceleration& Frame::gravity() const
+{
+    return _gravity;
+}
+
+void Frame::gravity(const KinAcceleration& g, bool recursive)
+{
+    _gravity = g;
+    
+    if(recursive)
+        for(size_t i=0; i<numChildFrames(); ++i)
+            childFrame(i).gravity(_gravity, true);
+}
+
+void Frame::gravity(const Eigen::Vector3d& g, Frame& inFrame, bool recursive)
+{
+    _gravity.changeRefFrame(inFrame);
+    _gravity = g;
+    
+    if(recursive)
+        for(size_t i=0; i<numChildFrames(); ++i)
+            childFrame(i).gravity(_gravity, true);
 }
 
 void Frame::notifyUpdate()

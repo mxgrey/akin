@@ -50,18 +50,17 @@ using namespace std;
 
 const Transform& KinTransform::respectToWorld() const
 {
-//    if(_needsUpdate)
-        _update();
+    _update();
 
     return _respectToWorld;
 }
 
 Transform KinTransform::withRespectTo(const akin::Frame& someFrame) const
 {
-    if(someFrame.isWorld())
-        return respectToWorld();
-    else if(&someFrame == &refFrame())
+    if(&someFrame == &refFrame())
         return respectToRef();
+    else if(someFrame.isWorld())
+        return respectToWorld();
     
     return someFrame.respectToWorld().inverse() * respectToWorld();
 }

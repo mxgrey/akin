@@ -33,6 +33,17 @@ enum {
 class Robot : public InertiaBase
 {
 public:
+    
+    typedef enum {
+        
+        STANDARD_NEWTON_EULER=0,
+        MINIMAL_NEWTON_EULER,
+        
+        // TODO: Add Lagrangian methods
+        
+        NUM_DYNAMICS_TYPES
+        
+    } dynamics_t;
 
     friend class Joint;
     friend class Link;

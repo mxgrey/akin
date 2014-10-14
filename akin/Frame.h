@@ -68,7 +68,7 @@ public:
 
     KinCustomMacro( Frame )
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
+    
     /*!
       * \fn Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level)
       * \brief Constructor for frames
@@ -238,6 +238,10 @@ public:
     Screw acceleration(const Frame& withRespectToFrame=Frame::World()) const;
     Screw relativeAcceleration() const;
     void relativeAcceleration(const Screw& a_wdot);
+    
+    const KinAcceleration& gravity() const;
+    void gravity(const KinAcceleration& g, bool recursive=true);
+    void gravity(const Eigen::Vector3d& g, Frame& inFrame, bool recursive=true);
 
     // Update functions -------------------------------------------------------
     virtual void notifyUpdate();
@@ -288,6 +292,8 @@ protected:
     Acceleration _relativeAngularAcc;
     mutable Acceleration _linearAcc_wrtWorld;
     mutable Acceleration _angularAcc_wrtWorld;
+    
+    KinAcceleration _gravity;
     
     std::vector<Frame*> _childFrames;
 

@@ -35,7 +35,8 @@ public:
     ProtectedJointProperties(size_t jointID, const std::string& jointName,
                              const Transform& mBaseTransform, const Axis& mJointAxis,
                              akin::PublicJointProperties::Type mType,
-                             double minimumValue, double maximumValue);
+                             double minimumValue, double maximumValue,
+                             double maxSpeed, double maxAcceleration);
 
     Transform _baseTransform;
     Vec3 _axis;
@@ -84,6 +85,11 @@ public:
 
     bool acceleration(double newJointAcceleration);
     double acceleration() const;
+    
+    double torque() const;
+    double force() const;
+    
+    Screw reciprocalWrench() const;
     
     Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
                       bool checkDependence=true) const;
@@ -232,7 +238,8 @@ protected:
           Link* mParentLink=NULL, Link* mChildLink=NULL,
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
-          double mininumValue=-INFINITY, double maximumValue=INFINITY);
+          double mininumValue=-INFINITY, double maximumValue=INFINITY,
+          double maxSpeed=INFINITY, double maxAcceleration=INFINITY);
     Joint& operator=(const Joint& otherJoint);
     
     void _computeRefTransform();

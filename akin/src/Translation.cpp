@@ -64,10 +64,10 @@ const Translation& KinTranslation::respectToWorld() const
 
 Translation KinTranslation::withRespectTo(const Frame &someFrame) const
 {
-    if(someFrame.isWorld())
-        return respectToWorld();
-    else if(&someFrame == &refFrame())
+    if(&someFrame == &refFrame())
         return respectToRef();
+    else if(someFrame.isWorld())
+        return respectToWorld();
     
     return someFrame.respectToWorld().inverse() * respectToWorld();
 }
@@ -81,6 +81,12 @@ void KinTranslation::_update() const
     _needsUpdate = false;
 }
 
+KinFreeVector::KinFreeVector() :
+    KinObject(Frame::World(), "freevector", verbosity::INHERIT, "KinFreeVector")
+{
+    
+}
+
 const FreeVector& KinFreeVector::respectToWorld() const
 {
 //    if(_needsUpdate)
@@ -91,10 +97,10 @@ const FreeVector& KinFreeVector::respectToWorld() const
 
 FreeVector KinFreeVector::withRespectTo(const Frame &someFrame) const
 {
-    if(someFrame.isWorld())
-        return respectToWorld();
-    else if(&someFrame == &refFrame())
+    if(&someFrame == &refFrame())
         return respectToRef();
+    else if(someFrame.isWorld())
+        return respectToWorld();
     
     // TODO: Investigate if it is okay to leave off Transform()
     return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
@@ -118,10 +124,10 @@ const Axis& KinAxis::respectToWorld() const
 
 Axis KinAxis::withRespectTo(const Frame &someFrame) const
 {
-    if(someFrame.isWorld())
-        return respectToWorld();
-    else if(&someFrame == &refFrame())
+    if(&someFrame == &refFrame())
         return respectToRef();
+    else if(someFrame.isWorld())
+        return respectToWorld();
     
     return Transform(someFrame.respectToWorld().inverse()) * respectToWorld();
 }

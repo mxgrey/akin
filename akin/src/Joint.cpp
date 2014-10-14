@@ -193,6 +193,25 @@ Vec3 Joint::Jacobian_rotOnly(const KinTranslation &point, const Frame &refFrame,
     return _computeRotJacobian(z_i);
 }
 
+double Joint::force() const
+{
+    return torque();
+}
+
+double Joint::torque() const
+{
+    // TODO FIXME
+    verb.Assert(false, verbosity::ASSERT_CASUAL, "Joint torque calculations are not ready yet");
+    return 0;
+}
+
+Screw Joint::reciprocalWrench() const
+{
+    // TODO FIXME
+    verb.Assert(false, verbosity::ASSERT_CASUAL, "Joint reciprocal wrench calculations are not ready yet");
+    return Screw::Zero();
+}
+
 Vec3 Joint::Jacobian_posOnly(const KinTranslation &point, const Frame &refFrame, 
                       bool checkDependence) const
 {
@@ -253,12 +272,17 @@ ProtectedJointProperties::ProtectedJointProperties() { }
 ProtectedJointProperties::ProtectedJointProperties(
         size_t jointID, const string &jointName, const Transform &mBaseTransform,
         const Axis &mJointAxis, PublicJointProperties::Type mType,
-        double minimumValue, double maximumValue) :
+        double minimumValue, double maximumValue,
+        double maxSpeed, double maxAcceleration) :
     _baseTransform(mBaseTransform),
     _axis(mJointAxis),
     _value(0),
     _minValue(minimumValue),
     _maxValue(maximumValue),
+    _velocity(0),
+    _maxSpeed(maxSpeed),
+    _acceleration(0),
+    _maxAcceleration(maxAcceleration),
     _myType(mType),
     _id(jointID),
     _name(jointName),
@@ -271,9 +295,10 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
              Link *mParentLink, Link *mChildLink,
              const Transform &mBaseTransform,
              const Axis &mJointAxis, akin::Joint::Type mType,
-             double mininumValue, double maximumValue) :
+             double mininumValue, double maximumValue,
+             double maxSpeed, double maxAcceleration) :
     ProtectedJointProperties(jointID, jointName, mBaseTransform, mJointAxis, mType,
-                             mininumValue, maximumValue),
+                             mininumValue, maximumValue, maxSpeed, maxAcceleration),
     verb(mRobot->verb),
     _parentLink(mParentLink),
     _childLink(mChildLink),
