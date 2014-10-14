@@ -3,7 +3,7 @@
 #include "HuboKin/DrcHubo.h"
 #include "akin/Solver.h"
 
-#include "akinUtils/urdfParsing.h"
+#include "urdfAkin/urdfParsing.h"
 
 #include "osgAkin/AkinCallback.h"
 

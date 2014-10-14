@@ -60,9 +60,12 @@ endif(build_HuboKin)
 
 if(COMPLETED_BUILD)
 
-    add_subdirectory(HuboKin)
-
-    set(exec_dependencies ${PROJECT_NAME} ${OpenSceneGraph_LIBRARIES} HuboKin)
+    set(exec_dependencies 	osgAkin
+							${OSG_LIBRARIES}
+							HuboKin
+							urdfAkin
+							${urdfdom_LIBRARIES}
+							akin )
 
     enable_testing()
 

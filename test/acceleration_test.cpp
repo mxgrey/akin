@@ -1,8 +1,8 @@
 
 
-#include "../osgAkin/AkinCallback.h"
+#include "osgAkin/AkinCallback.h"
 #include "osgGA/GUIEventHandler"
-#include "../osgAkin/Line.h"
+#include "osgAkin/Line.h"
 #include <osgGA/TrackballManipulator>
 
 using namespace akin;

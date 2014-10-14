@@ -6,11 +6,11 @@
 #include <osg/LineWidth>
 #include <osg/MatrixTransform>
 
-#include "../osgAkin/AkinCallback.h"
-#include "../osgAkin/Axes.h"
+#include "osgAkin/AkinCallback.h"
+#include "osgAkin/Axes.h"
 
 #include "../akin/Robot.h"
-#include "../akinUtils/urdfParsing.h"
+#include "urdfAkin/urdfParsing.h"
 
 #include "../akin/RobotConstraint.h"
 #include "../akin/AnalyticalIKBase.h"

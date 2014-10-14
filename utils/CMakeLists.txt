@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 if(build_urdfAkin)
   MESSAGE(STATUS "Building urdfAkin")
   add_subdirectory(urdfAkin)
-  set(build_urdfAkin ${build_urdfAkin} PARENT_SCOPE)
+  set(build_urdfAkin ${build_urdfAkin} PARENT_SCOPE) # TODO: Consider using CACHE instead of dealing with scope
 else(build_urdfAkin)
   MESSAGE(STATUS "Ignoring urdfAkin")
   set(COMPLETED_BUILD FALSE)
