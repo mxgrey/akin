@@ -20,5 +20,7 @@
 # User settings
 *.user
 
-# Build folder objects
+# Built objects
 build/*
+bin/*
+lib/*
