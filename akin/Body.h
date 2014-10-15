@@ -20,12 +20,18 @@ typedef enum {
     
     STANDARD_NEWTON_EULER=0,
     MINIMAL_NEWTON_EULER,
+
+    NUM_FORWARD_DYNAMICS_METHODS
     
-    // TODO: Add Lagrangian methods
-    
-    NUM_DYNAMICS_METHODS
-    
-} dynamics_method_t;
+} forward_dynamics_method_t;
+
+typedef enum {
+
+    STANDARD_LAGRANGIAN=0,
+
+    NUM_INVERSE_DYNAMICS_METHODS
+
+} inverse_dynamics_method_t;
 
 class InertiaBase
 {

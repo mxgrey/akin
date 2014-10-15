@@ -34,7 +34,8 @@ class Robot : public InertiaBase
 {
 public:
     
-    dynamics_method_t method;
+    forward_dynamics_method_t forward_method;
+    inverse_dynamics_method_t inverse_method;
 
     friend class Joint;
     friend class Link;
