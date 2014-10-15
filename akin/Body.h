@@ -6,6 +6,27 @@
 
 namespace akin {
 
+typedef enum {
+    
+    // TODO: Think carefully how to name these enums
+    FORWARD=0,
+    INVERSE,
+    
+    NUM_DYNAMICS_MODES
+    
+} dynamics_mode_t;
+
+typedef enum {
+    
+    STANDARD_NEWTON_EULER=0,
+    MINIMAL_NEWTON_EULER,
+    
+    // TODO: Add Lagrangian methods
+    
+    NUM_DYNAMICS_METHODS
+    
+} dynamics_method_t;
+
 class InertiaBase
 {
 public:
@@ -14,6 +35,7 @@ public:
     //
     // This class will be inherited by both Body and Robot so that either can
     // be attached to a manipulator using the same API.
+    InertiaBase();
 
     virtual Translation getCom(const Frame& withRespectToFrame = Frame::World()) const = 0;
     virtual double getMass() const = 0;
@@ -23,6 +45,16 @@ public:
     virtual FreeVector getForces(const Frame& withRepsectToFrame = Frame::World()) const = 0;
     virtual FreeVector getMoments(const Frame& withRespectToFrame = Frame::World()) const = 0;
     virtual Screw getWrench(const Frame& withRespectToFrame = Frame::World()) const = 0;
+    
+    virtual void setDynamicsMode(dynamics_mode_t mode);
+    
+    virtual void notifyDynUpdate();
+    
+protected:
+    
+    bool _needsDynUpdate;
+    dynamics_mode_t _mode;
+    InertiaBase* _attachingPoint;
 
 };
 
@@ -99,7 +131,6 @@ public:
     
     double mass;
     KinTranslation com;
-    
 
     Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
     double getMass() const;

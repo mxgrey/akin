@@ -4,6 +4,31 @@
 using namespace akin;
 using namespace std;
 
+InertiaBase::InertiaBase() :
+    _needsDynUpdate(true),
+    _mode(FORWARD),
+    _attachingPoint(NULL)
+{
+    
+}
+
+void InertiaBase::setDynamicsMode(dynamics_mode_t mode)
+{
+    _mode = mode;
+    if(_attachingPoint)
+        _attachingPoint->setDynamicsMode(mode);
+}
+
+void InertiaBase::notifyDynUpdate()
+{
+    if(_needsDynUpdate)
+        return;
+    
+    _needsDynUpdate = true;
+    if(_attachingPoint)
+        _attachingPoint->notifyDynUpdate();
+}
+
 std::string akin::inertia_param_to_string(size_t param)
 {
     switch (param) {

@@ -318,9 +318,17 @@ Velocity computeVelocity(const Translation& ofPoint,
                          const Frame& inFrame,
                          const Frame& withRespectToFrame = Frame::World());
 
+Velocity computeVelocity(const Translation& ofPoint,
+                         const Frame& inFrame,
+                         const Frame& withRespectToFrame = Frame::World());
+
 Acceleration computeAcceleration(const Translation& ofPoint,
                                  const Velocity& withVelocity,
                                  const Acceleration& withAcceleration,
+                                 const Frame& inFrame,
+                                 const Frame& withRespectToFrame = Frame::World());
+
+Acceleration computeAcceleration(const Translation& ofPoint,
                                  const Frame& inFrame,
                                  const Frame& withRespectToFrame = Frame::World());
 

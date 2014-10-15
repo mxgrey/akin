@@ -7,6 +7,7 @@ using namespace akin;
 using namespace std;
 
 Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level) :
+    method(STANDARD_NEWTON_EULER),
     zeroValue(1e-8),
     _com(referenceFrame, "CenterOfMass"),
     _balance(NULL),

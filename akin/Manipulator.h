@@ -11,6 +11,7 @@ class ManipConstraintBase;
 class AnalyticalIKBase;
 class RobotSolverX;
 
+
 class Manipulator : public Frame
 {
 public:
@@ -68,6 +69,7 @@ public:
     const Robot* robot(size_t robotNum) const;
     size_t numRobots() const;
     
+    // TODO: Consider what happens when an attached object gets deleted from elsewhere
     bool detachRobot(Robot* robot);
     bool detachRobot(size_t robotNum);
     

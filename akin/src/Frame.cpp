@@ -329,6 +329,35 @@ Velocity akin::computeVelocity(const Translation& ofPoint,
            +inFrame.angularVelocity(withRespectToFrame).cross(T.rotation()*ofPoint);
 }
 
+Velocity akin::computeVelocity(const Translation &ofPoint, 
+                               const Frame &inFrame, 
+                               const Frame &withRespectToFrame)
+{
+    // TODO: Set up a test to make sure that these results are always equivalent to
+    // the other version
+    if(&inFrame == &withRespectToFrame)
+    {
+        return Velocity::Zero();
+    }
+    else if(withRespectToFrame.isWorld())
+    {
+        return inFrame.linearVelocity() + inFrame.angularVelocity().cross(
+                    inFrame.respectToWorld().rotation()*ofPoint);
+    }
+    else if(inFrame.isWorld())
+    {
+        return withRespectToFrame.respectToWorld().rotation().transpose()*(
+                    - withRespectToFrame.linearVelocity()
+                    - withRespectToFrame.angularVelocity().cross(
+                        ofPoint-withRespectToFrame.respectToWorld().translation()) );
+    }
+    
+    const Transform& T = inFrame.withRespectTo(withRespectToFrame);
+    
+    return inFrame.linearVelocity(withRespectToFrame)
+            + inFrame.angularVelocity(withRespectToFrame).cross(T.rotation()*ofPoint);
+}
+
 const Velocity& Frame::relativeLinearVelocity() const
 {
     return _relativeLinearVel;
@@ -511,6 +540,34 @@ Acceleration akin::computeAcceleration(const Translation &ofPoint,
 
     return inFrame.linearAcceleration(withRespectToFrame) + T.rotation()*withAcceleration
            + alpha.cross(pr) + 2*w.cross(vr) + w.cross(w.cross(pr));
+}
+
+Acceleration akin::computeAcceleration(const Translation &ofPoint, 
+                                       const Frame &inFrame, 
+                                       const Frame &withRespectToFrame)
+{
+    // TODO: Create a test to make sure that this always gives results
+    // that are identical to the other version
+    if(&inFrame == &withRespectToFrame)
+    {
+        return Acceleration::Zero();
+    }
+    else if(withRespectToFrame.isWorld())
+    {
+        const Eigen::Vector3d& pr = inFrame.respectToWorld()*ofPoint;
+        
+        return inFrame.linearAcceleration()
+                + inFrame.angularAcceleration().cross(pr)
+                + inFrame.angularVelocity().cross(inFrame.angularVelocity().cross(pr));
+    }
+    
+    const Transform& T = inFrame.withRespectTo(withRespectToFrame);
+    const Eigen::Vector3d& pr = T.rotation()*ofPoint;
+    const Eigen::Vector3d& w = inFrame.angularVelocity(withRespectToFrame);
+    const Eigen::Vector3d& alpha = inFrame.angularAcceleration(withRespectToFrame);
+    
+    return inFrame.linearAcceleration(withRespectToFrame)
+            + alpha.cross(pr) + w.cross(w.cross(pr));
 }
 
 const Acceleration& Frame::relativeLinearAcceleration() const

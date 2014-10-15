@@ -17,7 +17,7 @@ typedef std::map<std::string,size_t> StringMap;
 typedef std::vector<std::string> StringArray;
 
 enum {
-    DOF_TPD     = (size_t)(-9),
+    DOF_VTD     = (size_t)(-9),
     DOF_TIME    = (size_t)(-8),
     
     DOF_POS_X   = (size_t)(-7),
@@ -34,16 +34,7 @@ class Robot : public InertiaBase
 {
 public:
     
-    typedef enum {
-        
-        STANDARD_NEWTON_EULER=0,
-        MINIMAL_NEWTON_EULER,
-        
-        // TODO: Add Lagrangian methods
-        
-        NUM_DYNAMICS_TYPES
-        
-    } dynamics_t;
+    dynamics_method_t method;
 
     friend class Joint;
     friend class Link;
