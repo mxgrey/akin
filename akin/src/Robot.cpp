@@ -8,7 +8,7 @@ using namespace std;
 
 Robot::Robot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level) :
     forward_method(STANDARD_NEWTON_EULER),
-    inverse_method(STANDARD_LAGRANGIAN),
+    inverse_method(FEATHERSTONE),
     zeroValue(1e-8),
     _com(referenceFrame, "CenterOfMass"),
     _balance(NULL),
@@ -927,6 +927,20 @@ void Robot::enforceJointLimits(bool enforce)
             if(!joint(i).withinLimits())
                 joint(i).value(joint(i).value());
         }
+    }
+}
+
+void Robot::notifyDynUpdate()
+{
+    InertiaBase::notifyDynUpdate();
+
+    for(size_t i=0, M=numManips(); i<M; ++i)
+    {
+        for(size_t j=0, I=manip(i).numItems(); j<I; ++j)
+            manip(i).item(j)->notifyDynUpdate();
+
+        for(size_t j=0, R=manip(i).numRobots(); j<R; ++j)
+            manip(i).robot(j)->notifyDynUpdate();
     }
 }
 

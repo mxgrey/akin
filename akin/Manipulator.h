@@ -51,7 +51,7 @@ public:
     
     const KinTranslation& point() const;
     
-    int attachItem(Body* item);
+    int attachItem(Body* newItem);
     
     Body* item(size_t itemNum);
     const Body* item(size_t itemNum) const;
@@ -63,13 +63,14 @@ public:
     bool deleteItem(Body* item);
     bool deleteItem(size_t itemNum);
 
-    int attachRobot(Robot* robot);
+    int attachRobot(Robot* newRobot);
     
     Robot* robot(size_t robotNum);
     const Robot* robot(size_t robotNum) const;
     size_t numRobots() const;
     
     // TODO: Consider what happens when an attached object gets deleted from elsewhere
+    //          could be a good application for the Tracker class
     bool detachRobot(Robot* robot);
     bool detachRobot(size_t robotNum);
     

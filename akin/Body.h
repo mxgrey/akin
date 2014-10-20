@@ -27,7 +27,7 @@ typedef enum {
 
 typedef enum {
 
-    STANDARD_LAGRANGIAN=0,
+    FEATHERSTONE=0,
 
     NUM_INVERSE_DYNAMICS_METHODS
 
@@ -43,6 +43,8 @@ public:
     // be attached to a manipulator using the same API.
     InertiaBase();
 
+    friend class Manipulator;
+
     virtual Translation getCom(const Frame& withRespectToFrame = Frame::World()) const = 0;
     virtual double getMass() const = 0;
     virtual Eigen::Matrix3d getInertiaTensor(
@@ -53,14 +55,14 @@ public:
     virtual Screw getWrench(const Frame& withRespectToFrame = Frame::World()) const = 0;
     
     virtual void setDynamicsMode(dynamics_mode_t mode);
-    
+
     virtual void notifyDynUpdate();
     
 protected:
     
     bool _needsDynUpdate;
     dynamics_mode_t _mode;
-    InertiaBase* _attachingPoint;
+    InertiaBase* _attachment;
 
 };
 
@@ -145,6 +147,10 @@ public:
     virtual FreeVector getForces(const Frame &withRespectToFrame) const;
     virtual FreeVector getMoments(const Frame &withRespectToFrame) const;
     Screw getWrench(const Frame &withRespectToFrame) const;
+
+    virtual void notifyUpdate();
+    virtual void notifyVelUpdate();
+    virtual void notifyAccUpdate();
     
 protected:
 

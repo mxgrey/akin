@@ -250,6 +250,11 @@ const Robot& Link::robot() const
 
 bool Link::isDummy() const { return _isDummy; }
 
+void Link::notifyDynUpdate()
+{
+    _myRobot->notifyDynUpdate();
+}
+
 std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
 {
     oStrStream << "Link named '" << someLink.name() << "' ";

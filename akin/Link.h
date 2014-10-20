@@ -105,7 +105,7 @@ public:
 
     bool isDummy() const;
     
-    
+    void notifyDynUpdate();
 
 protected:
     

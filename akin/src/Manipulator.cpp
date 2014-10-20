@@ -116,7 +116,7 @@ void Manipulator::setConstraint(Mode m, ManipConstraintBase *newConstraint, bool
     if(ANALYTICAL==m)
     {
         AnalyticalIKBase* check = dynamic_cast<AnalyticalIKBase*>(newConstraint);
-        if( !_myRobot->verb.Assert(check != NULL, verbosity::ASSERT_CRITICAL,
+        if( !_myRobot->verb.Assert(check != nullptr, verbosity::ASSERT_CRITICAL,
                                    "Trying to set the manipulator's Analytical mode to a constraint"
                                    " class which does not derive from AnalyticalIKBase!"))
         {
@@ -186,18 +186,19 @@ void Manipulator::resetConstraints()
 
 const KinTranslation& Manipulator::point() const { return _point; }
 
-int Manipulator::attachItem(Body* item)
+int Manipulator::attachItem(Body* newItem)
 {
     for(size_t i=0; i<_items.size(); ++i)
     {
-        if(item == _items[i])
+        if(newItem == _items[i])
             return i;
     }
     
-    if(!item->changeRefFrame(*this))
+    if(!newItem->changeRefFrame(*this))
         return -1;
     
-    _items.push_back(item);
+    newItem->_attachment = &parentLink();
+    _items.push_back(newItem);
     return _items.size()-1;
 }
 
@@ -206,7 +207,7 @@ Body* Manipulator::item(size_t itemNum)
     if( !verb.Assert(itemNum<_items.size(), verbosity::ASSERT_CASUAL,
                      "Trying to access item #"+to_string(itemNum)+" held by manip '"
                      +name()+"', but it only has "+to_string(_items.size())+" entries!"))
-        return NULL;
+        return nullptr;
     
     return _items[itemNum];
 }
@@ -258,28 +259,29 @@ bool Manipulator::deleteItem(Body* item)
 bool Manipulator::deleteItem(size_t itemNum)
 {
     Body* oldItem = item(itemNum);
-    if(oldItem==NULL)
+    if(oldItem==nullptr)
         return false;
     
     return deleteItem(oldItem);
 }
 
 
-int Manipulator::attachRobot(Robot* robot)
+int Manipulator::attachRobot(Robot* newRobot)
 {
     for(size_t i=0; i<_robots.size(); ++i)
     {
-        if(robot == _robots[i])
+        if(newRobot == _robots[i])
             return i;
     }
     
-    if(refFrame().descendsFrom(robot->refFrame()))
+    if(refFrame().descendsFrom(newRobot->refFrame()))
         return -1;
     
-    if(!robot->changeRefFrame(*this))
+    if(!newRobot->changeRefFrame(*this))
         return -2;
     
-    _robots.push_back(robot);
+    newRobot->_attachment = &parentLink();
+    _robots.push_back(newRobot);
     return _robots.size()-1;
 }
 
@@ -288,7 +290,7 @@ Robot* Manipulator::robot(size_t robotNum)
     if( !verb.Assert(robotNum < _robots.size(), verbosity::ASSERT_CASUAL,
                      "Trying to access robot #"+to_string(robotNum)+" held by manip '"
                      +name()+"', but it only has "+to_string(_robots.size())+"entries!"))
-        return NULL;
+        return nullptr;
     
     return _robots[robotNum];
 }
@@ -321,8 +323,9 @@ bool Manipulator::detachRobot(size_t robotNum)
                      +name()+"', but it only has "+to_string(_robots.size())+" entries!"))
         return false;
     
+    _robots[robotNum]->_attachment = nullptr;
     _robots[robotNum]->changeRefFrame(Frame::World());
-    _robots.erase(_robots.begin()+robotNum);    
+    _robots.erase(_robots.begin()+robotNum);
     return true;
 }
 

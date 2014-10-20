@@ -263,11 +263,11 @@ public:
      */
     void demandPoseUpdate() const;
     
-    void notifyVelUpdate();
+    virtual void notifyVelUpdate();
     bool needsVelUpdate() const;
     void demandVelUpdate() const;
 
-    void notifyAccUpdate();
+    virtual void notifyAccUpdate();
     bool needsAccUpdate() const;
     void demandAccUpdate() const;
 

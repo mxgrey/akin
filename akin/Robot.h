@@ -239,6 +239,8 @@ public:
     
     mutable verbosity verb;
 
+    void notifyDynUpdate();
+
 protected:
 
     void _initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level);

@@ -7,7 +7,7 @@ using namespace std;
 InertiaBase::InertiaBase() :
     _needsDynUpdate(true),
     _mode(FORWARD),
-    _attachingPoint(NULL)
+    _attachment(NULL)
 {
     
 }
@@ -15,8 +15,8 @@ InertiaBase::InertiaBase() :
 void InertiaBase::setDynamicsMode(dynamics_mode_t mode)
 {
     _mode = mode;
-    if(_attachingPoint)
-        _attachingPoint->setDynamicsMode(mode);
+    if(_attachment)
+        _attachment->setDynamicsMode(mode);
 }
 
 void InertiaBase::notifyDynUpdate()
@@ -25,8 +25,8 @@ void InertiaBase::notifyDynUpdate()
         return;
     
     _needsDynUpdate = true;
-    if(_attachingPoint)
-        _attachingPoint->notifyDynUpdate();
+    if(_attachment)
+        _attachment->notifyDynUpdate();
 }
 
 std::string akin::inertia_param_to_string(size_t param)
@@ -251,6 +251,25 @@ FreeVector Body::getMoments(const Frame &withRespectToFrame) const
 Screw Body::getWrench(const Frame &withRespectToFrame) const
 {
     return Screw(getForces(withRespectToFrame),getMoments(withRespectToFrame));
+}
+
+void Body::notifyUpdate()
+{
+    notifyDynUpdate();
+    Frame::notifyUpdate();
+}
+
+void Body::notifyVelUpdate()
+{
+    notifyDynUpdate();
+    Frame::notifyVelUpdate();
+}
+
+void Body::notifyAccUpdate()
+{
+    if(INVERSE==_mode)
+        notifyDynUpdate();
+    Frame::notifyAccUpdate();
 }
 
 Eigen::Vector3d Body::_sumForces_wrtWorld() const
