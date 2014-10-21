@@ -37,9 +37,7 @@ class InertiaBase
 {
 public:
 
-    // Fill with pure abstract functions like getCom(), getMass(), getForces()
-    //
-    // This class will be inherited by both Body and Robot so that either can
+    // This class is inherited by both Body and Robot so that either can
     // be attached to a manipulator using the same API.
     InertiaBase();
 
@@ -59,10 +57,25 @@ public:
     virtual void notifyDynUpdate();
     
 protected:
-    
+
+    virtual void _computeABA_pass2() const = 0;
+    virtual void _computeABA_pass3() const = 0;
+
     bool _needsDynUpdate;
+    mutable bool _pass2;
+
     dynamics_mode_t _mode;
     InertiaBase* _attachment;
+
+    mutable Matrix6d _Ia;
+    mutable Vector6d _pa;
+    mutable Vector6d _a;
+
+    // TODO: Consider what to do for multiple degrees of freedom
+    // Templates might be a possible solution
+    mutable Vector6d _h;    // 6 x DOF
+    mutable double _u;      // DOF x 1
+    mutable double _d;      // DOF x DOF
 
 };
 

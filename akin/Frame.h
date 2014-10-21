@@ -49,6 +49,8 @@
 
 namespace akin {
 
+Eigen::Matrix3d skew(const Eigen::Vector3d& v);
+
 /*!
  * \class Frame
  * \brief Foundation of akin's kinematic trees
@@ -100,10 +102,10 @@ public:
       * kinematic trees to understand their relationships with each other. The
       * World Frame is static in the sense that none of its features may be
       * altered by the user at any time. It simply exists, and always has a
-      * world transform of identity. It is important to note that unlike all
-      * other frames, the World Frame does NOT keep track of its child frames.
+      * world transform of identity.
       */
     static Frame& World();
+    // TODO: Consider reworking mutability in order to allow World() to return a const reference
     
     /*!
       * \fn childFrame()

@@ -7,7 +7,13 @@ using namespace std;
 InertiaBase::InertiaBase() :
     _needsDynUpdate(true),
     _mode(FORWARD),
-    _attachment(NULL)
+    _attachment(NULL),
+    _Ia(Matrix6d::Zero()),
+    _pa(Vector6d::Zero()),
+    _a(Vector6d::Zero()),
+    _h(Vector6d::Zero()),
+    _u(0),
+    _d(0)
 {
     
 }
@@ -25,6 +31,7 @@ void InertiaBase::notifyDynUpdate()
         return;
     
     _needsDynUpdate = true;
+    _pass2 = false;
     if(_attachment)
         _attachment->notifyDynUpdate();
 }
