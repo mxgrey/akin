@@ -239,7 +239,18 @@ public:
     
     mutable verbosity verb;
 
-    void notifyDynUpdate();
+    bool notifyDynUpdate();
+
+    const Matrix6d& _ABA_Ia() const;
+    const Vector6d& _ABA_pa() const;
+    const Vector6d& _ABA_c() const;
+    const Vector6d& _ABA_a() const;
+    const Vector6d& _ABA_arel() const;
+
+    const Matrix6Xd& _ABA_h() const;
+    const Eigen::VectorXd& _ABA_u() const;
+    const Eigen::MatrixXd& _ABA_d() const;
+    const Eigen::VectorXd& _ABA_qdd() const;
 
 protected:
 
@@ -253,6 +264,9 @@ protected:
     
     void _recursiveDeleteConnection(Joint* deadJoint);
     void _deleteConnection(Joint* deadJoint);
+
+    void _computeABA_pass2() const;
+    void _computeABA_pass3() const;
 
     mutable KinTranslation _com;
     mutable double _mass;

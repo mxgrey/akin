@@ -49,8 +49,6 @@
 
 namespace akin {
 
-Eigen::Matrix3d skew(const Eigen::Vector3d& v);
-
 /*!
  * \class Frame
  * \brief Foundation of akin's kinematic trees

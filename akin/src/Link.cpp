@@ -250,9 +250,138 @@ const Robot& Link::robot() const
 
 bool Link::isDummy() const { return _isDummy; }
 
-void Link::notifyDynUpdate()
+bool Link::notifyDynUpdate()
 {
-    _myRobot->notifyDynUpdate();
+    if(!InertiaBase::notifyDynUpdate())
+        return false;
+
+    for(size_t i=0, I=numManips(); i<I; ++i)
+    {
+        for(size_t j=0, J=manip(i).numItems(); j<J; ++j)
+            manip(i).item(j)->notifyDynUpdate();
+
+        for(size_t j=0, J=manip(i).numRobots(); j<J; ++j)
+            manip(i).robot(j)->notifyDynUpdate();
+    }
+
+    for(size_t i=0, I=numDownstreamLinks(); i<I; ++i)
+        downstreamLink(i).notifyDynUpdate();
+
+    return true;
+}
+
+void Link::_computeABA_pass2() const
+{
+    // TODO: Consider computing this when new inertial parameters are passed in
+    _Ia.block<3,3>(0,0) = _inertiaTensor_wrtLocalFrame;
+    _Ia.block<3,3>(0,3) = mass*skew(com.respectToRef());
+    _Ia.block<3,3>(3,0) = -_Ia.block<3,3>(0,3);
+    _Ia.block<3,3>(3,3) = mass*Eigen::Matrix3d::Identity();
+
+    Spatial v;
+    v.upper() = respectToWorld().rotation()*angularVelocity();
+    v.lower() = respectToWorld().rotation()*linearVelocity();
+
+    _c.block<3,1>(0,0) = v.upper().cross(relativeAngularVelocity());
+    _c.block<3,1>(0,0) = v.lower().cross(relativeAngularVelocity())
+            + v.upper().cross(relativeLinearVelocity());
+
+    _pa.block<3,1>(0,0) = v.upper().cross(_Ia.block<3,3>(0,0)*v.upper())
+            + mass*com.cross(v.upper().cross(v.lower()));
+    _pa.block<3,1>(3,0) = mass*v.upper().cross(v.upper().cross(com))
+            + mass*v.upper().cross(v.lower());
+
+    for(size_t i=0, end=numDownstreamLinks(); i<end; ++i)
+    {
+        const Link& child = childLink(i);
+        const Matrix6d& iXj_star = spatial_transform_star(child.respectToRef().inverse());
+        const Matrix6d& jXi = spatial_transform(child.respectToRef());
+
+        _Ia += iXj_star*child._ABA_Ia()*jXi;
+        _pa += iXj_star*child._ABA_pa();
+    }
+
+
+    for(size_t i=0, M=numManips(); i<M; ++i)
+    {
+        const Manipulator& m = manip(i);
+
+        // TODO: Consider condensing all these very similar blocks of code
+        for(size_t j=0, end=m.numItems(); j<end; ++j)
+        {
+            const Body& child = *m.item(j);
+            const Matrix6d& iXj_star = spatial_transform_star(child.respectToRef().inverse());
+            const Matrix6d& jXi = spatial_transform(child.respectToRef());
+
+            _Ia += iXj_star*child._ABA_Ia()*jXi;
+            _pa += iXj_star*child._ABA_pa();
+        }
+
+        for(size_t j=0, end=m.numRobots(); j<end; ++j)
+        {
+            const Link& child = m.robot(j)->anchorLink();
+            const Matrix6d& iXj_star = spatial_transform_star(child.respectToRef().inverse());
+            const Matrix6d& jXi = spatial_transform(child.respectToRef());
+
+            _Ia += iXj_star*child._ABA_Ia()*jXi;
+            _pa += iXj_star*child._ABA_pa();
+        }
+    }
+
+    const Matrix6Xd& s = parentJoint().getDofMatrix();
+
+    _h = _Ia*s;
+    _d = s.transpose()*_h;
+
+    Spatial F;
+    const Eigen::Matrix3d& R = respectToWorld().rotation();
+    const Eigen::Vector3d& g = R.transpose()*_gravity.respectToWorld();
+
+    F.upper() = R.transpose()*_appliedMoments_wrtWorld + mass*com.cross(g);
+    F.lower() = R.transpose()*_appliedForces_wrtWorld + mass*g;
+
+    if(isAnchor())
+    {
+        F[0] += _myRobot->joint(DOF_ROT_X)._torque;
+        F[1] += _myRobot->joint(DOF_ROT_Y)._torque;
+        F[2] += _myRobot->joint(DOF_ROT_Z)._torque;
+
+        F[3] += _myRobot->joint(DOF_POS_X)._torque;
+        F[4] += _myRobot->joint(DOF_POS_Y)._torque;
+        F[5] += _myRobot->joint(DOF_POS_Z)._torque;
+    }
+    else
+    {
+        F += s*parentJoint()._torque;
+    }
+
+    _u = s.transpose()*F - s.transpose()*_pa;
+
+    _Ia = _Ia - _d.inverse()*_h*_h.transpose();
+    _pa = _pa + _Ia*_c + _d.inverse()*_h*_u;
+
+    _needsAbiUpdate = false;
+}
+
+void Link::_computeABA_pass3() const
+{
+    const Matrix6d& X = spatial_transform(respectToRef());
+    const Matrix6Xd& s = parentJoint().getDofMatrix();
+    const Frame& frame = isAnchor()? _myRobot->refFrame() : (const Frame&)parentLink();
+
+    Vector6d a_ref;
+    a_ref.block<3,1>(0,0) = frame.respectToWorld().rotation().transpose()*
+            frame.angularAcceleration();
+    a_ref.block<3,1>(3,0) = frame.respectToWorld().rotation().transpose()*(
+            frame.linearAcceleration()
+            - frame.angularVelocity().cross(frame.linearVelocity()) );
+
+    _a = X*a_ref + _ABA_c();
+    _qdd = _ABA_d().inverse()*(_ABA_u()-_ABA_h().transpose()*_a);
+    _arel = s*_qdd;
+    _a = _a + _arel;
+
+    _needsDynUpdate = false;
 }
 
 std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)

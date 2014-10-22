@@ -105,12 +105,14 @@ public:
 
     bool isDummy() const;
     
-    void notifyDynUpdate();
+    bool notifyDynUpdate();
 
 protected:
     
     Link(Robot* mRobot, Frame& referenceFrame, std::string linkName, size_t mID, bool root=false);
 
+    void _computeABA_pass2() const;
+    void _computeABA_pass3() const;
 
     size_t _id;
     

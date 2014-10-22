@@ -52,6 +52,10 @@ public:
 
 };
 
+Eigen::Matrix3d skew(const Eigen::Vector3d& v);
+Matrix6d spatial_transform(const Eigen::Isometry3d& tf);
+Matrix6d spatial_transform_star(const Eigen::Isometry3d& tf);
+
 class Spatial : public Vector6d
 {
 public:
@@ -86,6 +90,9 @@ public:
     inline const Eigen::Block<const Vector6d,3,1,false> lower() const { return block<3,1>(3,0); }
 
 };
+
+typedef Eigen::Matrix<double,6,Eigen::Dynamic> Matrix6Xd;
+
 
 // TODO: Make a KinScrew
 

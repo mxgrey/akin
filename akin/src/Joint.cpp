@@ -44,7 +44,7 @@ bool Joint::value(double newJointValue)
     }
     
     if(newJointValue == _value)
-        return true;
+        return inBounds;
     
     _value = newJointValue;
     
@@ -193,16 +193,39 @@ Vec3 Joint::Jacobian_rotOnly(const KinTranslation &point, const Frame &refFrame,
     return _computeRotJacobian(z_i);
 }
 
-double Joint::force() const
+bool Joint::torque(double newTorque)
 {
-    return torque();
+
+    bool inBounds = true;
+
+    if(newTorque != newTorque)
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set torque for joint '"
+                    +name()+"' to NaN!");
+        return false;
+    }
+
+    if(fabs(newTorque) > _maxTorque)
+    {
+        if(_myRobot->enforcingJointLimits())
+            newTorque = newTorque<0? -_maxTorque : _maxTorque;
+        inBounds = false;
+    }
+
+    if(newTorque == _torque)
+        return inBounds;
+
+    _torque = newTorque;
+
+    if(_myRobot->getDynamicsMode()==FORWARD)
+        childLink().notifyDynUpdate();
+
+    return inBounds;
 }
 
 double Joint::torque() const
 {
-    // TODO FIXME
-    verb.Assert(false, verbosity::ASSERT_CASUAL, "Joint torque calculations are not ready yet");
-    return 0;
+    return _torque;
 }
 
 Screw Joint::reciprocalWrench() const
@@ -269,11 +292,10 @@ void Joint::_computeRefTransform()
 
 ProtectedJointProperties::ProtectedJointProperties() { }
 
-ProtectedJointProperties::ProtectedJointProperties(
-        size_t jointID, const string &jointName, const Transform &mBaseTransform,
+ProtectedJointProperties::ProtectedJointProperties(size_t jointID, const string &jointName, const Transform &mBaseTransform,
         const Axis &mJointAxis, PublicJointProperties::Type mType,
         double minimumValue, double maximumValue,
-        double maxSpeed, double maxAcceleration) :
+        double maxSpeed, double maxAcceleration, double maxTorque) :
     _baseTransform(mBaseTransform),
     _axis(mJointAxis),
     _value(0),
@@ -283,6 +305,8 @@ ProtectedJointProperties::ProtectedJointProperties(
     _maxSpeed(maxSpeed),
     _acceleration(0),
     _maxAcceleration(maxAcceleration),
+    _torque(0),
+    _maxTorque(maxTorque),
     _myType(mType),
     _id(jointID),
     _name(jointName),
@@ -296,9 +320,9 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
              const Transform &mBaseTransform,
              const Axis &mJointAxis, akin::Joint::Type mType,
              double mininumValue, double maximumValue,
-             double maxSpeed, double maxAcceleration) :
+             double maxSpeed, double maxAcceleration, double maxTorque) :
     ProtectedJointProperties(jointID, jointName, mBaseTransform, mJointAxis, mType,
-                             mininumValue, maximumValue, maxSpeed, maxAcceleration),
+                             mininumValue, maximumValue, maxSpeed, maxAcceleration, maxTorque),
     verb(mRobot->verb),
     _parentLink(mParentLink),
     _childLink(mChildLink),
@@ -307,7 +331,7 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
     _downstreamLink(mChildLink),
     _myRobot(mRobot)
 {
-    _computeRefTransform();
+    axis(_axis);
     
 //    std::cout << "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
 //                 +"' to '"+mParentLink->name()+"' but '"+mChildLink->name()
@@ -389,8 +413,37 @@ void Joint::_changeParentLink(Link *newParent)
     _parentLink = newParent;
 }
 
-void Joint::axis(Vec3 newAxis) { _axis = Axis(newAxis); _computeRefTransform(); }
+void Joint::axis(const akin::Vec3& newAxis)
+{
+    _axis = Axis(newAxis);
+
+    if(childLink().isAnchor())
+    {
+        _dofMatrix = Matrix6d::Identity();
+    }
+    else
+    {
+        _dofMatrix.resize(Eigen::NoChange, 1);
+        if(Joint::PRISMATIC==_myType)
+        {
+            _dofMatrix.block<3,1>(0,0).setZero();
+            _dofMatrix.block<3,1>(3,0) = _axis;
+        }
+        else if(Joint::REVOLUTE==_myType)
+        {
+            _dofMatrix.block<3,1>(0,0) = _axis;
+            _dofMatrix.block<3,1>(3,0).setZero();
+        }
+    }
+
+    _computeRefTransform();
+}
 const Vec3& Joint::axis() const { return _axis; }
+
+const Matrix6Xd& Joint::getDofMatrix() const
+{
+    return _dofMatrix;
+}
 
 void Joint::baseTransform(const Transform &newBaseTf)
 {

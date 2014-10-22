@@ -663,6 +663,27 @@ void Robot::_deleteConnection(Joint *deadJoint)
     delete deadJoint;
 }
 
+void Robot::_computeABA_pass2() const
+{
+    anchorLink()._computeABA_pass2();
+}
+
+void Robot::_computeABA_pass3() const
+{
+    anchorLink()._computeABA_pass3();
+}
+
+const Matrix6d& Robot::_ABA_Ia() const { return anchorLink()._ABA_Ia(); }
+const Vector6d& Robot::_ABA_pa() const { return anchorLink()._ABA_pa(); }
+const Vector6d& Robot::_ABA_c() const { return anchorLink()._ABA_c(); }
+const Vector6d& Robot::_ABA_a() const { return anchorLink()._ABA_a(); }
+const Vector6d& Robot::_ABA_arel() const { return anchorLink()._ABA_arel(); }
+
+const Matrix6Xd& Robot::_ABA_h() const { return anchorLink()._ABA_h(); }
+const Eigen::VectorXd& Robot::_ABA_u() const { return anchorLink()._ABA_u(); }
+const Eigen::MatrixXd& Robot::_ABA_d() const { return anchorLink()._ABA_d(); }
+const Eigen::VectorXd& Robot::_ABA_qdd() const { return anchorLink()._ABA_qdd(); }
+
 size_t Robot::getJointIndex(const string &jointName) const
 {
     StringMap::const_iterator j = _jointNameToIndex.find(jointName);
@@ -930,18 +951,9 @@ void Robot::enforceJointLimits(bool enforce)
     }
 }
 
-void Robot::notifyDynUpdate()
+bool Robot::notifyDynUpdate()
 {
-    InertiaBase::notifyDynUpdate();
-
-    for(size_t i=0, M=numManips(); i<M; ++i)
-    {
-        for(size_t j=0, I=manip(i).numItems(); j<I; ++j)
-            manip(i).item(j)->notifyDynUpdate();
-
-        for(size_t j=0, R=manip(i).numRobots(); j<R; ++j)
-            manip(i).robot(j)->notifyDynUpdate();
-    }
+    return anchorLink().notifyDynUpdate();
 }
 
 std::vector<const Link*> Robot::Explorer::getPath(const Link &startLink, const Link &endLink)

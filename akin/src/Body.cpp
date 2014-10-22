@@ -6,14 +6,9 @@ using namespace std;
 
 InertiaBase::InertiaBase() :
     _needsDynUpdate(true),
+    _needsAbiUpdate(true),
     _mode(FORWARD),
-    _attachment(NULL),
-    _Ia(Matrix6d::Zero()),
-    _pa(Vector6d::Zero()),
-    _a(Vector6d::Zero()),
-    _h(Vector6d::Zero()),
-    _u(0),
-    _d(0)
+    _attachment(NULL)
 {
     
 }
@@ -25,16 +20,96 @@ void InertiaBase::setDynamicsMode(dynamics_mode_t mode)
         _attachment->setDynamicsMode(mode);
 }
 
-void InertiaBase::notifyDynUpdate()
+dynamics_mode_t InertiaBase::getDynamicsMode() const
 {
-    if(_needsDynUpdate)
-        return;
+    return _mode;
+}
+
+bool InertiaBase::notifyDynUpdate()
+{
+    if(_needsDynUpdate && (INVERSE==_mode || _needsAbiUpdate))
+        return false;
     
     _needsDynUpdate = true;
-    _pass2 = false;
+    _needsAbiUpdate = true;
     if(_attachment)
         _attachment->notifyDynUpdate();
+
+    return true;
 }
+
+const Matrix6d& InertiaBase::_ABA_Ia() const
+{
+    if(_needsAbiUpdate)
+        _computeABA_pass2();
+
+    return _Ia;
+}
+
+const Vector6d& InertiaBase::_ABA_pa() const
+{
+    if(_needsAbiUpdate)
+        _computeABA_pass2();
+
+    return _pa;
+}
+
+const Vector6d& InertiaBase::_ABA_c() const
+{
+    if(_needsAbiUpdate)
+        _computeABA_pass2();
+
+    return _c;
+}
+
+const Vector6d& InertiaBase::_ABA_a() const
+{
+    if(_needsDynUpdate)
+        _computeABA_pass3();
+
+    return _a;
+}
+
+const Vector6d& InertiaBase::_ABA_arel() const
+{
+    if(_needsDynUpdate)
+        _computeABA_pass3();
+
+    return _arel;
+}
+
+const Matrix6Xd& InertiaBase::_ABA_h() const
+{
+    if(_needsAbiUpdate)
+        _computeABA_pass2();
+
+    return _h;
+}
+
+const Eigen::VectorXd& InertiaBase::_ABA_u() const
+{
+    if(_needsAbiUpdate)
+        _computeABA_pass2();
+
+    return _u;
+}
+
+const Eigen::MatrixXd& InertiaBase::_ABA_d() const
+{
+    if(_needsAbiUpdate)
+        _computeABA_pass2();
+
+    return _d;
+}
+
+const Eigen::VectorXd& InertiaBase::_ABA_qdd() const
+{
+    if(_needsDynUpdate)
+        _computeABA_pass3();
+
+    return _qdd;
+}
+
 
 std::string akin::inertia_param_to_string(size_t param)
 {
@@ -277,6 +352,77 @@ void Body::notifyAccUpdate()
     if(INVERSE==_mode)
         notifyDynUpdate();
     Frame::notifyAccUpdate();
+}
+
+void Body::_computeABA_pass2() const
+{
+    // TODO: Consider computing this when new inertial parameters are passed in instead of
+    // computing it each time we pass through
+    _Ia.block<3,3>(0,0) = _inertiaTensor_wrtLocalFrame;
+    _Ia.block<3,3>(0,3) = mass*skew(com.respectToRef());
+    _Ia.block<3,3>(3,0) = -_Ia.block<3,3>(0,3);
+    _Ia.block<3,3>(3,3) = mass*Eigen::Matrix3d::Identity();
+
+    Spatial v;
+    v.upper() = respectToWorld().rotation()*angularVelocity();
+    v.lower() = respectToWorld().rotation()*linearVelocity();
+
+    _pa.block<3,1>(0,0) = v.upper().cross(_Ia.block<3,3>(0,0)*v.upper())
+            + mass*com.cross(v.upper().cross(v.lower()));
+    _pa.block<3,1>(3,0) = mass*v.upper().cross(v.upper().cross(com))
+            + mass*v.upper().cross(v.lower());
+
+    if(_attachment)
+    {
+        // TODO: Investigate whether it is valid to ignore h, d, and u for the attached case.
+        // If attached objects are permitted some degrees of freedom, we will definitely need
+        // to do some computations here.
+        _c.setZero();
+    }
+    else
+    {
+        _c.block<3,1>(0,0) = v.upper().cross(relativeAngularVelocity());
+        _c.block<3,1>(3,0) = v.lower().cross(relativeAngularVelocity())
+                + v.upper().cross(relativeLinearVelocity());
+        _h = _Ia;
+        _d = _h;
+        Vector6d F;
+        F.block<3,1>(0,0) = _appliedMoments_wrtWorld;
+        F.block<3,1>(3,0) = _sumForces_wrtWorld();
+        _u = F - _pa;
+    }
+
+    _needsAbiUpdate = false;
+}
+
+void Body::_computeABA_pass3() const
+{
+    if(_attachment)
+    {
+        // TODO: Investigate whether I am handling the "weld joint" case correctly.
+        // Later I should add the possibility of an object sliding around in the grip.
+        const Matrix6d& X = spatial_transform(respectToRef());
+        _a = X*_attachment->_ABA_a() + _ABA_c();
+        _qdd.setZero();
+        _arel.setZero();
+    }
+    else
+    {
+        const Matrix6d& X = spatial_transform(respectToRef());
+        Vector6d a_ref;
+        a_ref.block<3,1>(0,0) = refFrame().respectToWorld().rotation().transpose()*
+                refFrame().angularAcceleration();
+        a_ref.block<3,1>(3,0) = refFrame().respectToWorld().rotation().transpose()*(
+                    refFrame().linearAcceleration()
+                    - refFrame().angularVelocity().cross(refFrame().linearVelocity()) );
+
+        _a = X*a_ref + _ABA_c();
+        _arel = _ABA_d().inverse()*(_ABA_u() - _ABA_h().transpose()*_a);
+        _qdd = _arel;
+        _a = _a + _arel;
+    }
+
+    _needsDynUpdate = false;
 }
 
 Eigen::Vector3d Body::_sumForces_wrtWorld() const

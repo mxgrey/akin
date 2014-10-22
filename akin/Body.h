@@ -53,29 +53,44 @@ public:
     virtual Screw getWrench(const Frame& withRespectToFrame = Frame::World()) const = 0;
     
     virtual void setDynamicsMode(dynamics_mode_t mode);
+    virtual dynamics_mode_t getDynamicsMode() const;
 
-    virtual void notifyDynUpdate();
-    
+    virtual bool notifyDynUpdate();
+
+    virtual const Matrix6d& _ABA_Ia() const;
+    virtual const Vector6d& _ABA_pa() const;
+    virtual const Vector6d& _ABA_c() const;
+    virtual const Vector6d& _ABA_a() const;
+    virtual const Vector6d& _ABA_arel() const;
+
+    virtual const Matrix6Xd& _ABA_h() const;
+    virtual const Eigen::VectorXd& _ABA_u() const;
+    virtual const Eigen::MatrixXd& _ABA_d() const;
+    virtual const Eigen::VectorXd& _ABA_qdd() const;
+
 protected:
 
     virtual void _computeABA_pass2() const = 0;
     virtual void _computeABA_pass3() const = 0;
 
-    bool _needsDynUpdate;
-    mutable bool _pass2;
+    mutable bool _needsDynUpdate;
+    mutable bool _needsAbiUpdate;
 
     dynamics_mode_t _mode;
     InertiaBase* _attachment;
 
-    mutable Matrix6d _Ia;
-    mutable Vector6d _pa;
-    mutable Vector6d _a;
+    mutable Matrix6d _Ia;               // pass2
+    mutable Vector6d _pa;               // pass2
+    mutable Vector6d _c;                // pass2
+    mutable Vector6d _a;                // pass3
+    mutable Vector6d _arel;             // pass3
 
     // TODO: Consider what to do for multiple degrees of freedom
     // Templates might be a possible solution
-    mutable Vector6d _h;    // 6 x DOF
-    mutable double _u;      // DOF x 1
-    mutable double _d;      // DOF x DOF
+    mutable Matrix6Xd _h;               // 6 x DOF          pass2
+    mutable Eigen::VectorXd _u;         // DOF x 1          pass2
+    mutable Eigen::MatrixXd _d;         // DOF x DOF        pass2
+    mutable Eigen::VectorXd _qdd;       // DOF x 1          pass3
 
 };
 
@@ -166,6 +181,9 @@ public:
     virtual void notifyAccUpdate();
     
 protected:
+
+    virtual void _computeABA_pass2() const;
+    virtual void _computeABA_pass3() const;
 
     Eigen::Vector3d _sumForces_wrtWorld() const;
     Eigen::Matrix3d _inertiaTensor_wrtLocalFrame;

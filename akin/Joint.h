@@ -36,10 +36,11 @@ public:
                              const Transform& mBaseTransform, const Axis& mJointAxis,
                              akin::PublicJointProperties::Type mType,
                              double minimumValue, double maximumValue,
-                             double maxSpeed, double maxAcceleration);
+                             double maxSpeed, double maxAcceleration, double maxTorque);
 
     Transform _baseTransform;
     Vec3 _axis;
+    Matrix6Xd _dofMatrix;
 
     double _value;
     double _minValue;
@@ -50,6 +51,9 @@ public:
 
     double _acceleration;
     double _maxAcceleration;
+
+    double _torque;
+    double _maxTorque;
 
     PublicJointProperties::Type _myType;
 
@@ -86,8 +90,8 @@ public:
     bool acceleration(double newJointAcceleration);
     double acceleration() const;
     
+    bool torque(double newTorque);
     double torque() const;
-    double force() const;
     
     Screw reciprocalWrench() const;
     
@@ -148,7 +152,7 @@ public:
      * \brief Set the axis of this joint
      * \param newAxis
      */
-    void axis(Vec3 newAxis);
+    void axis(const Vec3& newAxis);
 
     /*!
      * \fn jointAxis()
@@ -156,6 +160,8 @@ public:
      * \return This joint's axis
      */
     const Vec3& axis() const;
+
+    const Matrix6Xd& getDofMatrix() const;
 
     /*!
      * \fn baseTransform(const Transform& newBaseTf)
@@ -235,11 +241,11 @@ public:
 protected:
     
     Joint(Robot* mRobot, size_t jointID=0, const std::string& jointName="joint",
-          Link* mParentLink=NULL, Link* mChildLink=NULL,
+          Link* mParentLink=nullptr, Link* mChildLink=nullptr,
           const Transform& mBaseTransform = Transform::Identity(),
           const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
           double mininumValue=-INFINITY, double maximumValue=INFINITY,
-          double maxSpeed=INFINITY, double maxAcceleration=INFINITY);
+          double maxSpeed=INFINITY, double maxAcceleration=INFINITY, double maxTorque=INFINITY);
     Joint& operator=(const Joint& otherJoint);
     
     void _computeRefTransform();
