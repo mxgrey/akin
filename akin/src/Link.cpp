@@ -21,6 +21,97 @@ Link::~Link()
     
 }
 
+const Transform& Link::respectToRef() const
+{
+    if(_upstreamJoint->needsPosUpdate())
+        _upstreamJoint->_computeRefTransform();
+
+    return _respectToRef;
+}
+
+void Link::respectToRef(const Transform &)
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "You cannot use the respectToRef(~) function to set the relative transform of "
+                "a link. Use its degrees of freedom instead!");
+}
+
+const Velocity& Link::relativeLinearVelocity() const
+{
+    if(_upstreamJoint->needsVelUpdate())
+        _upstreamJoint->_computeRelVelocity();
+
+    return _relativeLinearVel;
+}
+
+void Link::relativeLinearVelocity(const Velocity &)
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "You cannot use the relativeLinearVelocity(~) function to set the velocity of "
+                "a link. Use its degrees of freedom instead!");
+}
+
+const Velocity& Link::relativeAngularVelocity() const
+{
+    if(_upstreamJoint->needsVelUpdate())
+        _upstreamJoint->_computeRelVelocity();
+
+    return _relativeAngularVel;
+}
+
+void Link::relativeAngularVelocity(const Velocity &)
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "You cannot use the relativeAngularVelocity(~) function to set the velocity of "
+                "a link. Use its degrees of freedom instead!");
+}
+
+const Acceleration& Link::relativeLinearAcceleration() const
+{
+    if(INVERSE==_mode)
+    {
+        if(_upstreamJoint->needsAccUpdate())
+            _upstreamJoint->_computeRelAcceleration();
+    }
+    else
+    {
+        if(_needsDynUpdate)
+            _computeABA_pass3();
+    }
+
+    return _relativeLinearAcc;
+}
+
+void Link::relativeLinearAcceleration(const Acceleration &)
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "You cannot use the relativeLinearAcceleration(~) function to set the acceleration "
+                "of a link. Use its degrees of freedom instead!");
+}
+
+const Acceleration& Link::relativeAngularAcceleration() const
+{
+    if(INVERSE==_mode)
+    {
+        if(_upstreamJoint->needsAccUpdate())
+            _upstreamJoint->_computeRelAcceleration();
+    }
+    else
+    {
+        if(_needsDynUpdate)
+            _computeABA_pass3();
+    }
+
+    return _relativeAngularAcc;
+}
+
+void Link::relativeAngularAcceleration(const Acceleration &) const
+{
+    verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "You cannot use the relativeAngularAcceleration(~) function to set the acceleration"
+                " of a link. Use its degrees of freedom instead!");
+}
+
 const string& Link::name() const
 {
     return KinObject::name();
@@ -367,17 +458,17 @@ void Link::_computeABA_pass2() const
 
     if(isAnchor())
     {
-        F[0] += _myRobot->joint(DOF_ROT_X)._torque;
-        F[1] += _myRobot->joint(DOF_ROT_Y)._torque;
-        F[2] += _myRobot->joint(DOF_ROT_Z)._torque;
+        F[0] += _myRobot->dof(0).effort();
+        F[1] += _myRobot->dof(1).effort();
+        F[2] += _myRobot->dof(2).effort();
 
-        F[3] += _myRobot->joint(DOF_POS_X)._torque;
-        F[4] += _myRobot->joint(DOF_POS_Y)._torque;
-        F[5] += _myRobot->joint(DOF_POS_Z)._torque;
+        F[3] += _myRobot->dof(3).effort();
+        F[4] += _myRobot->dof(4).effort();
+        F[5] += _myRobot->dof(5).effort();
     }
     else
     {
-        F += s*parentJoint()._torque;
+        F += s*parentJoint().dof(0).effort();
     }
 
     _u = s.transpose()*F - s.transpose()*_pa;
@@ -412,18 +503,18 @@ void Link::_computeABA_pass3() const
     if(isAnchor())
     {
         // ... Why don't these need const_cast?
-        _myRobot->joint(DOF_ROT_X).acceleration(_qdd[0]);
-        _myRobot->joint(DOF_ROT_Y).acceleration(_qdd[1]);
-        _myRobot->joint(DOF_ROT_Z).acceleration(_qdd[2]);
+        _myRobot->dof(0).acceleration(_qdd[0]);
+        _myRobot->dof(1).acceleration(_qdd[1]);
+        _myRobot->dof(2).acceleration(_qdd[2]);
 
-        _myRobot->joint(DOF_POS_X).acceleration(_qdd[3]);
-        _myRobot->joint(DOF_POS_Y).acceleration(_qdd[4]);
-        _myRobot->joint(DOF_POS_Z).acceleration(_qdd[5]);
+        _myRobot->dof(3).acceleration(_qdd[3]);
+        _myRobot->dof(4).acceleration(_qdd[4]);
+        _myRobot->dof(5).acceleration(_qdd[5]);
     }
     else
     {
         // TODO: Think about this const_cast and decide if it's both necessary and appropriate
-        const_cast<Joint&>(parentJoint()).acceleration(_qdd[0]);
+        const_cast<DegreeOfFreedom&>(parentJoint().dof(0)).acceleration(_qdd[0]);
     }
 
     _needsDynUpdate = false;

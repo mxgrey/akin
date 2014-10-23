@@ -34,7 +34,7 @@ protected:
     bool _configured;
     
     Robot* _robot;
-    std::vector<size_t> _joints;
+    std::vector<size_t> _dofs;
     
 };
 
@@ -52,15 +52,15 @@ public:
     RobotJacobianConstraint(int cspace_size) : JacobianConstraint<Q,W>(cspace_size) { }
 
     virtual void setConfiguration() {
-        for(size_t i=0; i<this->_joints.size(); ++i)
-            this->_config[i] = this->_robot->joint(this->_joints[i]).value();
+        for(size_t i=0; i<this->_dofs.size(); ++i)
+            this->_config[i] = this->_robot->dof(this->_dofs[i]).value();
     }
     
 protected:
     
     virtual void _update(const VectorQ& config){
         for(int i=0; i<this->_config_dim; ++i)
-            _robot->joint(_joints[i]).value(config[i]);
+            _robot->dof(_dofs[i]).value(config[i]);
     }
     
 };
@@ -132,11 +132,11 @@ public:
         
         if(update) this->_update(config);
         
-        for(size_t i=0; i<this->_joints.size(); ++i)
+        for(size_t i=0; i<this->_dofs.size(); ++i)
         {
             if(_dependency[i])
                 this->_Jacobian.template block<6,1>(0,i) = 
-                        this->_robot->joint(this->_joints[i]).Jacobian(
+                        this->_robot->dof(this->_dofs[i]).Jacobian(
                         _manip->point(), target.refFrame(), false);
             else
                 this->_Jacobian.template block<6,1>(0,i) = Error::Zero();
@@ -245,8 +245,8 @@ public:
         
         double total_mass = _robot->mass();
         
-        for(size_t i=0; i<this->_joints.size(); ++i) {
-            _ex.reset(this->_robot->joint(_joints[i]).childLink(),
+        for(size_t i=0; i<this->_dofs.size(); ++i) {
+            _ex.reset(this->_robot->joint(_dofs[i]).childLink(),
                       Robot::Explorer::DOWNSTREAM);
             
             Translation p;
@@ -270,7 +270,7 @@ public:
             _point = p/mass;
             
             this->_Jacobian.template block<3,1>(0,i) = mass/total_mass*
-                    this->_robot->joint(this->_joints[i]).Jacobian_posOnly(
+                    this->_robot->joint(this->_dofs[i]).Jacobian_posOnly(
                         _point, Frame::World(), false);
         }
         
@@ -494,11 +494,11 @@ protected:
         _jointMap.clear();
         _jointMap.resize(this->_robot->numJoints(), -1);
         
-        for(size_t i=0; i<this->_joints.size(); ++i) {
-            if( DOF_POS_X <= this->_joints[i] && this->_joints[i] <= DOF_ROT_Z )
-                _baseMap[this->_joints[i]-DOF_POS_X] = i;
+        for(size_t i=0; i<this->_dofs.size(); ++i) {
+            if( DOF_POS_X <= this->_dofs[i] && this->_dofs[i] <= DOF_ROT_Z )
+                _baseMap[this->_dofs[i]-DOF_POS_X] = i;
             else
-                _jointMap[this->_joints[i]] = i;
+                _jointMap[this->_dofs[i]] = i;
         }
         
         return true;

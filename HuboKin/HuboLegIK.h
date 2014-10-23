@@ -35,7 +35,7 @@ public:
                               std::vector<bool>& valid) {
         for(int i=6; i<this->_config_dim; ++i)
         {
-            this->_robot->joint(this->_joints[i]).value(lastConfig[i]);
+            this->_robot->joint(this->_dofs[i]).value(lastConfig[i]);
             testQ[i] = lastConfig[i];
         }
         solutions.clear();
@@ -44,7 +44,7 @@ public:
         valid.reserve(8);
         this->getGoalTransform(lastConfig);
 
-        const akin::Link& baseLink = this->_robot->joint(this->_joints[0]).upstreamLink();
+        const akin::Link& baseLink = this->_robot->joint(this->_dofs[0]).upstreamLink();
         
         B = (baseLink.respectToWorld()*waist).inverse()
             * this->_goalTf.respectToWorld() * footRotationInv;
@@ -107,7 +107,7 @@ public:
             bool add_result = true;
             for(int j=0; j<6; ++j)
             {
-                if(!this->_robot->joint(this->_joints[j]).withinLimits(testQ[j]))
+                if(!this->_robot->joint(this->_dofs[j]).withinLimits(testQ[j]))
                 {
                     add_result = false;
                     break;
@@ -147,16 +147,16 @@ protected:
         
         zeroSize = 1e-6;
 
-        L4 = fabs(this->_robot->joint(this->_joints[3]).childLink().respectToRef().translation()[2]);
-        L5 = fabs(this->_robot->joint(this->_joints[4]).childLink().respectToRef().translation()[2]);
-        L6 = fabs(this->_manip->withRespectTo(this->_robot->joint(this->_joints[5]).childLink()).translation()[2]);
+        L4 = fabs(this->_robot->joint(this->_dofs[3]).childLink().respectToRef().translation()[2]);
+        L5 = fabs(this->_robot->joint(this->_dofs[4]).childLink().respectToRef().translation()[2]);
+        L6 = fabs(this->_manip->withRespectTo(this->_robot->joint(this->_dofs[5]).childLink()).translation()[2]);
 
         hipRotation = Eigen::Isometry3d::Identity();
         hipRotation.rotate(akin::Rotation(90*akin::DEG, akin::Vec3(0,0,1)));
         
-        waist =  this->_robot->joint(this->_joints[0]).baseTransform()
-                  *this->_robot->joint(this->_joints[1]).baseTransform()
-                  *this->_robot->joint(this->_joints[2]).baseTransform()
+        waist =  this->_robot->joint(this->_dofs[0]).baseTransform()
+                  *this->_robot->joint(this->_dofs[1]).baseTransform()
+                  *this->_robot->joint(this->_dofs[2]).baseTransform()
                   *hipRotation;
 
         footRotationInv = Eigen::Isometry3d::Identity();

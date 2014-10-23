@@ -78,7 +78,7 @@ void KinTranslation::_update() const
 
     _respectToWorld = refFrame().respectToWorld() * (Translation&)(*this);
 
-    _needsUpdate = false;
+    _needsPosUpdate = false;
 }
 
 KinFreeVector::KinFreeVector() :
@@ -112,7 +112,7 @@ void KinFreeVector::_update() const
 
     _respectToWorld = refFrame().respectToWorld() * (FreeVector&)(*this);
 
-    _needsUpdate = false;
+    _needsPosUpdate = false;
 }
 
 const Axis& KinAxis::respectToWorld() const
@@ -138,5 +138,5 @@ void KinAxis::_update() const
 
     _respectToWorld = refFrame().respectToWorld() * (Axis&)(*this);
 
-    _needsUpdate = false;
+    _needsPosUpdate = false;
 }

@@ -24,7 +24,7 @@ void Tracker::_kinitialize(const Tracker &)
 
 void Tracker::clearNotification()
 {
-    _needsUpdate = false;
+    _needsPosUpdate = false;
 }
 
 MultiTracker::MultiTracker(const string &name, verbosity::verbosity_level_t report_level) :
@@ -43,7 +43,7 @@ MultiTracker& MultiTracker::operator =(const MultiTracker& copyMultiTracker)
 {
     (Tracker&)(*this) = (Tracker&)(copyMultiTracker);
     _kinitialize(copyMultiTracker);
-    notifyUpdate();
+    notifyPosUpdate();
     return *this;
 }
 
@@ -91,7 +91,7 @@ void MultiTracker::setSubscriptions(const KinObjectPtrArray& objects, bool notif
     addSubscriptions(objects);
     
     if(notify)
-        notifyUpdate();
+        notifyPosUpdate();
 }
 
 void MultiTracker::addSubscriptions(const KinObjectPtrArray &objects, bool notify)
@@ -102,7 +102,7 @@ void MultiTracker::addSubscriptions(const KinObjectPtrArray &objects, bool notif
     }
     
     if(notify)
-        notifyUpdate();
+        notifyPosUpdate();
 }
 
 void MultiTracker::addSubscription(KinObject *object, bool notify)
@@ -111,7 +111,7 @@ void MultiTracker::addSubscription(KinObject *object, bool notify)
     _subscriptions.back()->_registerObject(this);
     
     if(notify)
-        notifyUpdate();
+        notifyPosUpdate();
 }
 
 bool MultiTracker::removeSubscription(KinObject *object, bool notify)
@@ -148,7 +148,7 @@ bool MultiTracker::removeSubscription(KinObject *object, bool notify)
     }
     
     if(notify)
-        notifyUpdate();
+        notifyPosUpdate();
     
     return true;
 }
@@ -163,5 +163,5 @@ void MultiTracker::clearSubscriptions(bool notify)
     _subscriptions.clear();
     
     if(notify)
-        notifyUpdate();
+        notifyPosUpdate();
 }

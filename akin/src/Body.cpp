@@ -343,10 +343,10 @@ Screw Body::getWrench(const Frame &withRespectToFrame) const
     return Screw(getForces(withRespectToFrame),getMoments(withRespectToFrame));
 }
 
-void Body::notifyUpdate()
+void Body::notifyPosUpdate()
 {
     notifyDynUpdate();
-    Frame::notifyUpdate();
+    Frame::notifyPosUpdate();
 }
 
 void Body::notifyVelUpdate()

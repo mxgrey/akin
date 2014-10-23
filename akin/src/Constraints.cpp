@@ -159,7 +159,7 @@ RobotConstraintBase::RobotConstraintBase() :
 RobotConstraintBase::RobotConstraintBase(Robot& robot, const std::vector<size_t>& joints) :
     _configured(false),
     _robot(&robot),
-    _joints(joints)
+    _dofs(joints)
 {
     
 }
@@ -175,7 +175,7 @@ bool RobotConstraintBase::changeRobot(Robot *newRobot, bool reconfigure)
 
 bool RobotConstraintBase::changeJoints(const std::vector<size_t> &newJoints, bool reconfigure)
 {
-    _joints = newJoints;
+    _dofs = newJoints;
     
     if(reconfigure)
         return _reconfigure();
@@ -190,7 +190,7 @@ bool RobotConstraintBase::changeSetup(Robot* newRobot, const std::vector<size_t>
 
 const std::vector<size_t>& RobotConstraintBase::getJoints() const
 {
-    return _joints;
+    return _dofs;
 }
 
 Robot* RobotConstraintBase::getRobot()
@@ -222,12 +222,12 @@ bool RobotConstraintBase::_reconfigure()
         return false;
     }
     
-    if(!this->_robot->verb.Assert((int)this->_joints.size()==getConfigurationDimension(),
+    if(!this->_robot->verb.Assert((int)this->_dofs.size()==getConfigurationDimension(),
                               verbosity::ASSERT_CRITICAL,
                         "ManipConstraint templated for "
                               +std::to_string(getConfigurationDimension())
                         +" DoF was given an index array of size "
-                        +std::to_string(this->_joints.size())+"!"))
+                        +std::to_string(this->_dofs.size())+"!"))
     {
         _configured = false;
         return false;
@@ -293,7 +293,7 @@ bool ManipConstraintBase::_reconfigure() {
     _dependency.clear();
     for(int i=0; i<getConfigurationDimension(); ++i)
     {
-        const Joint& j = this->_robot->joint(this->_joints[i]);
+        const Joint& j = this->_robot->joint(this->_dofs[i]);
         if(_manip->descendsFrom(j.childLink()))
             _dependency.push_back(true);
         else

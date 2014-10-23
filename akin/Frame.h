@@ -170,7 +170,7 @@ public:
       * Note that calling this function automatically performs all necessary
       * updates to the kinematic tree.
       */
-    const Transform& respectToRef() const;
+    virtual const Transform& respectToRef() const;
     
     /*!
       * \fn respectToWorld()
@@ -204,17 +204,17 @@ public:
     // Velocity API ---------------------------------------------------------
     const Velocity& linearVelocity() const;
     Velocity linearVelocity(const Frame& withRespectToFrame) const;
-    const Velocity& relativeLinearVelocity() const;
-    void relativeLinearVelocity(const Velocity& v);
+    virtual const Velocity& relativeLinearVelocity() const;
+    virtual void relativeLinearVelocity(const Velocity& v);
 
     const Velocity& angularVelocity() const;
     Velocity angularVelocity(const Frame& withRespectToFrame) const;
-    const Velocity& relativeAngularVelocity() const;
-    void relativeAngularVelocity(const Velocity& w);
+    virtual const Velocity& relativeAngularVelocity() const;
+    virtual void relativeAngularVelocity(const Velocity& w);
 
     const Velocity& velocity(coord_t type) const;
     Velocity velocity(coord_t type, const Frame& withRespectToFrame) const;
-    void relativeVelocity(const Velocity& v, coord_t type);
+    virtual void relativeVelocity(const Velocity& v, coord_t type);
 
     Screw velocity(const Frame& withRespectToFrame=Frame::World()) const;
     Screw relativeVelocity() const;
@@ -224,12 +224,12 @@ public:
     const Acceleration& linearAcceleration() const;
     Acceleration linearAcceleration(const Frame& withRespectToFrame) const;
     virtual const Acceleration& relativeLinearAcceleration() const;
-    void relativeLinearAcceleration(const Acceleration& a);
+    virtual void relativeLinearAcceleration(const Acceleration& a);
 
     const Acceleration& angularAcceleration() const;
     Acceleration angularAcceleration(const Frame& withRespectToFrame) const;
     virtual const Acceleration& relativeAngularAcceleration() const;
-    void relativeAngularAcceleration(const Acceleration& w_dot);
+    virtual void relativeAngularAcceleration(const Acceleration& w_dot);
 
     const Acceleration& acceleration(coord_t type) const;
     Acceleration acceleration(coord_t type, const Frame& withRespectToFrame) const;
@@ -244,7 +244,7 @@ public:
     void gravity(const Eigen::Vector3d& g, Frame& inFrame, bool recursive=true);
 
     // Update functions -------------------------------------------------------
-    virtual void notifyUpdate();
+    virtual void notifyPosUpdate();
     
     /*!
      * \fn demandPoseUpdate();
@@ -261,7 +261,7 @@ public:
      * akin produces, please report this as an issue on Github, and try to provide
      * enough detail to recreate the problem.
      */
-    void demandPoseUpdate() const;
+    void demandPosUpdate() const;
     
     virtual void notifyVelUpdate();
     bool needsVelUpdate() const;
@@ -273,7 +273,7 @@ public:
 
 protected:
     
-    void _update() const;
+    void _posUpdate() const;
     void _velUpdate() const;
     void _accUpdate() const;
 

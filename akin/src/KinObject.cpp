@@ -82,7 +82,7 @@ KinObject::KinObject(Frame& referenceFrame,
     _isFrame = false;
     _visualsUpdate = false;
     
-    _needsUpdate = false;
+    _needsPosUpdate = false;
     referenceFrame._registerObject(this);
     _referenceFrame = &referenceFrame;
 }
@@ -110,7 +110,7 @@ void KinObject::_copyValues(const KinObject &other)
     name(other.name());
     _type = other.type();
     
-    _needsUpdate = false;
+    _needsPosUpdate = false;
     other.refFrame()._registerObject(this);
     _referenceFrame = &(other.refFrame());
 
@@ -160,7 +160,7 @@ void KinObject::_registerObject(KinObject *child)
 
     _registeredObjects.push_back(child);
 
-    child->notifyUpdate();
+    child->notifyPosUpdate();
 }
 
 void KinObject::_unregisterObject(KinObject *child)
@@ -236,24 +236,24 @@ std::ostream& operator<<(std::ostream& oStrStream, const KinObject& mObject)
     return oStrStream;
 }
 
-void KinObject::notifyUpdate()
+void KinObject::notifyPosUpdate()
 {
     verb.debug() << "Instructing KinObject '"+name()+"' to update"; verb.end();
 
-    if(_needsUpdate)
+    if(_needsPosUpdate)
     {
         verb.debug() << "KinObject '" + name() + "' already knows that it needs to update!"; verb.end();
         return;
     }
     
-    _needsUpdate = true;
+    _needsPosUpdate = true;
     for(size_t i=0; i<numRegisteredObjects(); ++i)
     {
-        registeredObject(i).notifyUpdate();
+        registeredObject(i).notifyPosUpdate();
     }
 }
 
-bool KinObject::needsUpdate() const { return _needsUpdate; }
+bool KinObject::needsUpdate() const { return _needsPosUpdate; }
 
 void KinObject::_loseParent(akin::KinObject*)
 {

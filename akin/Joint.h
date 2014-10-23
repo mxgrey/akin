@@ -2,6 +2,7 @@
 #define AKIN_JOINT_H
 
 #include "Frame.h"
+#include "DegreeOfFreedom.h"
 #include "Screw.h"
 
 namespace akin {
@@ -18,6 +19,7 @@ public:
         FIXED = 0,
         REVOLUTE,
         PRISMATIC,
+        FLOATING,
         CUSTOM,
 
         JOINT_TYPE_SIZE
@@ -34,27 +36,24 @@ public:
     ProtectedJointProperties(const std::string& jointName="",
                              const Transform& mBaseTransform=Eigen::Isometry3d::Identity(),
                              const Vec3& mJointAxis = Vec3::UnitZ(),
-                             akin::PublicJointProperties::Type mType = PublicJointProperties::FIXED,
-                             double minimumValue=-INFINITY, double maximumValue=INFINITY,
-                             double maxSpeed=INFINITY, double maxAcceleration=INFINITY,
-                             double maxTorque=INFINITY);
+                             akin::PublicJointProperties::Type mType = PublicJointProperties::FIXED);
 
     Transform _baseTransform;
     Vec3 _axis;
     Matrix6Xd _dofMatrix;
 
-    double _value;
-    double _minValue;
-    double _maxValue;
+//    double _value;
+//    double _minValue;
+//    double _maxValue;
 
-    double _velocity;
-    double _maxSpeed;
+//    double _velocity;
+//    double _maxSpeed;
 
-    double _acceleration;
-    double _maxAcceleration;
+//    double _acceleration;
+//    double _maxAcceleration;
 
-    double _torque;
-    double _maxTorque;
+//    double _torque;
+//    double _maxTorque;
 
     PublicJointProperties::Type _type;
 
@@ -70,75 +69,80 @@ public:
 
     friend class Link;
     friend class Robot;
+    friend class DegreeOfFreedom;
 
-    /*!
-     * \fn value(double newJointValue)
-     * \brief Set this joint's value
-     * \param newJointValue
-     */
-    bool value(double newJointValue);
+    DegreeOfFreedom& dof(size_t num);
+    const DegreeOfFreedom& dof(size_t num) const;
+    size_t numDofs();
 
-    /*!
-     * \fn value()
-     * \brief Get this joint's value
-     * \return
-     */
-    double value() const;
+//    /*!
+//     * \fn value(double newJointValue)
+//     * \brief Set this joint's value
+//     * \param newJointValue
+//     */
+//    bool value(double newJointValue);
 
-    bool velocity(double newJointVelocity);
-    double velocity() const;
+//    /*!
+//     * \fn value()
+//     * \brief Get this joint's value
+//     * \return
+//     */
+//    double value() const;
 
-    bool acceleration(double newJointAcceleration);
-    double acceleration() const;
+//    bool velocity(double newJointVelocity);
+//    double velocity() const;
+
+//    bool acceleration(double newJointAcceleration);
+//    double acceleration() const;
     
-    bool torque(double newTorque);
-    double torque() const;
+//    bool torque(double newTorque);
+//    double torque() const;
     
-    Screw reciprocalWrench() const;
+//    Screw reciprocalWrench() const;
     
-    Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
-                      bool checkDependence=true) const;
-    Vec3 Jacobian_rotOnly(const KinTranslation& point, const Frame& refFrame,
-                      bool checkDependence=true) const;
-    Screw Jacobian(const KinTranslation& point, const Frame& refFrame,
-                   bool checkDependence=true) const;
+//    Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
+//                      bool checkDependence=true) const;
+//    Vec3 Jacobian_rotOnly(const KinTranslation& point, const Frame& refFrame,
+//                      bool checkDependence=true) const;
+//    Screw Jacobian(const KinTranslation& point, const Frame& refFrame,
+//                   bool checkDependence=true) const;
 
-    /*!
-     * \fn min(double newMinValue)
-     * \brief Set this joint's minimum value
-     * \param newMinValue
-     */
-    bool min(double newMinValue);
+//    /*!
+//     * \fn min(double newMinValue)
+//     * \brief Set this joint's minimum value
+//     * \param newMinValue
+//     */
+//    bool min(double newMinValue);
 
-    /*!
-     * \fn min()
-     * \brief Get this joint's minimum value
-     * \return This joint's minimum value
-     */
-    double min() const;
+//    /*!
+//     * \fn min()
+//     * \brief Get this joint's minimum value
+//     * \return This joint's minimum value
+//     */
+//    double min() const;
 
-    /*!
-     * \fn max(double newMaxValue)
-     * \brief Set this joint's maximum value
-     * \param newMaxValue
-     */
-    bool max(double newMaxValue);
+//    /*!
+//     * \fn max(double newMaxValue)
+//     * \brief Set this joint's maximum value
+//     * \param newMaxValue
+//     */
+//    bool max(double newMaxValue);
 
-    /*!
-     * \fn max()
-     * \brief Get this joint's maximum value
-     * \return This joint's maximum value
-     */
-    double max() const;
+//    /*!
+//     * \fn max()
+//     * \brief Get this joint's maximum value
+//     * \return This joint's maximum value
+//     */
+//    double max() const;
 
-    void maxSpeed(double newMaxSpeed);
-    double maxSpeed() const;
+//    void maxSpeed(double newMaxSpeed);
+//    double maxSpeed() const;
 
-    void maxAcceleration(double newMaxAcceleration);
-    double maxAcceleration() const;
+//    void maxAcceleration(double newMaxAcceleration);
+//    double maxAcceleration() const;
     
-    bool withinLimits() const;
-    bool withinLimits(double someValue) const;
+//    bool withinLimits() const;
+//    bool withinLimits(double someValue) const;
 
     /*!
      * \fn jointType()
@@ -190,7 +194,7 @@ public:
      * \brief Get this joint's name
      * \return
      */
-    std::string name() const;
+    const std::string& name() const;
 
     /*!
      * \fn name(const std::string& new_name)
@@ -239,17 +243,35 @@ public:
     
     bool isReversed() const;
 
+    bool needsPosUpdate() const;
+    void notifyPosUpdate();
+    bool needsVelUpdate() const;
+    void notifyVelUpdate();
+    bool needsAccUpdate() const;
+    void notifyAccUpdate();
+    bool needsDynUpdate() const;
+    void notifyDynUpdate();
+
+
 protected:
     
     Joint(Robot* mRobot, size_t jointID=0, const std::string& jointName="joint",
           Link* mParentLink=nullptr, Link* mChildLink=nullptr,
           const Transform& mBaseTransform = Transform::Identity(),
-          const Axis& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
+          const Vec3& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
           double mininumValue=-INFINITY, double maximumValue=INFINITY,
           double maxSpeed=INFINITY, double maxAcceleration=INFINITY, double maxTorque=INFINITY);
     Joint& operator=(const Joint& otherJoint);
+
+    mutable bool _needsPosUpdate;
+    mutable bool _needsVelUpdate;
+    mutable bool _needsAccUpdate;
+    mutable bool _needsDynUpdate;
     
-    void _computeRefTransform();
+    void _computeRefTransform() const;
+    void _computeRelVelocity() const;
+    void _computeRelAcceleration() const;
+
     void _computeTransformedJointAxis(Vec3& z_i, const Frame& refFrame) const;
     Vec3 _computePosJacobian(const Vec3& z_i, 
                              const KinTranslation& point, 
@@ -264,6 +286,8 @@ protected:
     bool _reversed;
     Link* _upstreamLink;
     Link* _downstreamLink;
+
+    DofPtrArray _dofs;
 
     void _reverse();
 

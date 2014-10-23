@@ -78,8 +78,8 @@ void Frame::_kinitialize(const Frame &other)
     _isFrame = true;
     _respectToRef = other.respectToRef();
     other.refFrame()._gainChildFrame(this);
-    _needsUpdate = false;
-    notifyUpdate();
+    _needsPosUpdate = false;
+    notifyPosUpdate();
     _needsVelUpdate = false;
     notifyVelUpdate();
     _needsAccUpdate = false;
@@ -101,7 +101,7 @@ Frame::Frame(bool) :
     _isWorld(true)
 {
     _isFrame = true;
-    _needsUpdate = false;
+    _needsPosUpdate = false;
     _needsVelUpdate = false;
     _needsAccUpdate = false;
 }
@@ -231,7 +231,7 @@ void Frame::respectToRef(const Transform &newTf)
 
     _respectToRef = newTf;
 
-    notifyUpdate();
+    notifyPosUpdate();
 }
 
 const Transform& Frame::respectToRef() const { return _respectToRef; }
@@ -239,10 +239,10 @@ const Transform& Frame::respectToRef() const { return _respectToRef; }
 const Transform& Frame::respectToWorld() const
 {
     if(_isWorld)
-        return _respectToRef;
+        return respectToRef();
     
-    if(_needsUpdate)
-        _update();
+    if(_needsPosUpdate)
+        _posUpdate();
 
     return _respectToWorld;
 }
@@ -704,20 +704,20 @@ void Frame::gravity(const Eigen::Vector3d& g, Frame& inFrame, bool recursive)
             childFrame(i).gravity(_gravity, true);
 }
 
-void Frame::notifyUpdate()
+void Frame::notifyPosUpdate()
 {
     notifyVelUpdate();
-    KinObject::notifyUpdate();
+    KinObject::notifyPosUpdate();
 
     if(isWorld())
     {
-        _needsUpdate = false;
+        _needsPosUpdate = false;
         _needsVelUpdate = false;
         _needsAccUpdate = false;
     }
 }
 
-void Frame::demandPoseUpdate() const { _update(); }
+void Frame::demandPosUpdate() const { _posUpdate(); }
 
 void Frame::notifyVelUpdate()
 {
@@ -750,13 +750,13 @@ bool Frame::needsAccUpdate() const { return _needsAccUpdate; }
 
 void Frame::demandAccUpdate() const { _accUpdate(); }
 
-void Frame::_update() const
+void Frame::_posUpdate() const
 {
     verb.debug() << "Updating frame '"+name()+"'"; verb.end();
 
-    _respectToWorld = refFrame().respectToWorld() * _respectToRef;
+    _respectToWorld = refFrame().respectToWorld() * respectToRef();
 
-    _needsUpdate = false;
+    _needsPosUpdate = false;
 }
 
 void Frame::_velUpdate() const
@@ -766,7 +766,7 @@ void Frame::_velUpdate() const
     _linearVel_wrtWorld = refFrame().linearVelocity()
                         + refFrame().respectToWorld().rotation()*_relativeLinearVel
             + refFrame().angularVelocity().cross(
-                            refFrame().respectToWorld().rotation()*_respectToRef.translation());
+                            refFrame().respectToWorld().rotation()*respectToRef().translation());
 
     _angularVel_wrtWorld = refFrame().angularVelocity()
                          + refFrame().respectToWorld().rotation()*_relativeAngularVel;
@@ -778,7 +778,7 @@ void Frame::_accUpdate() const
 {
     verb.debug() << "Updating acceleration of frame '"+name()+"'"; verb.end();
 
-    Eigen::Vector3d pr = refFrame().respectToWorld().rotation()*_respectToRef.translation();
+    Eigen::Vector3d pr = refFrame().respectToWorld().rotation()*respectToRef().translation();
 
     _linearAcc_wrtWorld = refFrame().linearAcceleration()
                         + refFrame().respectToWorld().rotation()*relativeLinearAcceleration()

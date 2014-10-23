@@ -37,8 +37,9 @@ public:
     forward_dynamics_method_t forward_method;
     inverse_dynamics_method_t inverse_method;
 
-    friend class Joint;
     friend class Link;
+    friend class Joint;
+    friend class DegreeOfFreedom;
     friend class Manipulator;
     
     class Explorer
@@ -119,8 +120,8 @@ public:
 
     virtual ~Robot();
 
-    Eigen::VectorXd getConfig(const std::vector<size_t>& joints) const;
-    bool setConfig(const std::vector<size_t>& joints, const Eigen::VectorXd& values);
+    Eigen::VectorXd getConfig(const std::vector<size_t>& dofs) const;
+    bool setConfig(const std::vector<size_t>& dofs, const Eigen::VectorXd& values);
 
     const std::vector<Eigen::Vector2d>& getSupportPolygon();
     const Eigen::Vector2d& getSupportCenter();
@@ -206,6 +207,13 @@ public:
     const Joint& joint(const std::string& jointName) const;
     size_t numJoints() const;
 
+    DegreeOfFreedom& dof(size_t dofNum);
+    DegreeOfFreedom& dof(const std::string& dofName);
+    size_t getDofIndex(const std::string& dofName) const;
+    const DegreeOfFreedom& dof(size_t dofNum) const;
+    const DegreeOfFreedom& dof(const std::string &dofName) const;
+    size_t numDofs() const;
+
     Link& link(size_t linkNum);
     Link& link(const std::string& linkName);
     size_t getLinkIndex(const std::string& linkName) const;
@@ -229,6 +237,7 @@ public:
     
     bool checkForLinkName(const std::string& name) const;
     bool checkForJointName(const std::string& name) const;
+    bool checkForDofName(const std::string& name) const;
     bool checkForManipName(const std::string& name) const;
 
     Link& anchorLink();
@@ -240,7 +249,7 @@ public:
     const Link& rootLink() const;
     
     void enforceJointLimits(bool enforce);
-    inline bool enforcingJointLimits() { return _enforceJointLimits; }
+    inline bool enforceJointLimits() { return _enforceJointLimits; }
 
     std::string robotPackageDirectory;
     
@@ -306,6 +315,7 @@ protected:
 
     Link* _dummyLink;
     Joint* _dummyJoint;
+    DegreeOfFreedom* _dummyDof;
     Manipulator* _dummyManip;
     Geometry _dummyGeometry;
 
@@ -318,8 +328,9 @@ protected:
 
     RobotSolverX* _solver;
 
-    JointPtrArray _joints;
     LinkPtrArray _links;
+    JointPtrArray _joints;
+    DofPtrArray _dofs;
     ManipPtrArray _manips;
     
     JointPtrArray _root_dummy_joints;
@@ -327,6 +338,7 @@ protected:
 
     StringMap _linkNameToIndex;
     StringMap _jointNameToIndex;
+    StringMap _dofNameToIndex;
     StringMap _manipNameToIndex;
 };
 

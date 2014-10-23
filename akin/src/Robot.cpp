@@ -263,25 +263,25 @@ Robot::~Robot()
     delete _solver;
 }
 
-Eigen::VectorXd Robot::getConfig(const std::vector<size_t>& joints) const
+Eigen::VectorXd Robot::getConfig(const std::vector<size_t>& dofs) const
 {
-    Eigen::VectorXd config(joints.size());
-    for(size_t i=0; i<joints.size(); ++i)
-        config[i] = joint(joints[i]).value();
+    Eigen::VectorXd config(dofs.size());
+    for(size_t i=0; i<dofs.size(); ++i)
+        config[i] = dof(dofs[i]).value();
     return config;
 }
 
-bool Robot::setConfig(const std::vector<size_t>& joints, const Eigen::VectorXd &values)
+bool Robot::setConfig(const std::vector<size_t>& dofs, const Eigen::VectorXd &values)
 {
-    if(!verb.Assert((int)joints.size()==values.size(), verbosity::ASSERT_CASUAL,
-                    "Mismatch in array sizes ("+std::to_string(joints.size())+":"
+    if(!verb.Assert((int)dofs.size()==values.size(), verbosity::ASSERT_CASUAL,
+                    "Mismatch in array sizes ("+std::to_string(dofs.size())+":"
                     +std::to_string(values.size())+") in call to Robot::setConfig(~,~)"))
         return false;
 
     bool result = true;
-    for(size_t i=0; i<joints.size(); ++i)
+    for(size_t i=0; i<dofs.size(); ++i)
     {
-        if(!joint(joints[i]).value(values[i]))
+        if(!dof(dofs[i]).value(values[i]))
             result = false;
     }
 
@@ -692,6 +692,23 @@ const Eigen::VectorXd& Robot::_ABA_u() const { return anchorLink()._ABA_u(); }
 const Eigen::MatrixXd& Robot::_ABA_d() const { return anchorLink()._ABA_d(); }
 const Eigen::VectorXd& Robot::_ABA_qdd() const { return anchorLink()._ABA_qdd(); }
 
+Joint& Robot::joint(size_t jointNum)
+{
+    if( !verb.Assert( jointNum < _joints.size(),
+                      verbosity::ASSERT_CASUAL,
+                      "You have requested a joint index ("
+                      +to_string(jointNum)+") which is out of bounds "
+                      "on the robot named '"+name()+"'") )
+        return *_dummyJoint;
+    
+    return *_joints[jointNum];
+}
+
+Joint& Robot::joint(const string &jointName)
+{
+    return joint(getJointIndex(jointName));
+}
+
 size_t Robot::getJointIndex(const string &jointName) const
 {
     StringMap::const_iterator j = _jointNameToIndex.find(jointName);
@@ -700,34 +717,8 @@ size_t Robot::getJointIndex(const string &jointName) const
                      "There is no joint named '"+jointName+"' in the robot named '"
                      +name()+"'!") )
         return DOF_INVALID;
-    
+
     return j->second;
-}
-
-Joint& Robot::joint(const string &jointName)
-{
-    return joint(getJointIndex(jointName));
-}
-
-const Joint& Robot::joint(const string &jointName) const
-{
-    return joint(getJointIndex(jointName));
-}
-
-Joint& Robot::joint(size_t jointNum)
-{
-    if( DOF_POS_X <= jointNum && jointNum <= DOF_ROT_Z )
-    {
-        return *_root_dummy_joints[jointNum-DOF_POS_X];
-    }
-    
-    if( !verb.Assert( jointNum < _joints.size(),
-                      verbosity::ASSERT_CASUAL,
-                      "You have requested a joint index which is out of bounds "
-                      "on the robot named '"+name()+"'") )
-        return *_dummyJoint;
-    
-    return *_joints[jointNum];
 }
 
 const Joint& Robot::joint(size_t jointNum) const
@@ -735,7 +726,55 @@ const Joint& Robot::joint(size_t jointNum) const
     return const_cast<Robot*>(this)->joint(jointNum);
 }
 
+const Joint& Robot::joint(const string &jointName) const
+{
+    return joint(getJointIndex(jointName));
+}
+
 size_t Robot::numJoints() const { return _joints.size(); }
+
+DegreeOfFreedom& Robot::dof(size_t dofNum)
+{
+    if( !(dofNum < _dofs.size()) )
+    {
+        verb.Assert( false, verbosity::ASSERT_CASUAL,
+                      "You have requested a DOF index ("
+                      +to_string(dofNum)+") which is out of bounds "
+                      "on the robot named '"+name()+"'");
+        return *_dummyDof;
+    }
+
+    return *_dofs[dofNum];
+}
+
+DegreeOfFreedom& Robot::dof(const string &dofName)
+{
+    return dof(getDofIndex(dofName));
+}
+
+size_t Robot::getDofIndex(const string &dofName) const
+{
+    StringMap::const_iterator d = _dofNameToIndex.find(dofName);
+    if( !verb.Assert( d != _dofNameToIndex.end(),
+                      verbosity::ASSERT_CASUAL,
+                      "There is no DOF named '"+dofName+"' in the robot named '"
+                      +name()+"'!") )
+        return DOF_INVALID;
+
+    return d->second;
+}
+
+const DegreeOfFreedom& Robot::dof(size_t dofNum) const
+{
+    return const_cast<Robot*>(this)->dof(dofNum);
+}
+
+const DegreeOfFreedom& Robot::dof(const string& dofName) const
+{
+    return dof(getDofIndex(dofName));
+}
+
+size_t Robot::numDofs() const { return _dofs.size(); }
 
 size_t Robot::getLinkIndex(const string &linkName) const
 {
@@ -779,11 +818,6 @@ const Link& Robot::rootLink() const { return *_root; }
 
 Link& Robot::link(size_t linkNum)
 {
-    if( DOF_POS_X <= linkNum && linkNum <= DOF_ROT_Z )
-    {
-        return *_root_dummy_links[linkNum-DOF_POS_X];
-    }
-    
     if( !verb.Assert( linkNum < _links.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a link index ("
@@ -933,6 +967,15 @@ bool Robot::checkForJointName(const string& name) const
     if( n == _jointNameToIndex.end() )
         return false;
     
+    return true;
+}
+
+bool Robot::checkForDofName(const string &name) const
+{
+    StringMap::const_iterator n = _dofNameToIndex.find(name);
+    if( n == _dofNameToIndex.end() )
+        return false;
+
     return true;
 }
 

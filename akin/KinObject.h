@@ -95,11 +95,11 @@ double wrapToPi(double angle);
                       inline Y & operator=( const Y & copy ## Y )                                  \
                       {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );             \
                           ( X & )(*this) = ( X & )( copy ## Y );                                   \
-                          notifyUpdate(); return *this; }                                          \
+                          notifyPosUpdate(); return *this; }                                          \
                                                                                                    \
                       inline Y & operator=( const X & copy ## X )                                  \
                       {   ( X & )(*this) = copy ## X ;                                             \
-                          notifyUpdate(); return *this; }                                          \
+                          notifyPosUpdate(); return *this; }                                          \
                                                                                                    \
                       inline const X & respectToRef() const { return ( X & )(*this); }             
 
@@ -136,10 +136,10 @@ double wrapToPi(double angle);
                               {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );     \
                                   ( X & )(*this) = ( X & )( copy ## Y );                           \
                                   _kinitialize( copy ## Y );                                       \
-                                  notifyUpdate(); return *this; }                                  \
+                                  notifyPosUpdate(); return *this; }                                  \
                               inline Y & operator=( const X & copy ## X )                          \
                               {   ( X & )(*this) = copy ## X ;                                     \
-                                  notifyUpdate(); return *this; }                                  \
+                                  notifyPosUpdate(); return *this; }                                  \
                               virtual void _kinitialize( const Y & copy );
 
 /*!
@@ -155,7 +155,7 @@ double wrapToPi(double angle);
                           inline Y & operator=( const Y & copy ## Y )                              \
                             {   (akin::KinObject&)(*this) = (akin::KinObject&)( copy ## Y );       \
                                 _kinitialize( copy ## Y );                                         \
-                                notifyUpdate(); return *this; }                                    \
+                                notifyPosUpdate(); return *this; }                                    \
                           virtual void _kinitialize( const Y & copy );
 
 
@@ -264,14 +264,14 @@ public:
     mutable verbosity verb;
 
     /*!
-      * \fn notifyUpdate()
+      * \fn notifyPosUpdate()
       * \brief Notify this object that it needs to update itself
       *
       * This function is triggered when a change occurs anywhere upstream on the
       * kinematic tree. It indicates to the KinObject that its location in the
       * world has changed.
       */
-    virtual void notifyUpdate();
+    virtual void notifyPosUpdate();
     
     /*!
       * \fn needsUpdate()
@@ -459,7 +459,7 @@ protected:
 
     Frame* _referenceFrame;
     
-    mutable bool _needsUpdate;
+    mutable bool _needsPosUpdate;
 
 private:
 

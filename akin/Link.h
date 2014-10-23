@@ -14,7 +14,21 @@ class Link : public Body
 public:
 
     friend class Joint;
+    friend class DegreeOfFreedom;
     friend class Robot;
+
+    const Transform& respectToRef() const;
+    void respectToRef(const Transform&);
+
+    const Velocity& relativeLinearVelocity() const;
+    void relativeLinearVelocity(const Velocity&);
+    const Velocity& relativeAngularVelocity() const;
+    void relativeAngularVelocity(const Velocity&);
+
+    const Acceleration& relativeLinearAcceleration() const;
+    void relativeLinearAcceleration(const Acceleration&);
+    const Acceleration& relativeAngularAcceleration() const;
+    void relativeAngularAcceleration(const Acceleration&) const;
     
     const std::string& name() const;
     bool name(const std::string& newName);

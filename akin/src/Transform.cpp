@@ -71,7 +71,7 @@ void KinTransform::_update() const
 
     _respectToWorld = refFrame().respectToWorld() * (Transform&)(*this);
 
-    _needsUpdate = false;
+    _needsPosUpdate = false;
 }
 
 

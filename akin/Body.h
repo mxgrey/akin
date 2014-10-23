@@ -177,12 +177,12 @@ public:
     virtual FreeVector getMoments(const Frame &withRespectToFrame) const;
     Screw getWrench(const Frame &withRespectToFrame) const;
 
-    virtual void notifyUpdate();
+    virtual void notifyPosUpdate();
     virtual void notifyVelUpdate();
     virtual void notifyAccUpdate();
 
-    const Acceleration& relativeLinearAcceleration() const;
-    const Acceleration& relativeAngularAcceleration() const;
+    virtual const Acceleration& relativeLinearAcceleration() const;
+    virtual const Acceleration& relativeAngularAcceleration() const;
     
 protected:
 
