@@ -467,7 +467,7 @@ void Frame::relativeVelocity(const Screw &v_w)
 const Acceleration& Frame::linearAcceleration() const
 {
     if(_isWorld)
-        return _relativeLinearAcc;
+        return relativeLinearAcceleration();
 
     if(_needsAccUpdate)
     {
@@ -593,7 +593,7 @@ void Frame::relativeLinearAcceleration(const Acceleration& a)
 const Acceleration& Frame::angularAcceleration() const
 {
     if(_isWorld)
-        return _relativeAngularAcc;
+        return relativeAngularAcceleration();
 
     if(_needsAccUpdate)
     {
@@ -781,14 +781,14 @@ void Frame::_accUpdate() const
     Eigen::Vector3d pr = refFrame().respectToWorld().rotation()*_respectToRef.translation();
 
     _linearAcc_wrtWorld = refFrame().linearAcceleration()
-                        + refFrame().respectToWorld().rotation()*_relativeLinearAcc
+                        + refFrame().respectToWorld().rotation()*relativeLinearAcceleration()
                         + refFrame().angularAcceleration().cross(pr)
             + 2*refFrame().angularVelocity().cross(
                     refFrame().respectToWorld().rotation()*_relativeLinearVel)
             + refFrame().angularVelocity().cross(refFrame().angularVelocity().cross(pr));
 
     _angularAcc_wrtWorld = refFrame().angularAcceleration()
-                         + refFrame().respectToWorld().rotation()*_relativeAngularAcc
+                         + refFrame().respectToWorld().rotation()*relativeAngularAcceleration()
             + refFrame().angularVelocity().cross(
                     refFrame().respectToWorld().rotation()*_relativeAngularVel);
 

@@ -20,15 +20,17 @@ Robot* create_simple_robot()
     robot->link(0).mass = 0;
     robot->link(0).com = Translation(0.5);
     
-    robot->createJointLinkPair(robot->link(0), "link1", "joint1",
+    robot->createJointLinkPair(robot->link(0), "link1",
+                               ProtectedJointProperties("joint1",
                                Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1),
-                               Joint::REVOLUTE, -M_PI, M_PI);
+                               Joint::REVOLUTE, -M_PI, M_PI));
     robot->link(1).mass = 1;
     robot->link(1).com = Translation(0.5);
     
-    robot->createJointLinkPair(robot->link(1), "link2", "joint2",
+    robot->createJointLinkPair(robot->link(1), "link2",
+                               ProtectedJointProperties("joint2",
                                Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1),
-                               Joint::REVOLUTE, -M_PI, M_PI);
+                               Joint::REVOLUTE, -M_PI, M_PI));
     robot->link(2).mass = 1;
     robot->link(2).com = Translation(0.5);
     

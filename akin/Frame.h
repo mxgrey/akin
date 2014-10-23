@@ -223,12 +223,12 @@ public:
     // Acceleration API ------------------------------------------------------
     const Acceleration& linearAcceleration() const;
     Acceleration linearAcceleration(const Frame& withRespectToFrame) const;
-    const Acceleration& relativeLinearAcceleration() const;
+    virtual const Acceleration& relativeLinearAcceleration() const;
     void relativeLinearAcceleration(const Acceleration& a);
 
     const Acceleration& angularAcceleration() const;
     Acceleration angularAcceleration(const Frame& withRespectToFrame) const;
-    const Acceleration& relativeAngularAcceleration() const;
+    virtual const Acceleration& relativeAngularAcceleration() const;
     void relativeAngularAcceleration(const Acceleration& w_dot);
 
     const Acceleration& acceleration(coord_t type) const;
@@ -288,8 +288,8 @@ protected:
     mutable Velocity _linearVel_wrtWorld;
     mutable Velocity _angularVel_wrtWorld;
 
-    Acceleration _relativeLinearAcc;
-    Acceleration _relativeAngularAcc;
+    mutable Acceleration _relativeLinearAcc;
+    mutable Acceleration _relativeAngularAcc;
     mutable Acceleration _linearAcc_wrtWorld;
     mutable Acceleration _angularAcc_wrtWorld;
     

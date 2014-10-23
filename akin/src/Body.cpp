@@ -15,6 +15,9 @@ InertiaBase::InertiaBase() :
 
 void InertiaBase::setDynamicsMode(dynamics_mode_t mode)
 {
+    if(_mode==mode)
+        return;
+
     _mode = mode;
     if(_attachment)
         _attachment->setDynamicsMode(mode);
@@ -36,6 +39,11 @@ bool InertiaBase::notifyDynUpdate()
         _attachment->notifyDynUpdate();
 
     return true;
+}
+
+bool InertiaBase::needsDynUpdate() const
+{
+    return _needsDynUpdate;
 }
 
 const Matrix6d& InertiaBase::_ABA_Ia() const
@@ -354,6 +362,28 @@ void Body::notifyAccUpdate()
     Frame::notifyAccUpdate();
 }
 
+const Acceleration& Body::relativeLinearAcceleration() const
+{
+    if(INVERSE==_mode)
+        return Frame::relativeLinearAcceleration();
+
+    if(_needsDynUpdate)
+        _computeABA_pass3();
+
+    return _relativeLinearAcc;
+}
+
+const Acceleration& Body::relativeAngularAcceleration() const
+{
+    if(INVERSE==_mode)
+        return Frame::relativeAngularAcceleration();
+
+    if(_needsDynUpdate)
+        _computeABA_pass3();
+
+    return _relativeAngularAcc;
+}
+
 void Body::_computeABA_pass2() const
 {
     // TODO: Consider computing this when new inertial parameters are passed in instead of
@@ -421,6 +451,10 @@ void Body::_computeABA_pass3() const
         _qdd = _arel;
         _a = _a + _arel;
     }
+
+    _relativeAngularAcc = _arel.block<3,1>(0,0);
+    _relativeLinearAcc = _arel.block<3,1>(3,0) + respectToWorld().rotation().transpose()*(
+                angularVelocity().cross(linearVelocity()));
 
     _needsDynUpdate = false;
 }

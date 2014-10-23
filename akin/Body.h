@@ -56,6 +56,7 @@ public:
     virtual dynamics_mode_t getDynamicsMode() const;
 
     virtual bool notifyDynUpdate();
+    virtual bool needsDynUpdate() const;
 
     virtual const Matrix6d& _ABA_Ia() const;
     virtual const Vector6d& _ABA_pa() const;
@@ -179,6 +180,9 @@ public:
     virtual void notifyUpdate();
     virtual void notifyVelUpdate();
     virtual void notifyAccUpdate();
+
+    const Acceleration& relativeLinearAcceleration() const;
+    const Acceleration& relativeAngularAcceleration() const;
     
 protected:
 

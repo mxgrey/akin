@@ -171,23 +171,30 @@ public:
 
     bool createRootLink(std::string rootLinkName);
 
-    int createJointLinkPair(Link& parentLink,
-                             const std::string& newLinkName,
-                             const std::string& newJointName,
-                             const Transform& baseTransform,
-                             const Axis& jointAxis,
-                             Joint::Type jointType,
-                             double minJointValue,
-                             double maxJointValue);
+//    int createJointLinkPair(Link& parentLink,
+//                             const std::string& newLinkName,
+//                             const std::string& newJointName,
+//                             const Transform& baseTransform,
+//                             const Axis& jointAxis,
+//                             Joint::Type jointType,
+//                             double minJointValue,
+//                             double maxJointValue);
+    int createJointLinkPair(Link& parentLink, const std::string& newLinkName,
+                            const ProtectedJointProperties& properties);
     
-    int createJointLinkPair(size_t parentLinkID,
-                            const std::string& newLinkName,
-                            const std::string& newJointName,
-                            const Transform& baseTransform,
-                            const Axis& jointAxis,
-                            Joint::Type jointType,
-                            double minJointValue,
-                            double maxJointValue);
+//    int createJointLinkPair(size_t parentLinkID,
+//                            const std::string& newLinkName,
+//                            const std::string& newJointName,
+//                            const Transform& baseTransform,
+//                            const Axis& jointAxis,
+//                            Joint::Type jointType,
+//                            double minJointValue,
+//                            double maxJointValue,
+//                            double maxSpeed,
+//                            double maxAcceleration,
+//                            double maxTorque);
+    int createJointLinkPair(size_t parentLinkID, const std::string& newLinkName,
+                            const ProtectedJointProperties& properties);
     
     void removeConnection(size_t jointNum, bool fillInGap=false);
     void removeConnection(std::string& jointName, bool fillInGap=false);
@@ -239,7 +246,11 @@ public:
     
     mutable verbosity verb;
 
+    void setDynamicsMode(dynamics_mode_t mode);
+    dynamics_mode_t getDynamicsMode() const;
+
     bool notifyDynUpdate();
+    bool needsDynUpdate() const;
 
     const Matrix6d& _ABA_Ia() const;
     const Vector6d& _ABA_pa() const;

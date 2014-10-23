@@ -105,6 +105,8 @@ public:
 
     bool isDummy() const;
     
+    void setDynamicsMode(dynamics_mode_t mode);
+
     bool notifyDynUpdate();
 
 protected:

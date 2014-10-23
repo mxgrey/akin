@@ -111,7 +111,7 @@ const Link& Link::parentLink() const
 
 Joint& Link::parentJoint()
 {
-    if( !_myRobot->verb.Assert(_parentJoint != NULL, verbosity::ASSERT_CRITICAL,
+    if( !_myRobot->verb.Assert(_parentJoint != nullptr, verbosity::ASSERT_CRITICAL,
                      "Link named '"+name()+"' has a NULL Parent Joint!"))
         return *_myRobot->_dummyJoint;
     
@@ -250,6 +250,26 @@ const Robot& Link::robot() const
 
 bool Link::isDummy() const { return _isDummy; }
 
+void Link::setDynamicsMode(dynamics_mode_t mode)
+{
+    if(_mode==mode)
+        return;
+
+    for(size_t i=0, I=numManips(); i<I; ++i)
+    {
+        for(size_t j=0, J=manip(i).numItems(); j<J; ++j)
+            manip(i).item(j)->setDynamicsMode(mode);
+
+        for(size_t j=0, J=manip(i).numRobots(); j<J; ++j)
+            manip(i).robot(j)->setDynamicsMode(mode);
+    }
+
+    for(size_t i=0, I=numDownstreamLinks(); i<I; ++i)
+        downstreamLink(i).setDynamicsMode(mode);
+
+    upstreamLink().setDynamicsMode(mode);
+}
+
 bool Link::notifyDynUpdate()
 {
     if(!InertiaBase::notifyDynUpdate())
@@ -267,11 +287,16 @@ bool Link::notifyDynUpdate()
     for(size_t i=0, I=numDownstreamLinks(); i<I; ++i)
         downstreamLink(i).notifyDynUpdate();
 
+    upstreamLink().notifyDynUpdate();
+
     return true;
 }
 
 void Link::_computeABA_pass2() const
 {
+    if(isDummy())
+        return;
+
     // TODO: Consider computing this when new inertial parameters are passed in
     _Ia.block<3,3>(0,0) = _inertiaTensor_wrtLocalFrame;
     _Ia.block<3,3>(0,3) = mass*skew(com.respectToRef());
@@ -365,6 +390,9 @@ void Link::_computeABA_pass2() const
 
 void Link::_computeABA_pass3() const
 {
+    if(isDummy())
+        return;
+
     const Matrix6d& X = spatial_transform(respectToRef());
     const Matrix6Xd& s = parentJoint().getDofMatrix();
     const Frame& frame = isAnchor()? _myRobot->refFrame() : (const Frame&)parentLink();
@@ -380,6 +408,23 @@ void Link::_computeABA_pass3() const
     _qdd = _ABA_d().inverse()*(_ABA_u()-_ABA_h().transpose()*_a);
     _arel = s*_qdd;
     _a = _a + _arel;
+
+    if(isAnchor())
+    {
+        // ... Why don't these need const_cast?
+        _myRobot->joint(DOF_ROT_X).acceleration(_qdd[0]);
+        _myRobot->joint(DOF_ROT_Y).acceleration(_qdd[1]);
+        _myRobot->joint(DOF_ROT_Z).acceleration(_qdd[2]);
+
+        _myRobot->joint(DOF_POS_X).acceleration(_qdd[3]);
+        _myRobot->joint(DOF_POS_Y).acceleration(_qdd[4]);
+        _myRobot->joint(DOF_POS_Z).acceleration(_qdd[5]);
+    }
+    else
+    {
+        // TODO: Think about this const_cast and decide if it's both necessary and appropriate
+        const_cast<Joint&>(parentJoint()).acceleration(_qdd[0]);
+    }
 
     _needsDynUpdate = false;
 }

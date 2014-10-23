@@ -65,7 +65,8 @@ if(COMPLETED_BUILD)
 							HuboKin
 							urdfAkin
 							${urdfdom_LIBRARIES}
-							akin )
+                            akin
+                            GL )
 
     enable_testing()
 

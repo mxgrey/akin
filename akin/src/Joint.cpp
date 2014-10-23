@@ -79,9 +79,9 @@ bool Joint::velocity(double newJointVelocity)
     _velocity = newJointVelocity;
 
     Frame::coord_t C;
-    if(REVOLUTE == _myType)
+    if(REVOLUTE == _type)
         C = Frame::ANGULAR;
-    else if(PRISMATIC == _myType)
+    else if(PRISMATIC == _type)
         C = Frame::LINEAR;
     else
         return false;
@@ -122,9 +122,9 @@ bool Joint::acceleration(double newJointAcceleration)
     _acceleration = newJointAcceleration;
 
     Frame::coord_t C;
-    if(REVOLUTE == _myType)
+    if(REVOLUTE == _type)
         C = Frame::ANGULAR;
-    else if(PRISMATIC == _myType)
+    else if(PRISMATIC == _type)
         C = Frame::LINEAR;
     else
         return false;
@@ -138,6 +138,25 @@ bool Joint::acceleration(double newJointAcceleration)
                     _acceleration*_baseTransform.rotation()*_axis, C);
 
     return inBounds;
+}
+
+double Joint::acceleration() const
+{
+    if(downstreamLink().getDynamicsMode()==INVERSE)
+        return _acceleration;
+
+    if(!isDummy())
+    {
+        if(downstreamLink().needsDynUpdate())
+            downstreamLink()._computeABA_pass3();
+    }
+    else
+    {
+        if(_myRobot->anchorLink().needsDynUpdate())
+            _myRobot->anchorLink()._computeABA_pass3();
+    }
+
+    return _acceleration;
 }
 
 void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame) const
@@ -269,12 +288,12 @@ void Joint::_computeRefTransform()
 {
     // Handle different joint types
     Transform respectToRef = _baseTransform;
-    if(REVOLUTE == _myType)
+    if(REVOLUTE == _type)
     {
         respectToRef = respectToRef * Transform(Translation(0,0,0),
                                                 Rotation(_value, _axis));
     }
-    else if(PRISMATIC == _myType)
+    else if(PRISMATIC == _type)
     {
         respectToRef = respectToRef * Transform(_value*_axis, Rotation());
     }
@@ -290,10 +309,9 @@ void Joint::_computeRefTransform()
     }
 }
 
-ProtectedJointProperties::ProtectedJointProperties() { }
-
-ProtectedJointProperties::ProtectedJointProperties(size_t jointID, const string &jointName, const Transform &mBaseTransform,
-        const Axis &mJointAxis, PublicJointProperties::Type mType,
+ProtectedJointProperties::ProtectedJointProperties(const string &jointName,
+        const Transform &mBaseTransform,
+        const Vec3 &mJointAxis, PublicJointProperties::Type mType,
         double minimumValue, double maximumValue,
         double maxSpeed, double maxAcceleration, double maxTorque) :
     _baseTransform(mBaseTransform),
@@ -307,8 +325,8 @@ ProtectedJointProperties::ProtectedJointProperties(size_t jointID, const string 
     _maxAcceleration(maxAcceleration),
     _torque(0),
     _maxTorque(maxTorque),
-    _myType(mType),
-    _id(jointID),
+    _type(mType),
+    _id(0),
     _name(jointName),
     _isDummy(false)
 {
@@ -321,7 +339,7 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
              const Axis &mJointAxis, akin::Joint::Type mType,
              double mininumValue, double maximumValue,
              double maxSpeed, double maxAcceleration, double maxTorque) :
-    ProtectedJointProperties(jointID, jointName, mBaseTransform, mJointAxis, mType,
+    ProtectedJointProperties(jointName, mBaseTransform, mJointAxis, mType,
                              mininumValue, maximumValue, maxSpeed, maxAcceleration, maxTorque),
     verb(mRobot->verb),
     _parentLink(mParentLink),
@@ -331,6 +349,7 @@ Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
     _downstreamLink(mChildLink),
     _myRobot(mRobot)
 {
+    _id = jointID;
     axis(_axis);
     
 //    std::cout << "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
@@ -404,8 +423,8 @@ bool Joint::withinLimits(double someValue) const
     return false;
 }
 
-Joint::Type Joint::type() const { return _myType; }
-void Joint::type(akin::Joint::Type newType) { _myType = newType; _computeRefTransform(); }
+Joint::Type Joint::type() const { return _type; }
+void Joint::type(akin::Joint::Type newType) { _type = newType; _computeRefTransform(); }
 
 void Joint::_changeParentLink(Link *newParent)
 {
@@ -424,12 +443,12 @@ void Joint::axis(const akin::Vec3& newAxis)
     else
     {
         _dofMatrix.resize(Eigen::NoChange, 1);
-        if(Joint::PRISMATIC==_myType)
+        if(Joint::PRISMATIC==_type)
         {
             _dofMatrix.block<3,1>(0,0).setZero();
             _dofMatrix.block<3,1>(3,0) = _axis;
         }
-        else if(Joint::REVOLUTE==_myType)
+        else if(Joint::REVOLUTE==_type)
         {
             _dofMatrix.block<3,1>(0,0) = _axis;
             _dofMatrix.block<3,1>(3,0).setZero();

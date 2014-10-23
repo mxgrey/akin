@@ -65,6 +65,7 @@ public:
     void removeRootFrame(akin::Frame& existing_frame);
     
     virtual void update();
+    virtual void customUpdate();
 
     akin::Frame& getFrame(size_t num);
     akin::Robot& getRobot(size_t num);

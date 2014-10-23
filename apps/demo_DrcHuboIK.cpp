@@ -28,16 +28,9 @@ public:
 //        com_joints = Robot::Explorer::getJointIds(drchubo->joint(DOF_POS_X));
         com_joints = Robot::Explorer::getIdPath(drchubo->joint(DOF_POS_X), drchubo->joint(DOF_ROT_Z));
         
-        drchubo->manip(DrcHubo::LEFT_FOOT).mode = Manipulator::SUPPORT;
-//        std::vector<KinTranslation>& sg = drchubo->manip(DrcHubo::MANIP_L_FOOT).supportGeometry;
-
-//        sg.clear();
-//        sg.push_back(KinTranslation(Translation(0,0,0), drchubo->manip(DrcHubo::MANIP_L_FOOT), "support"));
-
-//        for(size_t i=0; i<sg.size(); ++i)
-//            sg[i] = 0.1*sg[i];
+//        drchubo->manip(DrcHubo::LEFT_FOOT).mode = Manipulator::SUPPORT;
         
-        drchubo->manip(DrcHubo::RIGHT_FOOT).mode = Manipulator::ANALYTICAL;
+//        drchubo->manip(DrcHubo::RIGHT_FOOT).mode = Manipulator::ANALYTICAL;
         rf_baseTf = drchubo->manip(DrcHubo::RIGHT_FOOT).respectToWorld();
         rf_joints = drchubo->manip(DrcHubo::RIGHT_FOOT).constraint()->getJoints();
         rf_config = drchubo->getConfig(rf_joints);
@@ -50,7 +43,7 @@ public:
         drchubo->joint("LEP").value(-90*DEG);
         drchubo->joint("LWP").value(-90*DEG);
 
-        drchubo->manip(DrcHubo::LEFT_HAND).mode = Manipulator::LINKAGE;
+//        drchubo->manip(DrcHubo::LEFT_HAND).mode = Manipulator::LINKAGE;
         lh_baseTf = drchubo->manip(DrcHubo::LEFT_HAND).respectToWorld();
         lh_config = drchubo->getConfig(drchubo->manip(DrcHubo::LEFT_HAND)
                                        .constraint()->getJoints());
@@ -142,6 +135,8 @@ int main(int , char* [])
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3,0.3,0.3,1));
     viewer.setSceneData(root);
+
+    viewer.getCamera()->getOrCreateStateSet()->setGlobalDefaults();
 
     viewer.run();
 

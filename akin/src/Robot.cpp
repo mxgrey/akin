@@ -119,7 +119,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _dummyLink->_isDummy = true;
 
     _dummyJoint = new Joint(this, -1, "dummy", _dummyLink, _dummyLink);
-    _dummyJoint->_myType = Joint::FIXED;
+    _dummyJoint->_type = Joint::FIXED;
     _dummyJoint->_isDummy = true;
     _dummyJoint->_changeParentLink(_dummyLink);
     _dummyJoint->_childLink = _dummyLink;
@@ -523,10 +523,12 @@ bool Robot::createRootLink(string rootLinkName)
 }
 
 
-int Robot::createJointLinkPair(Link &parentLink,
-                               const string &newLinkName, const string &newJointName,
-                               const Transform &baseTransform, const Axis &jointAxis,
-                               Joint::Type jointType, double minJointValue, double maxJointValue)
+//int Robot::createJointLinkPair(Link &parentLink,
+//                               const string &newLinkName, const string &newJointName,
+//                               const Transform &baseTransform, const Axis &jointAxis,
+//                               Joint::Type jointType, double minJointValue, double maxJointValue)
+int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
+                               const ProtectedJointProperties& properties)
 {
     if(!verb.Assert(!parentLink.isDummy(), verbosity::ASSERT_CRITICAL,
                     "Error: You wanted to make '"+newLinkName+"' a child of a dummy link in robot '"+name()+"'!"))
@@ -543,8 +545,8 @@ int Robot::createJointLinkPair(Link &parentLink,
                     +name()+"'!"))
         return -3;
     
-    if(!verb.Assert(!checkForJointName(newJointName), verbosity::ASSERT_CRITICAL,
-                    "Error: You wanted to create a new joint named '"+newJointName+
+    if(!verb.Assert(!checkForJointName(properties._name), verbosity::ASSERT_CRITICAL,
+                    "Error: You wanted to create a new joint named '"+properties._name+
                     "' but a joint by that name already exists in the robot named '"
                     +name()+"'!"))
         return -4;
@@ -552,10 +554,12 @@ int Robot::createJointLinkPair(Link &parentLink,
     Link* newLink = new Link(this, parentLink, newLinkName, _links.size(), false);
     _insertLink(newLink);
 
-    Joint* newJoint = new Joint(this, _joints.size(), newJointName,
+    Joint* newJoint = new Joint(this, _joints.size(), properties._name,
                                 &parentLink, newLink,
-                                baseTransform, jointAxis, jointType,
-                                minJointValue, maxJointValue);
+                                properties._baseTransform, properties._axis,
+                                properties._type, properties._minValue, properties._maxValue,
+                                properties._maxSpeed, properties._maxAcceleration,
+                                properties._maxTorque);
     _insertJoint(newJoint);
     
     parentLink._addChildJoint(newJoint);
@@ -564,15 +568,19 @@ int Robot::createJointLinkPair(Link &parentLink,
     return _links.size()-1;
 }
 
-int Robot::createJointLinkPair(size_t parentLinkID,
-                               const string &newLinkName, const string &newJointName,
-                               const Transform &baseTransform, const Axis &jointAxis,
-                               Joint::Type jointType, double minJointValue, double maxJointValue)
+//int Robot::createJointLinkPair(size_t parentLinkID,
+//                               const string &newLinkName, const string &newJointName,
+//                               const Transform &baseTransform, const Axis &jointAxis,
+//                               Joint::Type jointType, double minJointValue, double maxJointValue,
+//                               double maxSpeed, double maxAcceleration, double maxTorque)
+int Robot::createJointLinkPair(size_t parentLinkID, const string& newLinkName,
+                               const ProtectedJointProperties& properties)
 {
-    return createJointLinkPair(link(parentLinkID),
-                               newLinkName, newJointName,
-                               baseTransform, jointAxis,
-                               jointType, minJointValue, maxJointValue);
+//    return createJointLinkPair(link(parentLinkID),
+//                               newLinkName, newJointName,
+//                               baseTransform, jointAxis,
+//                               jointType, minJointValue, maxJointValue);
+    return createJointLinkPair(link(parentLinkID), newLinkName, properties);
 }
 
 void Robot::removeConnection(string &jointName, bool fillInGap)
@@ -951,9 +959,24 @@ void Robot::enforceJointLimits(bool enforce)
     }
 }
 
+void Robot::setDynamicsMode(dynamics_mode_t mode)
+{
+    anchorLink().setDynamicsMode(mode);
+}
+
+dynamics_mode_t Robot::getDynamicsMode() const
+{
+    return anchorLink().getDynamicsMode();
+}
+
 bool Robot::notifyDynUpdate()
 {
     return anchorLink().notifyDynUpdate();
+}
+
+bool Robot::needsDynUpdate() const
+{
+    return anchorLink().needsDynUpdate();
 }
 
 std::vector<const Link*> Robot::Explorer::getPath(const Link &startLink, const Link &endLink)
@@ -1198,7 +1221,7 @@ const Joint* Robot::Explorer::currentJoint() const
     if(link == NULL)
         return NULL;
     
-    return &currentLink()->parentJoint();
+    return &link->parentJoint();
 }
 
 Joint* Robot::Explorer::nonconst_currentJoint() const
@@ -1234,6 +1257,7 @@ const Link* Robot::Explorer::nextLink()
             Recorder& t = _recorder.back();
             if(t.count < (int)(t.link->numDownstreamLinks()))
             {
+                std::cout << "Hitting " << _recorder.back().link->name() << std::endl;
                 _recorder.push_back(Recorder(&t.link->downstreamLink(t.count), 0));
                 ++t.count;
                 return _recorder.back().link;

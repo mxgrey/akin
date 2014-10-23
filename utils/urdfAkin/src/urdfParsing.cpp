@@ -88,6 +88,7 @@ bool akinUtils::exploreLink(akin::Robot &robot,
     for(size_t i=0; i<link->child_joints.size(); ++i)
     {
         boost::shared_ptr<urdf::Joint> ujoint = link->child_joints[i];
+        akin::ProtectedJointProperties prop;
         akin::Transform baseTransform(akin::Translation(
                                           ujoint->parent_to_joint_origin_transform.position.x,
                                           ujoint->parent_to_joint_origin_transform.position.y,
@@ -98,30 +99,31 @@ bool akinUtils::exploreLink(akin::Robot &robot,
                                           ujoint->parent_to_joint_origin_transform.rotation.y,
                                           ujoint->parent_to_joint_origin_transform.rotation.z)
                                       );
-        akin::Joint::Type jt = akin::Joint::FIXED;
+        prop._baseTransform = baseTransform;
+        prop._type = akin::Joint::FIXED;
         if(ujoint->type == urdf::Joint::REVOLUTE)
-            jt = akin::Joint::REVOLUTE;
+            prop._type = akin::Joint::REVOLUTE;
         else if(ujoint->type == urdf::Joint::PRISMATIC)
-            jt = akin::Joint::PRISMATIC;
+            prop._type = akin::Joint::PRISMATIC;
 
-        akin::Axis jointAxis(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
-        if(jointAxis.norm() == 0)
-            jointAxis = akin::Axis::UnitZ();
-            
+        prop._axis = akin::Vec3(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
+        if(prop._axis.norm() == 0)
+            prop._axis = akin::Vec3::UnitZ();
+
         boost::shared_ptr<urdf::Link> ulink;
         model->getLink(ujoint->child_link_name, ulink);
-        
-        double min=0;
-        double max=0;
+
         if(ujoint->limits)
         {
-            min = ujoint->limits->lower;
-            max = ujoint->limits->upper;
+            prop._minValue = ujoint->limits->lower;
+            prop._maxValue = ujoint->limits->upper;
+            prop._maxSpeed = ujoint->limits->velocity;
+            prop._maxTorque = ujoint->limits->effort;
         }
+
+        prop._name = ujoint->name;
         
-        int newID = robot.createJointLinkPair(parentLink, ulink->name, ujoint->name,
-                                              baseTransform, jointAxis, jt,
-                                              min, max);
+        int newID = robot.createJointLinkPair(parentLink, ulink->name, prop);
         if(newID <= 0)
         {
             std::cerr << "Could not create joint/link pair for URDF joint '" << ujoint->name

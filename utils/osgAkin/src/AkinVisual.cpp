@@ -5,6 +5,9 @@
 #include <osg/Geometry>
 #include "osgAkin/Axes.h"
 
+#include <osg/Material>
+#include <osg/ColorMatrix>
+
 using namespace akin;
 using namespace osgAkin;
 using namespace std;
@@ -34,6 +37,33 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
         }
         else
         {
+//            file_node->getOrCreateStateSet()->setGlobalDefaults();
+
+//            if(file_node->asGroup())
+//            {
+//                std::cout << "Got a group" << std::endl;
+//                osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
+//                colors->push_back(osg::Vec4(1,1,1,1));
+
+//                for(size_t j=0, last_j=file_node->asGroup()->getNumChildren(); j<last_j; ++j)
+//                {
+//                    osg::ref_ptr<osg::Geode> geode = file_node->asGroup()->getChild(j)->asGeode();
+//                    if(geode)
+//                    {
+//                        std::cout << "Got a geode" << std::endl;
+//                        for(size_t i=0, last_i=geode->getNumDrawables(); i<last_i; ++i)
+//                        {
+//                            osg::ref_ptr<osg::Geometry> G = geode->getDrawable(i)->asGeometry();
+//                            if(G)
+//                            {
+//                                G->setColorArray(colors, osg::Array::BIND_OVERALL);
+//                                std::cout << "Binding color" << std::endl;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
             addChild(file_node);
         }
     }

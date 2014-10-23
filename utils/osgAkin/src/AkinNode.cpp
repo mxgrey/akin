@@ -108,10 +108,17 @@ void AkinNode::removeRootFrame(akin::Frame &existing_frame)
 
 void AkinNode::update()
 {
+    customUpdate();
+
     for(size_t i=0; i<_kinTrees.size(); ++i)
     {
         _kinTrees[i]->update();
     }
+}
+
+void AkinNode::customUpdate()
+{
+
 }
 
 akin::Frame& AkinNode::getFrame(size_t num)

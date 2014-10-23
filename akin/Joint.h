@@ -31,12 +31,13 @@ class ProtectedJointProperties
 {
 public:
 
-    ProtectedJointProperties();
-    ProtectedJointProperties(size_t jointID, const std::string& jointName,
-                             const Transform& mBaseTransform, const Axis& mJointAxis,
-                             akin::PublicJointProperties::Type mType,
-                             double minimumValue, double maximumValue,
-                             double maxSpeed, double maxAcceleration, double maxTorque);
+    ProtectedJointProperties(const std::string& jointName="",
+                             const Transform& mBaseTransform=Eigen::Isometry3d::Identity(),
+                             const Vec3& mJointAxis = Vec3::UnitZ(),
+                             akin::PublicJointProperties::Type mType = PublicJointProperties::FIXED,
+                             double minimumValue=-INFINITY, double maximumValue=INFINITY,
+                             double maxSpeed=INFINITY, double maxAcceleration=INFINITY,
+                             double maxTorque=INFINITY);
 
     Transform _baseTransform;
     Vec3 _axis;
@@ -55,7 +56,7 @@ public:
     double _torque;
     double _maxTorque;
 
-    PublicJointProperties::Type _myType;
+    PublicJointProperties::Type _type;
 
     size_t _id;
     std::string _name;
