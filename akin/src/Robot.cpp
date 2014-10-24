@@ -331,7 +331,6 @@ void Robot::setDefaultBalanceConstraint()
 {
     setBalanceConstraint(new CenterOfMassConstraintX(numDofs(), *this,
                                     Explorer::getDofIds(dof(0))));
-    std::cout << "Balance constraint set" << std::endl;
 }
 
 void Robot::name(string newName)
@@ -354,10 +353,8 @@ void Robot::setTaskConstraint(RobotConstraintBase *newConstraint, bool ownConstr
 
 void Robot::setDefaultTaskConstraint()
 {
-    std::cout << "Setting task constraint" << std::endl;
     setTaskConstraint(new RobotTaskConstraintX(numDofs(), *this,
                                     Explorer::getDofIds(dof(0))) );
-    std::cout << "Task constraint set" << std::endl;
 }
 
 void Robot::setDefaultRobotConstraints()

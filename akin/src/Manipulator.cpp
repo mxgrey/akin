@@ -7,6 +7,22 @@
 using namespace akin;
 using namespace std;
 
+std::string Manipulator::mode_to_string(Mode m)
+{
+    switch(m)
+    {
+        case FREE:          return "FREE";
+        case LINKAGE:       return "LINKAGE";
+        case FULLBODY:      return "FULLBODY";
+        case ANALYTICAL:    return "ANALYTICAL";
+        case SUPPORT:       return "SUPPORT";
+        case CUSTOM:        return "CUSTOM";
+        default:            return "INVALID";
+    }
+
+    return "IMPOSSIBLE";
+}
+
 Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &manipName) :
     Frame(referenceFrame, manipName),
     mode(FREE),
@@ -132,6 +148,7 @@ void Manipulator::setConstraint(Mode m, ManipConstraintBase *newConstraint, bool
         delete _constraints[m];
     _constraints[m] = newConstraint;
     _ownConstraint[m] = giveOwnership;
+    std::cout << "Setting Mandatory for mode " << m << std::endl;
     _solvers[m]->setMandatoryConstraint(_constraints[m]);
 }
 
@@ -145,16 +162,17 @@ void Manipulator::resetConstraint(Mode m)
     ManipConstraintBase* constraint;
     if(LINKAGE==m || SUPPORT==m)
     {
-        std::vector<size_t> joints;
+        std::vector<size_t> dofs;
         const Joint* current = &parentLink().parentJoint();
         do {
             
-            joints.push_back(current->id());
+            for(size_t d=0; d<current->numDofs(); ++d)
+                dofs.push_back(current->dof(d).id());
             current = &current->parentJoint();
             
         } while(current->numChildJoints()==1 && !current->childLink().isAnchor());
         
-        constraint = new ManipConstraintX(joints.size(), *this, joints);
+        constraint = new ManipConstraintX(dofs.size(), *this, dofs);
     }
     else if(FULLBODY==m)
     {
@@ -437,4 +455,10 @@ void Manipulator::_findParentLink()
                 " A manipulator can only function inside of a robot.");
     
     _myLink = _myRobot->_dummyLink;
+}
+
+std::ostream& operator<<(std::ostream& stream, const akin::Manipulator::Mode& m)
+{
+    stream << akin::Manipulator::mode_to_string(m);
+    return stream;
 }

@@ -795,9 +795,9 @@ void Frame::_accUpdate() const
     _needsAccUpdate = false;
 }
 
-std::ostream& operator<<(std::ostream& oStrStream, const akin::Frame& mFrame)
+std::ostream& operator<<(std::ostream& stream, const akin::Frame& mFrame)
 {
-    oStrStream << (akin::KinObject&)mFrame << " has relative transform:\n" << mFrame.respectToRef()
+    stream << (akin::KinObject&)mFrame << " has relative transform:\n" << mFrame.respectToRef()
                << "\nAnd World transform:\n" << mFrame.respectToWorld() << std::endl;
-    return oStrStream;
+    return stream;
 }

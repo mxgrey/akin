@@ -205,6 +205,13 @@ bool RobotSolverX::setMandatoryConstraint(RobotConstraintBase *constraint)
     
     _mandatory = constraint;
     _dofs = constraint->getDofs();
+
+    std::cout << "In the solver:" << std::endl;
+//    std::vector<size_t> dofs = constraint->getDofs();
+    for(size_t i=0; i<_dofs.size(); ++i)
+        std::cout << _dofs[i] << ": " << constraint->getRobot()->dof(_dofs[i]).name() << std::endl;
+    std::cout << "Done" << std::endl;
+
     resetLimits();
     return true;
 }
@@ -235,6 +242,8 @@ void RobotSolverX::resetLimits()
     {
         min_limits[i] = _robot->dof(_dofs[i]).min();
         max_limits[i] = _robot->dof(_dofs[i]).max();
+
+        std::cout << "min " << min_limits[i] << ", max " << max_limits[i] << std::endl;
     }
 }
 

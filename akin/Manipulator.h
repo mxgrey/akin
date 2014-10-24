@@ -31,6 +31,8 @@ public:
         
     } Mode;
 
+    static std::string mode_to_string(Mode m);
+
     bool ik(Eigen::VectorXd &config, const Transform &targetTf,
             Frame &relativeFrame=Frame::World());
     bool ik(Mode m, Eigen::VectorXd& config, const Transform& targetTf,
@@ -115,5 +117,7 @@ protected:
 typedef std::vector<Manipulator*> ManipPtrArray;
 
 } // namespace akin
+
+std::ostream& operator <<(std::ostream& stream, const akin::Manipulator::Mode& m);
 
 #endif // AKIN_MANIPULATOR_H
