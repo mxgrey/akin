@@ -27,8 +27,8 @@ DegreeOfFreedom& Joint::dof(size_t num)
                      "You have requested a DOF index ("
                      +to_string(num)+") in which is out of bounds "
                      "for Joint '"+name()+"' on the robot named '"
-                     +_myRobot->name()+"'");
-        return *_myRobot->_dummyDof;
+                     +_robot->name()+"'");
+        return *_robot->_dummyDof;
     }
 
     return *_dofs[num];
@@ -38,6 +38,8 @@ const DegreeOfFreedom& Joint::dof(size_t num) const
 {
     return const_cast<Joint*>(this)->dof(num);
 }
+
+size_t Joint::numDofs() const { return _dofs.size(); }
 
 //bool Joint::value(double newJointValue)
 //{
@@ -307,6 +309,9 @@ const DegreeOfFreedom& Joint::dof(size_t num) const
 
 void Joint::_computeRefTransform() const
 {
+    if(_isDummy)
+        return;
+
     // Handle different joint types
     Transform respectToRef = _baseTransform;
     if(REVOLUTE == _type)
@@ -332,9 +337,77 @@ void Joint::_computeRefTransform() const
     _needsPosUpdate = false;
 }
 
+void Joint::_computeRelVelocity() const
+{
+    if(_isDummy)
+        return;
+
+    Vec3 v, w;
+    if(REVOLUTE==_type)
+    {
+        v.setZero();
+        w = _axis*dof(0).velocity();
+    }
+    else if(PRISMATIC==_type)
+    {
+        v = _axis*dof(0).velocity();
+        w.setZero();
+    }
+    else if(FLOATING==_type)
+    {
+        for(size_t i=0; i<3; ++i)
+        {
+            v[i] = dof(i).velocity();
+            w[i] = dof(i+3).velocity();
+        }
+    }
+    else
+    {
+        v.setZero();
+        w.setZero();
+    }
+
+    _downstreamLink->_relativeLinearVel = v;
+    _downstreamLink->_relativeAngularVel = w;
+
+    _needsVelUpdate = false;
+}
+
+void Joint::_computeRelAcceleration() const
+{
+    if(_isDummy)
+        return;
+
+    Vec3 a, alpha;
+    if(REVOLUTE==_type)
+    {
+        a.setZero();
+        alpha = _axis*dof(0).acceleration();
+    }
+    else if(PRISMATIC==_type)
+    {
+        a = _axis*dof(0).acceleration();
+        alpha.setZero();
+    }
+    else if(FLOATING==_type)
+    {
+        for(size_t i=0; i<3; ++i)
+        {
+            a[i] = dof(i).acceleration();
+            alpha[i] = dof(i+3).acceleration();
+        }
+    }
+
+    _downstreamLink->_relativeLinearAcc = a;
+    _downstreamLink->_relativeAngularAcc = alpha;
+
+    _needsAccUpdate = false;
+}
+
 ProtectedJointProperties::ProtectedJointProperties(const string &jointName,
+        PublicJointProperties::Type mType,
         const Transform &mBaseTransform,
-        const Vec3 &mJointAxis, PublicJointProperties::Type mType) :
+        const Vec3 &mJointAxis) :
     _baseTransform(mBaseTransform),
     _axis(mJointAxis),
     _type(mType),
@@ -345,31 +418,100 @@ ProtectedJointProperties::ProtectedJointProperties(const string &jointName,
 
 }
 
-Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
-             Link *mParentLink, Link *mChildLink,
-             const Transform &mBaseTransform,
-             const Vec3& mJointAxis, akin::Joint::Type mType,
-             double mininumValue, double maximumValue,
-             double maxSpeed, double maxAcceleration, double maxTorque) :
-    ProtectedJointProperties(jointName, mBaseTransform, mJointAxis, mType),
+Joint::Joint(Robot* mRobot, size_t jointID, Link* mParentLink, Link* mChildLink,
+             const ProtectedJointProperties &joint_properties,
+             const DofProperties& dof_properties) :
+    ProtectedJointProperties(joint_properties),
     verb(mRobot->verb),
     _parentLink(mParentLink),
     _childLink(mChildLink),
     _reversed(false),
     _upstreamLink(mParentLink),
     _downstreamLink(mChildLink),
-    _myRobot(mRobot)
+    _robot(mRobot)
 {
     _id = jointID;
-    axis(_axis);
-    
+
     if( !mChildLink->isDummy() )
         verb.Assert(mParentLink == &mChildLink->refFrame(), verbosity::ASSERT_CRITICAL,
-                "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
+                "Joint '"+name()+"' wants to connect '"+mChildLink->name()
                 +"' to '"+mParentLink->name()+"' but '"+mChildLink->name()
                 +"' is in the reference frame of '"+mChildLink->refFrame().name()
                 +"'!", " A joint must always connect a link to its parent frame!");
+
+    _createDofs(dof_properties);
 }
+
+void Joint::_createDofs(const DofProperties& dof_properties)
+{
+    if(type()==PRISMATIC || type()==REVOLUTE)
+    {
+        DegreeOfFreedom* newdof = new DegreeOfFreedom(this, _name, dof_properties);
+        newdof->_localID = 0;
+        newdof->_id = _robot->_dofs.size();
+
+        _robot->_insertDof(newdof);
+        _dofs.push_back(newdof);
+    }
+    else if(type()==FIXED)
+    {
+        // Do nothing?
+    }
+    else if(type()==FLOATING)
+    {
+        DegreeOfFreedom* newdof;
+
+        for(size_t i=0; i<6; ++i)
+        {
+            std::string dofname;
+            switch(i)
+            {
+                case 0: dofname = _name+"_POS_X"; break;
+                case 1: dofname = _name+"_POS_Y"; break;
+                case 2: dofname = _name+"_POS_Z"; break;
+                case 3: dofname = _name+"_ROT_X"; break;
+                case 4: dofname = _name+"_ROT_Y"; break;
+                case 5: dofname = _name+"_ROT_Z"; break;
+            }
+            newdof = new DegreeOfFreedom(this, dofname, dof_properties);
+            newdof->_localID = i;
+            newdof->_id = _robot->_dofs.size();
+            _robot->_insertDof(newdof);
+            _dofs.push_back(newdof);
+        }
+    }
+
+    notifyPosUpdate();
+    notifyVelUpdate();
+    notifyAccUpdate();
+    notifyDynUpdate();
+}
+
+//Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
+//             Link *mParentLink, Link *mChildLink,
+//             const Transform &mBaseTransform,
+//             const Vec3& mJointAxis, akin::Joint::Type mType,
+//             double mininumValue, double maximumValue,
+//             double maxSpeed, double maxAcceleration, double maxTorque) :
+//    ProtectedJointProperties(jointName, mBaseTransform, mJointAxis, mType),
+//    verb(mRobot->verb),
+//    _parentLink(mParentLink),
+//    _childLink(mChildLink),
+//    _reversed(false),
+//    _upstreamLink(mParentLink),
+//    _downstreamLink(mChildLink),
+//    _robot(mRobot)
+//{
+//    _id = jointID;
+//    axis(_axis);
+    
+//    if( !mChildLink->isDummy() )
+//        verb.Assert(mParentLink == &mChildLink->refFrame(), verbosity::ASSERT_CRITICAL,
+//                "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
+//                +"' to '"+mParentLink->name()+"' but '"+mChildLink->name()
+//                +"' is in the reference frame of '"+mChildLink->refFrame().name()
+//                +"'!", " A joint must always connect a link to its parent frame!");
+//}
 
 Joint::~Joint()
 {
@@ -486,17 +628,17 @@ const std::string& Joint::name() const { return _name; }
 
 bool Joint::name(const string &new_name)
 {
-    if( verb.Assert(!_myRobot->checkForJointName(new_name),
+    if( verb.Assert(!_robot->checkForJointName(new_name),
                          verbosity::ASSERT_CRITICAL,
                          "You requested to change joint named '"+name()+"' to '"
-                         +new_name+"', but robot '"+_myRobot->name()+"' already has "
+                         +new_name+"', but robot '"+_robot->name()+"' already has "
                          +"a joint with that name!"))
         return false;
     
-    StringMap::iterator n = _myRobot->_jointNameToIndex.find(name());
+    StringMap::iterator n = _robot->_jointNameToIndex.find(name());
     size_t index = n->second;
-    _myRobot->_jointNameToIndex.erase(n);
-    _myRobot->_jointNameToIndex[new_name] = index;
+    _robot->_jointNameToIndex.erase(n);
+    _robot->_jointNameToIndex[new_name] = index;
     
     _name = new_name;
     
@@ -535,13 +677,65 @@ const Joint& Joint::downstreamJoint(size_t num) const
 
 size_t Joint::numDownstreamJoints() const { return _downstreamLink->numDownstreamJoints(); }
 
-bool Joint::belongsTo(const Robot &someRobot) const { return &someRobot == _myRobot; }
-Robot& Joint::robot() { return *_myRobot; }
+bool Joint::belongsTo(const Robot &someRobot) const { return &someRobot == _robot; }
+Robot& Joint::robot() { return *_robot; }
 const Robot& Joint::robot() const { return const_cast<Joint*>(this)->robot(); }
 
 bool Joint::isDummy() const { return _isDummy; }
 
 bool Joint::isReversed() const { return _reversed; }
+
+bool Joint::needsPosUpdate() const { return _needsPosUpdate; }
+void Joint::notifyPosUpdate()
+{
+    if(_isDummy)
+    {
+        _needsPosUpdate = false;
+        return;
+    }
+
+    _needsPosUpdate = true;
+    downstreamLink().notifyPosUpdate();
+}
+
+bool Joint::needsVelUpdate() const { return _needsVelUpdate; }
+void Joint::notifyVelUpdate()
+{
+    if(_isDummy)
+    {
+        _needsVelUpdate = false;
+        return;
+    }
+
+    _needsVelUpdate = true;
+    downstreamLink().notifyVelUpdate();
+}
+
+bool Joint::needsAccUpdate() const { return _needsAccUpdate; }
+void Joint::notifyAccUpdate()
+{
+    if(_isDummy)
+    {
+        _needsAccUpdate = false;
+        return;
+    }
+
+    _needsAccUpdate = true;
+    downstreamLink().notifyAccUpdate();
+}
+
+bool Joint::needsDynUpdate() const { return _needsDynUpdate; }
+void Joint::notifyDynUpdate()
+{
+    if(_isDummy)
+    {
+        _needsDynUpdate = false;
+        return;
+    }
+
+    _needsDynUpdate = true;
+    downstreamLink().notifyDynUpdate();
+}
 
 std::ostream& operator<<(std::ostream& oStrStream, akin::Joint::Type type)
 {

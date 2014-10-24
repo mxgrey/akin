@@ -17,17 +17,19 @@ typedef std::map<std::string,size_t> StringMap;
 typedef std::vector<std::string> StringArray;
 
 enum {
-    DOF_VTD     = (size_t)(-9),
-    DOF_TIME    = (size_t)(-8),
-    
-    DOF_POS_X   = (size_t)(-7),
-    DOF_POS_Y   = (size_t)(-6),
-    DOF_POS_Z   = (size_t)(-5),
-    DOF_ROT_X   = (size_t)(-4),
-    DOF_ROT_Y   = (size_t)(-3),
-    DOF_ROT_Z   = (size_t)(-2),
-    
-    DOF_INVALID = (size_t)(-1)
+
+    DOF_POS_X   = 0,
+    DOF_POS_Y   = 1,
+    DOF_POS_Z   = 2,
+    DOF_ROT_X   = 3,
+    DOF_ROT_Y   = 4,
+    DOF_ROT_Z   = 5,
+
+    DOF_VTD     = (size_t)(-4),
+    DOF_TIME    = (size_t)(-3),
+
+    BASE_INDEX  = (size_t)(-2),
+    INVALID_INDEX = (size_t)(-1)
 };
 
 class Robot : public InertiaBase
@@ -57,40 +59,91 @@ public:
         
         static std::vector<const Link*> getPath(const Link& startLink, const Link& endLink);
         static std::vector<const Joint*> getPath(const Joint& startJoint, const Joint& endJoint);
+
         static std::vector<size_t> getIdPath(const Link& startLink, const Link& endLink);
         static std::vector<size_t> getIdPath(const Joint& startJoint, const Joint& endJoint);
         
         static std::vector<const Link*> getLinks(const Link& startLink, policy p=DOWNSTREAM);
         static std::vector<const Joint*> getJoints(const Joint& startJoint, policy p=DOWNSTREAM);
+
         static std::vector<size_t> getLinkIds(const Link& startLink, policy p=DOWNSTREAM);
         static std::vector<size_t> getJointIds(const Joint& startJoint, policy p=DOWNSTREAM);
+
+        static std::vector<const DegreeOfFreedom*> getDofs(const DegreeOfFreedom& startDof,
+                                                           policy p=DOWNSTREAM);
+        static std::vector<const DegreeOfFreedom*> getDofs(const DegreeOfFreedom& startDof,
+                                                           const DegreeOfFreedom& endDof);
+        static std::vector<const DegreeOfFreedom*> getDofs(const Joint& startJoint,
+                                                           policy p=DOWNSTREAM);
+        static std::vector<const DegreeOfFreedom*> getDofs(const Joint& startJoint,
+                                                           const Joint& endJoint);
+
+        static std::vector<size_t> getDofIds(const DegreeOfFreedom& startDof, policy p=DOWNSTREAM);
+        static std::vector<size_t> getDofIds(const DegreeOfFreedom& startDof,
+                                             const DegreeOfFreedom& endDof);
+        static std::vector<size_t> getDofIds(const Joint& startJoint, policy p=DOWNSTREAM);
+        static std::vector<size_t> getDofIds(const Joint& startJoint, const Joint& endJoint);
         
         Explorer();
         Explorer(const Link& startLink, policy p=DOWNSTREAM);
         Explorer(const Link& startLink, const Link& endLink);
         Explorer(const Joint& startJoint, policy p=DOWNSTREAM);
         Explorer(const Joint& startJoint, const Joint& endJoint);
+        Explorer(const DegreeOfFreedom& startDof, policy p=DOWNSTREAM);
+        Explorer(const DegreeOfFreedom& startDof, const DegreeOfFreedom& endDof);
         
         void reset(const Link& startLink, policy p=DOWNSTREAM);
         void reset(const Link& startLink, const Link& endLink);
         void reset(const Joint& startJoint, policy p=DOWNSTREAM);
         void reset(const Joint& startJoint, const Joint& endJoint);
+        void reset(const DegreeOfFreedom& startDof, policy p=DOWNSTREAM);
+        void reset(const DegreeOfFreedom& startDof, const DegreeOfFreedom& endDof);
         
         const Link* currentLink() const;
         Link* nonconst_currentLink() const;
         
         const Joint* currentJoint() const;
         Joint* nonconst_currentJoint() const;
+
+        const DegreeOfFreedom* currentDof() const;
+        DegreeOfFreedom* nonconst_currentDof() const;
         
         const Link* nextLink();
         Link* nonconst_nextLink();
         
         const Joint* nextJoint();
         Joint* nonconst_nextJoint();
+
+        const DegreeOfFreedom* nextDof();
+        DegreeOfFreedom* nonconst_nextDof();
         
         bool stopAtRoot;
         
     protected:
+
+        template<typename T1, typename T2>
+        static std::vector<const DegreeOfFreedom*> _getDofs(T1 start, T2 terminate) {
+            Explorer crawl(start, terminate);
+
+            std::vector<const DegreeOfFreedom*> result;
+            const DegreeOfFreedom* nextDof;
+            while( (nextDof = crawl.nextDof()) )
+                result.push_back(nextDof);
+
+            return result;
+        }
+
+        template<typename T1, typename T2>
+        static std::vector<size_t> _getDofIds(T1 start, T2 terminate) {
+            Explorer crawl(start, terminate);
+
+            std::vector<size_t> result;
+            const DegreeOfFreedom* nextDof;
+            while( (nextDof = crawl.nextDof()) )
+                result.push_back(nextDof->id());
+
+            return result;
+        }
         
         class Recorder
         {
@@ -111,6 +164,8 @@ public:
         std::vector<const Link*> _path;
         std::vector<const Link*> _temp;
         size_t _pathLocation;
+
+        int _dof_counter;
     };
 
     Robot(akin::Frame& referenceFrame = akin::Frame::World(), 
@@ -170,32 +225,13 @@ public:
     void name(std::string newName);
     const std::string& name() const;
 
-    bool createRootLink(std::string rootLinkName);
-
-//    int createJointLinkPair(Link& parentLink,
-//                             const std::string& newLinkName,
-//                             const std::string& newJointName,
-//                             const Transform& baseTransform,
-//                             const Axis& jointAxis,
-//                             Joint::Type jointType,
-//                             double minJointValue,
-//                             double maxJointValue);
     int createJointLinkPair(Link& parentLink, const std::string& newLinkName,
-                            const ProtectedJointProperties& properties);
-    
-//    int createJointLinkPair(size_t parentLinkID,
-//                            const std::string& newLinkName,
-//                            const std::string& newJointName,
-//                            const Transform& baseTransform,
-//                            const Axis& jointAxis,
-//                            Joint::Type jointType,
-//                            double minJointValue,
-//                            double maxJointValue,
-//                            double maxSpeed,
-//                            double maxAcceleration,
-//                            double maxTorque);
+                            const ProtectedJointProperties& joint_properties,
+                            const DofProperties& dof_properties);
+
     int createJointLinkPair(size_t parentLinkID, const std::string& newLinkName,
-                            const ProtectedJointProperties& properties);
+                            const ProtectedJointProperties& joint_properties,
+                            const DofProperties& dof_properties);
     
     void removeConnection(size_t jointNum, bool fillInGap=false);
     void removeConnection(std::string& jointName, bool fillInGap=false);
@@ -275,11 +311,13 @@ public:
 protected:
 
     void _initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level);
+    bool _createRootLink(const std::string& rootLinkName, akin::Frame& referenceFrame);
     
     bool _enforceJointLimits;
 
     void _insertLink(Link* newLink);
     void _insertJoint(Joint* newJoint);
+    void _insertDof(DegreeOfFreedom* newDof);
     void _insertManip(Manipulator* newManip);
     
     void _recursiveDeleteConnection(Joint* deadJoint);
@@ -312,6 +350,8 @@ protected:
 
     Link* _anchor;
     Link* _root;
+    Joint* _pseudo_joint;
+    Link* _pseudo_link;
 
     Link* _dummyLink;
     Joint* _dummyJoint;
@@ -332,9 +372,6 @@ protected:
     JointPtrArray _joints;
     DofPtrArray _dofs;
     ManipPtrArray _manips;
-    
-    JointPtrArray _root_dummy_joints;
-    LinkPtrArray _root_dummy_links;
 
     StringMap _linkNameToIndex;
     StringMap _jointNameToIndex;

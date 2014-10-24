@@ -62,7 +62,7 @@ public:
     
 protected:
     
-    std::vector<size_t> _joints;
+    std::vector<size_t> _dofs;
     Robot* _robot;
     
 };

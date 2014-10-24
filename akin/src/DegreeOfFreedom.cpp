@@ -19,11 +19,10 @@ DofProperties::DofProperties(double minimumValue, double maximumValue,
 DegreeOfFreedom::DegreeOfFreedom(Joint* parentJoint, const std::string& name,
                                  const DofProperties& properties) :
     DofProperties(properties),
-    verb(_parent->verb),
+    verb(parentJoint->verb),
     _name(name),
     _parent(parentJoint),
-    _robot(parentJoint->_myRobot)
-
+    _robot(parentJoint->_robot)
 {
 
 }
@@ -182,6 +181,88 @@ double DegreeOfFreedom::effort() const
     return _effort;
 }
 
+void DegreeOfFreedom::limits(double newMinValue, double newMaxValue)
+{
+    verb.Assert(newMinValue <= newMaxValue, verbosity::ASSERT_CASUAL,
+                "You have entered the following DOF limits: ["
+                +std::to_string(newMinValue)+","+std::to_string(newMaxValue)
+                +"], but the min is larger than the max!");
+
+    _minValue = newMinValue;
+    _maxValue = newMaxValue;
+
+    value(value());
+}
+
+void DegreeOfFreedom::limits(const std::pair<double, double> &newLimits)
+{
+    limits(newLimits.first, newLimits.second);
+}
+
+std::pair<double,double> DegreeOfFreedom::limits() const
+{
+    return std::pair<double,double>(_minValue,_maxValue);
+}
+
+bool DegreeOfFreedom::min(double newMinValue)
+{
+    bool inBounds = true;
+    if(newMinValue > _maxValue)
+    {
+        newMinValue = _maxValue;
+        inBounds = false;
+    }
+
+    value(value());
+
+    return inBounds;
+}
+
+double DegreeOfFreedom::min() const { return _minValue; }
+
+bool DegreeOfFreedom::max(double newMaxValue)
+{
+    bool inBounds = true;
+    if(newMaxValue < _minValue)
+    {
+        newMaxValue = _minValue;
+        inBounds = false;
+    }
+
+    value(value());
+
+    return inBounds;
+}
+
+double DegreeOfFreedom::max() const { return _maxValue; }
+
+void DegreeOfFreedom::maxSpeed(double newMaxSpeed)
+{
+    _maxSpeed = newMaxSpeed;
+    velocity(velocity());
+}
+
+double DegreeOfFreedom::maxSpeed() const { return _maxSpeed; }
+
+void DegreeOfFreedom::maxAcceleration(double newMaxAcceleration)
+{
+    _maxAcceleration = newMaxAcceleration;
+    acceleration(acceleration());
+}
+
+bool DegreeOfFreedom::withinLimits() const
+{
+    return withinLimits(value());
+}
+
+bool DegreeOfFreedom::withinLimits(double someValue) const
+{
+    if( min() <= someValue && someValue <= max() )
+        return true;
+
+    return false;
+}
+
 void DegreeOfFreedom::_computeTransformedJointAxis(Vec3 &z_i, const Frame &refFrame) const
 {
     // TODO: Does this accomplish anything? Shouldn't the joint axis be invariant to
@@ -224,12 +305,15 @@ Vec3 DegreeOfFreedom::_computePosJacobian(const Vec3& z_i, const KinTranslation&
     }
     else if(_parent->type()==Joint::FLOATING)
     {
-        Vec3 v = _parent->upstreamLink().withRespectTo(refFrame).rotation().matrix().col(_localID);
         if(_localID<3)
-            return v;
+            return _parent->upstreamLink().withRespectTo(refFrame).rotation().matrix().col(_localID);
         else
+        {
+            const Vec3& v = _parent->upstreamLink().withRespectTo(refFrame).
+                    rotation().matrix().col(_localID-3);
             return v.cross( point.withRespectTo(refFrame) -
                             _parent->childLink().withRespectTo(refFrame).translation() );
+        }
     }
 
     return Vec3::Zero();

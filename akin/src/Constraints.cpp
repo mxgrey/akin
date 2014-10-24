@@ -188,7 +188,7 @@ bool RobotConstraintBase::changeSetup(Robot* newRobot, const std::vector<size_t>
     return changeJoints(newJoints);
 }
 
-const std::vector<size_t>& RobotConstraintBase::getJoints() const
+const std::vector<size_t>& RobotConstraintBase::getDofs() const
 {
     return _dofs;
 }
@@ -293,7 +293,7 @@ bool ManipConstraintBase::_reconfigure() {
     _dependency.clear();
     for(int i=0; i<getConfigurationDimension(); ++i)
     {
-        const Joint& j = this->_robot->joint(this->_dofs[i]);
+        const Joint& j = this->_robot->dof(this->_dofs[i]).joint();
         if(_manip->descendsFrom(j.childLink()))
             _dependency.push_back(true);
         else

@@ -34,26 +34,13 @@ class ProtectedJointProperties
 public:
 
     ProtectedJointProperties(const std::string& jointName="",
+                             akin::PublicJointProperties::Type mType = PublicJointProperties::FIXED,
                              const Transform& mBaseTransform=Eigen::Isometry3d::Identity(),
-                             const Vec3& mJointAxis = Vec3::UnitZ(),
-                             akin::PublicJointProperties::Type mType = PublicJointProperties::FIXED);
+                             const Vec3& mJointAxis = Vec3::UnitZ());
 
     Transform _baseTransform;
     Vec3 _axis;
     Matrix6Xd _dofMatrix;
-
-//    double _value;
-//    double _minValue;
-//    double _maxValue;
-
-//    double _velocity;
-//    double _maxSpeed;
-
-//    double _acceleration;
-//    double _maxAcceleration;
-
-//    double _torque;
-//    double _maxTorque;
 
     PublicJointProperties::Type _type;
 
@@ -73,7 +60,7 @@ public:
 
     DegreeOfFreedom& dof(size_t num);
     const DegreeOfFreedom& dof(size_t num) const;
-    size_t numDofs();
+    size_t numDofs() const;
 
 //    /*!
 //     * \fn value(double newJointValue)
@@ -255,12 +242,24 @@ public:
 
 protected:
     
-    Joint(Robot* mRobot, size_t jointID=0, const std::string& jointName="joint",
-          Link* mParentLink=nullptr, Link* mChildLink=nullptr,
-          const Transform& mBaseTransform = Transform::Identity(),
-          const Vec3& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
-          double mininumValue=-INFINITY, double maximumValue=INFINITY,
-          double maxSpeed=INFINITY, double maxAcceleration=INFINITY, double maxTorque=INFINITY);
+//    Joint(Robot* mRobot, size_t jointID=0, const std::string& jointName="joint",
+//          Link* mParentLink=nullptr, Link* mChildLink=nullptr,
+//          const Transform& mBaseTransform = Transform::Identity(),
+//          const Vec3& mJointAxis = Axis(0, 0, 1), Joint::Type mType = Joint::REVOLUTE,
+//          double mininumValue=-INFINITY, double maximumValue=INFINITY,
+//          double maxSpeed=INFINITY, double maxAcceleration=INFINITY, double maxTorque=INFINITY);
+
+    Joint(Robot* mRobot, size_t jointID,
+          Link* mParentLink, Link* mChildLink,
+          const ProtectedJointProperties& joint_properties,
+          const DofProperties& dof_properties);
+
+    // TODO: Implement this for multi-dof joints
+//    Joint(Robot* mRobot, size_t jointID, const ProtectedJointProperties& joint_properties,
+//          const DofPropertyArray& dof_properties);
+
+    void _createDofs(const DofProperties& dof_properties);
+
     Joint& operator=(const Joint& otherJoint);
 
     mutable bool _needsPosUpdate;
@@ -272,11 +271,11 @@ protected:
     void _computeRelVelocity() const;
     void _computeRelAcceleration() const;
 
-    void _computeTransformedJointAxis(Vec3& z_i, const Frame& refFrame) const;
-    Vec3 _computePosJacobian(const Vec3& z_i, 
-                             const KinTranslation& point, 
-                             const Frame& refFrame) const;
-    Vec3 _computeRotJacobian(const Vec3& z_i) const;
+//    void _computeTransformedJointAxis(Vec3& z_i, const Frame& refFrame) const;
+//    Vec3 _computePosJacobian(const Vec3& z_i,
+//                             const KinTranslation& point,
+//                             const Frame& refFrame) const;
+//    Vec3 _computeRotJacobian(const Vec3& z_i) const;
     
     void _changeParentLink(Link* newParent);
 
@@ -291,7 +290,7 @@ protected:
 
     void _reverse();
 
-    Robot* _myRobot;
+    Robot* _robot;
     
     virtual ~Joint();
 };

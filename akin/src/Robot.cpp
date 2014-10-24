@@ -115,111 +115,120 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _enforceJointLimits = true;
     _name = "default_robot";
 
-    _dummyLink = new Link(this, Frame::World(), "dummy", 0, false);
+    _dummyLink = new Link(this, Frame::World(), "dummy", INVALID_INDEX, false);
     _dummyLink->_isDummy = true;
+    _dummyLink->addVisual(Geometry());
 
-    _dummyJoint = new Joint(this, -1, "dummy", _dummyLink, _dummyLink);
-    _dummyJoint->_type = Joint::FIXED;
+    _dummyJoint = new Joint(this, INVALID_INDEX, _dummyLink, _dummyLink,
+                            ProtectedJointProperties("dummy"),
+                            DofProperties());
     _dummyJoint->_isDummy = true;
-    _dummyJoint->_changeParentLink(_dummyLink);
-    _dummyJoint->_childLink = _dummyLink;
+
+    _dummyLink->_setParentJoint(_dummyJoint);
+
+    _dummyDof = new DegreeOfFreedom(_dummyJoint, "dummy", DofProperties());
+    _dummyDof->_id = INVALID_INDEX;
+    _dummyDof->_isDummy = true;
     
     _dummyManip = new Manipulator(this, *_dummyLink, "dummy");
     _dummyManip->_isDummy = true;
+
+    _createRootLink("default_root", referenceFrame);
+
     
-    // Create the root degrees of freedom
-    Link* pos_x_link = new Link(this, referenceFrame, "DOF_POS_X", DOF_POS_X, true);
-    pos_x_link->_isDummy = true;
-    _root_dummy_links.push_back(pos_x_link);
-    _linkNameToIndex[pos_x_link->name()] = pos_x_link->id();
-    pos_x_link->_setParentJoint(_dummyJoint);
+//    // Create the root degrees of freedom
+//    Link* pos_x_link = new Link(this, referenceFrame, "DOF_POS_X", DOF_POS_X, true);
+//    pos_x_link->_isDummy = true;
+//    _root_dummy_links.push_back(pos_x_link);
+//    _linkNameToIndex[pos_x_link->name()] = pos_x_link->id();
+//    pos_x_link->_setParentJoint(_dummyJoint);
     
-    Link* pos_y_link = new Link(this, *pos_x_link, "DOF_POS_Y", DOF_POS_Y, false);
-    pos_y_link->_isDummy = true;
-    _root_dummy_links.push_back(pos_y_link);
-    _linkNameToIndex[pos_y_link->name()] = pos_y_link->id();
+//    Link* pos_y_link = new Link(this, *pos_x_link, "DOF_POS_Y", DOF_POS_Y, false);
+//    pos_y_link->_isDummy = true;
+//    _root_dummy_links.push_back(pos_y_link);
+//    _linkNameToIndex[pos_y_link->name()] = pos_y_link->id();
     
-    Joint* pos_x_joint = new Joint(this, DOF_POS_X, "DOF_POS_X", pos_x_link, pos_y_link, 
-                                   Transform::Identity(), Axis(1,0,0), Joint::PRISMATIC);
-    pos_x_joint->_isDummy = true;
-    _root_dummy_joints.push_back(pos_x_joint);
-    _jointNameToIndex[pos_x_joint->name()] = DOF_POS_X;
+//    Joint* pos_x_joint = new Joint(this, DOF_POS_X, "DOF_POS_X", pos_x_link, pos_y_link,
+//                                   Transform::Identity(), Axis(1,0,0), Joint::PRISMATIC);
+//    pos_x_joint->_isDummy = true;
+//    _root_dummy_joints.push_back(pos_x_joint);
+//    _jointNameToIndex[pos_x_joint->name()] = DOF_POS_X;
     
-    pos_x_link->_addChildJoint(pos_x_joint);
-    pos_y_link->_setParentJoint(pos_x_joint);
+//    pos_x_link->_addChildJoint(pos_x_joint);
+//    pos_y_link->_setParentJoint(pos_x_joint);
     
-    //////////
+//    //////////
     
-    Link* pos_z_link = new Link(this, *pos_y_link, "DOF_POS_Z", DOF_POS_Z, false);
-    pos_z_link->_isDummy = true;
-    _root_dummy_links.push_back(pos_z_link);
-    _linkNameToIndex[pos_z_link->name()] = pos_z_link->id();
+//    Link* pos_z_link = new Link(this, *pos_y_link, "DOF_POS_Z", DOF_POS_Z, false);
+//    pos_z_link->_isDummy = true;
+//    _root_dummy_links.push_back(pos_z_link);
+//    _linkNameToIndex[pos_z_link->name()] = pos_z_link->id();
     
-    Joint* pos_y_joint = new Joint(this, DOF_POS_Y, "DOF_POS_Y", pos_y_link, pos_z_link,
-                                   Transform::Identity(), Axis(0,1,0), Joint::PRISMATIC);
-    pos_y_joint->_isDummy = true;
-    _root_dummy_joints.push_back(pos_y_joint);
-    _jointNameToIndex[pos_y_joint->name()] = DOF_POS_Y;
+//    Joint* pos_y_joint = new Joint(this, DOF_POS_Y, "DOF_POS_Y", pos_y_link, pos_z_link,
+//                                   Transform::Identity(), Axis(0,1,0), Joint::PRISMATIC);
+//    pos_y_joint->_isDummy = true;
+//    _root_dummy_joints.push_back(pos_y_joint);
+//    _jointNameToIndex[pos_y_joint->name()] = DOF_POS_Y;
     
-    pos_y_link->_addChildJoint(pos_y_joint);
-    pos_z_link->_setParentJoint(pos_y_joint);
+//    pos_y_link->_addChildJoint(pos_y_joint);
+//    pos_z_link->_setParentJoint(pos_y_joint);
     
-    //////////
+//    //////////
     
-    Link* rot_x_link = new Link(this, *pos_z_link, "DOF_ROT_X", DOF_ROT_X, false);
-    rot_x_link->_isDummy = true;
-    _root_dummy_links.push_back(rot_x_link);
-    _linkNameToIndex[rot_x_link->name()] = rot_x_link->id();
+//    Link* rot_x_link = new Link(this, *pos_z_link, "DOF_ROT_X", DOF_ROT_X, false);
+//    rot_x_link->_isDummy = true;
+//    _root_dummy_links.push_back(rot_x_link);
+//    _linkNameToIndex[rot_x_link->name()] = rot_x_link->id();
     
-    Joint* pos_z_joint = new Joint(this, DOF_POS_Z, "DOF_POS_Z", pos_z_link, rot_x_link,
-                                   Transform::Identity(), Axis(0,0,1), Joint::PRISMATIC);
-    pos_z_joint->_isDummy = true;
-    _root_dummy_joints.push_back(pos_z_joint);
-    _jointNameToIndex[pos_z_joint->name()] = DOF_POS_Z;
+//    Joint* pos_z_joint = new Joint(this, DOF_POS_Z, "DOF_POS_Z", pos_z_link, rot_x_link,
+//                                   Transform::Identity(), Axis(0,0,1), Joint::PRISMATIC);
+//    pos_z_joint->_isDummy = true;
+//    _root_dummy_joints.push_back(pos_z_joint);
+//    _jointNameToIndex[pos_z_joint->name()] = DOF_POS_Z;
     
-    pos_z_link->_addChildJoint(pos_z_joint);
-    rot_x_link->_setParentJoint(pos_z_joint);
+//    pos_z_link->_addChildJoint(pos_z_joint);
+//    rot_x_link->_setParentJoint(pos_z_joint);
     
-    //////////
+//    //////////
     
-    Link* rot_y_link = new Link(this, *rot_x_link, "DOF_ROT_Y", DOF_ROT_X, false);
-    rot_y_link->_isDummy = true;
-    _root_dummy_links.push_back(rot_y_link);
-    _linkNameToIndex[rot_y_link->name()] = rot_y_link->id();
+//    Link* rot_y_link = new Link(this, *rot_x_link, "DOF_ROT_Y", DOF_ROT_X, false);
+//    rot_y_link->_isDummy = true;
+//    _root_dummy_links.push_back(rot_y_link);
+//    _linkNameToIndex[rot_y_link->name()] = rot_y_link->id();
     
-    Joint* rot_x_joint = new Joint(this, DOF_ROT_X, "DOF_ROT_X", rot_x_link, rot_y_link,
-                                   Transform::Identity(), Axis(1,0,0), Joint::REVOLUTE);
-    rot_x_joint->_isDummy = true;
-    _root_dummy_joints.push_back(rot_x_joint);
-    _jointNameToIndex[rot_x_joint->name()] = DOF_ROT_X;
+//    Joint* rot_x_joint = new Joint(this, DOF_ROT_X, "DOF_ROT_X", rot_x_link, rot_y_link,
+//                                   Transform::Identity(), Axis(1,0,0), Joint::REVOLUTE);
+//    rot_x_joint->_isDummy = true;
+//    _root_dummy_joints.push_back(rot_x_joint);
+//    _jointNameToIndex[rot_x_joint->name()] = DOF_ROT_X;
     
-    rot_x_link->_addChildJoint(rot_x_joint);
-    rot_y_link->_setParentJoint(rot_x_joint);
+//    rot_x_link->_addChildJoint(rot_x_joint);
+//    rot_y_link->_setParentJoint(rot_x_joint);
     
-    //////////
+//    //////////
     
-    Link* rot_z_link = new Link(this, *rot_y_link, "DOF_ROT_Z", DOF_ROT_Z, false);
-    rot_z_link->_isDummy = true;
-    _root_dummy_links.push_back(rot_z_link);
-    _linkNameToIndex[rot_z_link->name()] = rot_z_link->id();
+//    Link* rot_z_link = new Link(this, *rot_y_link, "DOF_ROT_Z", DOF_ROT_Z, false);
+//    rot_z_link->_isDummy = true;
+//    _root_dummy_links.push_back(rot_z_link);
+//    _linkNameToIndex[rot_z_link->name()] = rot_z_link->id();
     
-    Joint* rot_y_joint = new Joint(this, DOF_ROT_Y, "DOF_ROT_Y", rot_y_link, rot_z_link,
-                                   Transform::Identity(), Axis(0,1,0), Joint::REVOLUTE);
-    rot_y_joint->_isDummy = true;
-    _root_dummy_joints.push_back(rot_y_joint);
-    _jointNameToIndex[rot_y_joint->name()] = DOF_ROT_Y;
+//    Joint* rot_y_joint = new Joint(this, DOF_ROT_Y, "DOF_ROT_Y", rot_y_link, rot_z_link,
+//                                   Transform::Identity(), Axis(0,1,0), Joint::REVOLUTE);
+//    rot_y_joint->_isDummy = true;
+//    _root_dummy_joints.push_back(rot_y_joint);
+//    _jointNameToIndex[rot_y_joint->name()] = DOF_ROT_Y;
     
-    rot_y_link->_addChildJoint(rot_y_joint);
-    rot_z_link->_setParentJoint(rot_y_joint);
+//    rot_y_link->_addChildJoint(rot_y_joint);
+//    rot_z_link->_setParentJoint(rot_y_joint);
     
-    //////////
+//    //////////
     
-    // DOF_ROT_Z joint gets created when createRootLink is called
+//    // DOF_ROT_Z joint gets created when createRootLink is called
     
-    for(size_t i=0; i<_root_dummy_links.size(); ++i)
-    {
-        _root_dummy_links[i]->addVisual(Geometry());
-    }
+//    for(size_t i=0; i<_root_dummy_links.size(); ++i)
+//    {
+//        _root_dummy_links[i]->addVisual(Geometry());
+//    }
 }
 
 Robot::~Robot()
@@ -232,16 +241,6 @@ Robot::~Robot()
     for(size_t j=0; j<_joints.size(); ++j)
     {
         delete _joints[j];
-    }
-    
-    for(size_t i=0; i<_root_dummy_links.size(); ++i)
-    {
-        delete _root_dummy_links[i];
-    }
-    
-    for(size_t j=0; j<_root_dummy_joints.size(); ++j)
-    {
-        delete _root_dummy_joints[j];
     }
     
     for(size_t m=0; m<_manips.size(); ++m)
@@ -290,7 +289,7 @@ bool Robot::setConfig(const std::vector<size_t>& dofs, const Eigen::VectorXd &va
 
 Frame& Robot::refFrame()
 {
-    return _root_dummy_links.front()->refFrame();
+    return _pseudo_link->refFrame();
 }
 
 const Frame& Robot::refFrame() const
@@ -300,7 +299,7 @@ const Frame& Robot::refFrame() const
 
 bool Robot::changeRefFrame(Frame &newRefFrame)
 {
-    return _root_dummy_links.front()->changeRefFrame(newRefFrame);
+    return _pseudo_link->changeRefFrame(newRefFrame);
 }
 
 Frame& Robot::frame()
@@ -330,8 +329,9 @@ void Robot::setBalanceConstraint(BalanceConstraintBase *newConstraint, bool ownC
 
 void Robot::setDefaultBalanceConstraint()
 {
-    setBalanceConstraint(new CenterOfMassConstraintX(numJoints()+6, *this,
-                                    Explorer::getJointIds(joint(DOF_POS_X))));
+    setBalanceConstraint(new CenterOfMassConstraintX(numDofs(), *this,
+                                    Explorer::getDofIds(dof(0))));
+    std::cout << "Balance constraint set" << std::endl;
 }
 
 void Robot::name(string newName)
@@ -354,8 +354,10 @@ void Robot::setTaskConstraint(RobotConstraintBase *newConstraint, bool ownConstr
 
 void Robot::setDefaultTaskConstraint()
 {
-    setTaskConstraint(new RobotTaskConstraintX(numJoints()+6, *this,
-                                    Explorer::getJointIds(joint(DOF_POS_X))));
+    std::cout << "Setting task constraint" << std::endl;
+    setTaskConstraint(new RobotTaskConstraintX(numDofs(), *this,
+                                    Explorer::getDofIds(dof(0))) );
+    std::cout << "Task constraint set" << std::endl;
 }
 
 void Robot::setDefaultRobotConstraints()
@@ -371,13 +373,13 @@ bool Robot::solve()
     if(_task == NULL)
         return true;
 
-    _taskConfig = getConfig(_task->getJoints());
+    _taskConfig = getConfig(_task->getDofs());
     bool result = _solver->solve(_taskConfig);
 //    std::cout << "\nGradient:" << _taskConfig.transpose() << "\n\n" << std::endl;
 
 
 
-    setConfig(_task->getJoints(), _taskConfig);
+    setConfig(_task->getDofs(), _taskConfig);
 
     return result;
 }
@@ -496,28 +498,46 @@ Screw Robot::getWrench(const Frame &withRespectToFrame) const
 
 const string& Robot::name() const { return _name; }
 
-bool Robot::createRootLink(string rootLinkName)
+bool Robot::_createRootLink(const std::string& rootLinkName, Frame& referenceFrame)
 {
+    // TODO: Make Robot a KinObject so that we do not need referenceFrame here
     if(!verb.Assert(_links.size()==0, verbosity::ASSERT_CASUAL,
                 "Cannot create a root link, because one already exists!"))
         return false;
 
-    Link* rootLink = new Link(this, *_root_dummy_links.back(), rootLinkName, 0, true);
+//    Link* rootLink = new Link(this, *_root_dummy_links.back(), rootLinkName, 0, true);
+//    _insertLink(rootLink);
+//    _root = rootLink;
+//    _anchor = rootLink;
+    
+//    Joint* rot_z_joint = new Joint(this, DOF_ROT_Z, "DOF_ROT_Z",
+//                                   _root_dummy_links.back(), rootLink,
+//                                   Transform::Identity(), Axis(0,0,1), Joint::REVOLUTE);
+//    rot_z_joint->_isDummy = true;
+//    _root_dummy_joints.push_back(rot_z_joint);
+//    _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
+    
+////    _com.changeRefFrame(*rootLink);
+
+//    _root_dummy_links.back()->_addChildJoint(rot_z_joint);
+//    rootLink->_setParentJoint(rot_z_joint);
+
+    _pseudo_link = new Link(this, referenceFrame, "pseudo_link", INVALID_INDEX, false);
+    _pseudo_link->_isDummy = true;
+    _pseudo_link->_setParentJoint(_dummyJoint);
+
+    Link* rootLink = new Link(this, *_pseudo_link, rootLinkName, 0, true);
     _insertLink(rootLink);
     _root = rootLink;
     _anchor = rootLink;
-    
-    Joint* rot_z_joint = new Joint(this, DOF_ROT_Z, "DOF_ROT_Z",
-                                   _root_dummy_links.back(), rootLink,
-                                   Transform::Identity(), Axis(0,0,1), Joint::REVOLUTE);
-    rot_z_joint->_isDummy = true;
-    _root_dummy_joints.push_back(rot_z_joint);
-    _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
-    
-//    _com.changeRefFrame(*rootLink);
 
-    _root_dummy_links.back()->_addChildJoint(rot_z_joint);
-    rootLink->_setParentJoint(rot_z_joint);
+    _pseudo_joint = new Joint(this, BASE_INDEX, _pseudo_link, rootLink,
+                              ProtectedJointProperties("base", Joint::FLOATING),
+                              DofProperties());
+    _jointNameToIndex[_pseudo_joint->name()] = BASE_INDEX;
+
+    _pseudo_link->_addChildJoint(_pseudo_joint);
+    rootLink->_setParentJoint(_pseudo_joint);
     
     return true;
 }
@@ -528,10 +548,12 @@ bool Robot::createRootLink(string rootLinkName)
 //                               const Transform &baseTransform, const Axis &jointAxis,
 //                               Joint::Type jointType, double minJointValue, double maxJointValue)
 int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
-                               const ProtectedJointProperties& properties)
+                               const ProtectedJointProperties& joint_properties,
+                               const DofProperties& dof_properties)
 {
     if(!verb.Assert(!parentLink.isDummy(), verbosity::ASSERT_CRITICAL,
-                    "Error: You wanted to make '"+newLinkName+"' a child of a dummy link in robot '"+name()+"'!"))
+                    "Error: You wanted to make '"+newLinkName+
+                    "' a child of a dummy link in robot '"+name()+"'!"))
         return -1;
     
     if(!verb.Assert(parentLink.belongsTo(*this), verbosity::ASSERT_CRITICAL,
@@ -545,8 +567,8 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
                     +name()+"'!"))
         return -3;
     
-    if(!verb.Assert(!checkForJointName(properties._name), verbosity::ASSERT_CRITICAL,
-                    "Error: You wanted to create a new joint named '"+properties._name+
+    if(!verb.Assert(!checkForJointName(joint_properties._name), verbosity::ASSERT_CRITICAL,
+                    "Error: You wanted to create a new joint named '"+joint_properties._name+
                     "' but a joint by that name already exists in the robot named '"
                     +name()+"'!"))
         return -4;
@@ -554,12 +576,8 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
     Link* newLink = new Link(this, parentLink, newLinkName, _links.size(), false);
     _insertLink(newLink);
 
-    Joint* newJoint = new Joint(this, _joints.size(), properties._name,
-                                &parentLink, newLink,
-                                properties._baseTransform, properties._axis,
-                                properties._type, properties._minValue, properties._maxValue,
-                                properties._maxSpeed, properties._maxAcceleration,
-                                properties._maxTorque);
+    Joint* newJoint = new Joint(this, _joints.size(), &parentLink, newLink,
+                                joint_properties, dof_properties);
     _insertJoint(newJoint);
     
     parentLink._addChildJoint(newJoint);
@@ -568,19 +586,11 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
     return _links.size()-1;
 }
 
-//int Robot::createJointLinkPair(size_t parentLinkID,
-//                               const string &newLinkName, const string &newJointName,
-//                               const Transform &baseTransform, const Axis &jointAxis,
-//                               Joint::Type jointType, double minJointValue, double maxJointValue,
-//                               double maxSpeed, double maxAcceleration, double maxTorque)
 int Robot::createJointLinkPair(size_t parentLinkID, const string& newLinkName,
-                               const ProtectedJointProperties& properties)
+                               const ProtectedJointProperties& joint_properties,
+                               const DofProperties& dof_properties)
 {
-//    return createJointLinkPair(link(parentLinkID),
-//                               newLinkName, newJointName,
-//                               baseTransform, jointAxis,
-//                               jointType, minJointValue, maxJointValue);
-    return createJointLinkPair(link(parentLinkID), newLinkName, properties);
+    return createJointLinkPair(link(parentLinkID), newLinkName, joint_properties, dof_properties);
 }
 
 void Robot::removeConnection(string &jointName, bool fillInGap)
@@ -694,6 +704,9 @@ const Eigen::VectorXd& Robot::_ABA_qdd() const { return anchorLink()._ABA_qdd();
 
 Joint& Robot::joint(size_t jointNum)
 {
+    if(BASE_INDEX == jointNum)
+        return *_pseudo_joint;
+
     if( !verb.Assert( jointNum < _joints.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a joint index ("
@@ -716,7 +729,7 @@ size_t Robot::getJointIndex(const string &jointName) const
                       verbosity::ASSERT_CASUAL,
                      "There is no joint named '"+jointName+"' in the robot named '"
                      +name()+"'!") )
-        return DOF_INVALID;
+        return INVALID_INDEX;
 
     return j->second;
 }
@@ -759,7 +772,7 @@ size_t Robot::getDofIndex(const string &dofName) const
                       verbosity::ASSERT_CASUAL,
                       "There is no DOF named '"+dofName+"' in the robot named '"
                       +name()+"'!") )
-        return DOF_INVALID;
+        return INVALID_INDEX;
 
     return d->second;
 }
@@ -783,7 +796,7 @@ size_t Robot::getLinkIndex(const string &linkName) const
                       verbosity::ASSERT_CASUAL,
                       "There is no link named '"+linkName+"' in the robot named '"
                       +name()+"'!") )
-        return DOF_INVALID;
+        return INVALID_INDEX;
     
     return i->second;
 }
@@ -818,6 +831,9 @@ const Link& Robot::rootLink() const { return *_root; }
 
 Link& Robot::link(size_t linkNum)
 {
+    if(BASE_INDEX == linkNum)
+        return anchorLink();
+
     if( !verb.Assert( linkNum < _links.size(),
                       verbosity::ASSERT_CASUAL,
                       "You have requested a link index ("
@@ -877,7 +893,7 @@ size_t Robot::getManipIndex(const string &manipName) const
     if( !verb.Assert( i != _manipNameToIndex.end(), verbosity::ASSERT_CASUAL,
                       "There is no manipulator named '"+manipName+"' in the robot named '"
                       +name()+"'!") )
-        return DOF_INVALID;
+        return INVALID_INDEX;
     
     return i->second;
 }
@@ -908,18 +924,36 @@ size_t Robot::numManips() const { return _manips.size(); }
 
 void Robot::_insertLink(Link *newLink)
 {
+    verb.Assert(!checkForLinkName(newLink->name()), verbosity::ASSERT_CRITICAL,
+                "Error: Trying to add a Link named '"+newLink->name()+
+                "' when a Link by that name already exists!");
     _links.push_back(newLink);
     _linkNameToIndex[newLink->name()] = _links.size()-1;
 }
 
 void Robot::_insertJoint(Joint *newJoint)
 {
+    verb.Assert(!checkForJointName(newJoint->name()), verbosity::ASSERT_CRITICAL,
+                "Error: Trying to add a Joint named '"+newJoint->name()+
+                "' when a Joint by that name already exists!");
     _joints.push_back(newJoint);
     _jointNameToIndex[newJoint->name()] = _joints.size()-1;
 }
 
+void Robot::_insertDof(DegreeOfFreedom *newDof)
+{
+    verb.Assert(!checkForDofName(newDof->name()), verbosity::ASSERT_CRITICAL,
+                "Error: Trying to add a DegreeOfFreedom named '"+newDof->name()+
+                "' when a DegreeOfFreedom by that name already exists!");
+    _dofs.push_back(newDof);
+    _dofNameToIndex[newDof->name()] = _dofs.size()-1;
+}
+
 void Robot::_insertManip(Manipulator* newManip)
 {
+    verb.Assert(!checkForManipName(newManip->name()), verbosity::ASSERT_CRITICAL,
+                "Error: Trying to add a Manipulator named '"+newManip->name()+
+                "' when a Manipulator by that name already exists!");
     _manips.push_back(newManip);
     _supportTrackers.push_back(new Tracker(*newManip, newManip->name()+"_support_tracker"));
     _manipNameToIndex[newManip->name()] = _manips.size()-1;
@@ -994,10 +1028,10 @@ void Robot::enforceJointLimits(bool enforce)
     
     if(enforce)
     {
-        for(size_t i=0; i<numJoints(); ++i)
+        for(size_t i=0; i<numDofs(); ++i)
         {
-            if(!joint(i).withinLimits())
-                joint(i).value(joint(i).value());
+            if(!dof(i).withinLimits())
+                dof(i).value(dof(i).value());
         }
     }
 }
@@ -1029,6 +1063,21 @@ std::vector<const Link*> Robot::Explorer::getPath(const Link &startLink, const L
     return crawl._path;
 }
 
+std::vector<const Joint*> Robot::Explorer::getPath(const Joint &startJoint, const Joint &endJoint)
+{
+    Explorer crawl(startJoint, endJoint);
+
+    std::vector<const Joint*> result; result.reserve(crawl._path.size());
+    const Joint* joint = crawl.nextJoint();
+    while(joint != NULL)
+    {
+        result.push_back(joint);
+        joint = crawl.nextJoint();
+    }
+
+    return result;
+}
+
 std::vector<size_t> Robot::Explorer::getIdPath(const Link &startLink, const Link &endLink)
 {
     Explorer crawl(startLink, endLink);
@@ -1039,21 +1088,6 @@ std::vector<size_t> Robot::Explorer::getIdPath(const Link &startLink, const Link
     {
         result.push_back(link->id());
         link = crawl.nextLink();
-    }
-    
-    return result;
-}
-
-std::vector<const Joint*> Robot::Explorer::getPath(const Joint &startJoint, const Joint &endJoint)
-{
-    Explorer crawl(startJoint, endJoint);
-    
-    std::vector<const Joint*> result; result.reserve(crawl._path.size());
-    const Joint* joint = crawl.nextJoint();
-    while(joint != NULL)
-    {
-        result.push_back(joint);
-        joint = crawl.nextJoint();
     }
     
     return result;
@@ -1122,6 +1156,51 @@ std::vector<size_t> Robot::Explorer::getJointIds(const Joint &startJoint, policy
     return result;
 }
 
+std::vector<const DegreeOfFreedom*> Robot::Explorer::getDofs(const DegreeOfFreedom &startDof,
+                                                             policy p)
+{
+    return _getDofs<const DegreeOfFreedom&, policy>(startDof, p);
+}
+
+std::vector<const DegreeOfFreedom*> Robot::Explorer::getDofs(const DegreeOfFreedom &startDof,
+                                                             const DegreeOfFreedom &endDof)
+{
+    return _getDofs<const DegreeOfFreedom&, const DegreeOfFreedom&>(startDof, endDof);
+}
+
+std::vector<const DegreeOfFreedom*> Robot::Explorer::getDofs(const Joint &startJoint, policy p)
+{
+    return _getDofs<const Joint&, policy>(startJoint, p);
+}
+
+std::vector<const DegreeOfFreedom*> Robot::Explorer::getDofs(const Joint &startJoint,
+                                                             const Joint &endJoint)
+{
+    return _getDofs<const Joint&, const Joint&>(startJoint, endJoint);
+}
+
+std::vector<size_t> Robot::Explorer::getDofIds(const DegreeOfFreedom &startDof, policy p)
+{
+    return _getDofIds<const DegreeOfFreedom&, policy>(startDof, p);
+}
+
+std::vector<size_t> Robot::Explorer::getDofIds(const DegreeOfFreedom &startDof,
+                                               const DegreeOfFreedom &endDof)
+{
+    return _getDofIds<const DegreeOfFreedom&, const DegreeOfFreedom&>(startDof, endDof);
+}
+
+std::vector<size_t> Robot::Explorer::getDofIds(const Joint &startJoint, policy p)
+{
+    return _getDofIds<const Joint&, policy>(startJoint, p);
+}
+
+std::vector<size_t> Robot::Explorer::getDofIds(const Joint &startJoint, const Joint &endJoint)
+{
+    return _getDofIds<const Joint&, const Joint&>(startJoint, endJoint);
+}
+
+
 Robot::Explorer::Explorer()
 {
     _init();
@@ -1152,12 +1231,25 @@ Robot::Explorer::Explorer(const Joint &startJoint, policy p)
     reset(startJoint, p);
 }
 
+Robot::Explorer::Explorer(const DegreeOfFreedom &startDof, const DegreeOfFreedom &endDof)
+{
+    _init();
+    reset(startDof, endDof);
+}
+
+Robot::Explorer::Explorer(const DegreeOfFreedom &startDof, policy p)
+{
+    _init();
+    reset(startDof, p);
+}
+
 void Robot::Explorer::_init()
 {
     _recorder.reserve(100);
     _path.reserve(100);
     _temp.reserve(100);
     stopAtRoot = false;
+    _dof_counter = 0;
 }
 
 void Robot::Explorer::reset(const akin::Link& startLink, const akin::Link& endLink)
@@ -1240,16 +1332,34 @@ void Robot::Explorer::reset(const Joint &startJoint, policy p)
     reset(startJoint.childLink(), p);
 }
 
+void Robot::Explorer::reset(const DegreeOfFreedom &startDof, const DegreeOfFreedom &endDof)
+{
+    reset(startDof.joint(), endDof.joint());
+}
+
+void Robot::Explorer::reset(const DegreeOfFreedom &startDof, policy p)
+{
+    reset(startDof.joint(), p);
+}
+
 const Link* Robot::Explorer::currentLink() const
 {
+    if(PATH==_p)
+    {
+        if(_pathLocation < _path.size())
+            return _path[_pathLocation];
+
+        return NULL;
+    }
+
     if(_recorder.size()==0)
     {
         if(_finished)
             return NULL;
-        
+
         return _first;
     }
-    
+
     return _recorder.back().link;
 }
 
@@ -1272,9 +1382,23 @@ Joint* Robot::Explorer::nonconst_currentJoint() const
     return const_cast<Joint*>(currentJoint());
 }
 
+const DegreeOfFreedom* Robot::Explorer::currentDof() const
+{
+    const Joint* joint = currentJoint();
+    if(joint == NULL)
+        return NULL;
+
+    return &joint->dof(_dof_counter);
+}
+
+DegreeOfFreedom* Robot::Explorer::nonconst_currentDof() const
+{
+    return const_cast<DegreeOfFreedom*>(currentDof());
+}
+
 const Link* Robot::Explorer::nextLink()
 {
-    if(_p == PATH)
+    if(PATH == _p)
     {
         if(_pathLocation < _path.size())
         {
@@ -1300,7 +1424,6 @@ const Link* Robot::Explorer::nextLink()
             Recorder& t = _recorder.back();
             if(t.count < (int)(t.link->numDownstreamLinks()))
             {
-                std::cout << "Hitting " << _recorder.back().link->name() << std::endl;
                 _recorder.push_back(Recorder(&t.link->downstreamLink(t.count), 0));
                 ++t.count;
                 return _recorder.back().link;
@@ -1395,6 +1518,44 @@ const Joint* Robot::Explorer::nextJoint()
 Joint* Robot::Explorer::nonconst_nextJoint()
 {
     return const_cast<Joint*>(nextJoint());
+}
+
+const DegreeOfFreedom* Robot::Explorer::nextDof()
+{
+    const Joint* joint;
+    if(PATH == _p)
+    {
+        if(_pathLocation==0)
+            joint = nextJoint();
+        else
+            joint = currentJoint();
+    }
+    else
+    {
+        if(_recorder.size()==0)
+            joint = nextJoint();
+        else
+            joint = currentJoint();
+    }
+
+    if(joint == NULL)
+        return NULL;
+
+    if(_dof_counter >= (int)joint->numDofs())
+    {
+        _dof_counter = 1;
+
+        while( (joint = nextJoint()) )
+        {
+            if(joint->numDofs() > 0)
+                return &joint->dof(0);
+        }
+
+        return NULL;
+    }
+
+    ++_dof_counter;
+    return &joint->dof(_dof_counter-1);
 }
 
 Robot::Explorer::Recorder::Recorder() :

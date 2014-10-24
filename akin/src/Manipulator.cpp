@@ -64,7 +64,7 @@ bool Manipulator::ik(Mode m, Eigen::VectorXd& config, const akin::Transform& tar
     if(ANALYTICAL == m)
     {
         bool result = _analytical->getBestSolutionX(config, config).valid;
-        _myRobot->setConfig(_analytical->getJoints(), config);
+        _myRobot->setConfig(_analytical->getDofs(), config);
         return result;
     }
 
@@ -158,9 +158,9 @@ void Manipulator::resetConstraint(Mode m)
     }
     else if(FULLBODY==m)
     {
-        std::vector<size_t> joints = Robot::Explorer::getIdPath(_myRobot->joint(DOF_POS_X),
-                                                            parentLink().parentJoint());
-        constraint = new ManipConstraintX(joints.size(), *this, joints);
+        std::vector<size_t> dofs = Robot::Explorer::getDofIds(_myRobot->joint(BASE_INDEX),
+                                                              parentLink().parentJoint());
+        constraint = new ManipConstraintX(dofs.size(), *this, dofs);
     }
     else if(ANALYTICAL==m)
     {

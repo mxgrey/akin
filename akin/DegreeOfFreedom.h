@@ -31,6 +31,8 @@ public:
 
 };
 
+typedef std::vector<DofProperties> DofPropertyArray;
+
 class DegreeOfFreedom : protected DofProperties
 {
 public:
@@ -50,6 +52,10 @@ public:
 
     bool effort(double newEffort);
     double effort() const;
+
+    void limits(double newMinValue, double newMaxValue);
+    void limits(const std::pair<double,double>& newLimits);
+    std::pair<double,double> limits() const;
 
     bool min(double newMinValue);
     double min() const;

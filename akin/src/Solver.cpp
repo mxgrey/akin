@@ -204,7 +204,7 @@ bool RobotSolverX::setMandatoryConstraint(RobotConstraintBase *constraint)
         return false;
     
     _mandatory = constraint;
-    _joints = constraint->getJoints();
+    _dofs = constraint->getDofs();
     resetLimits();
     return true;
 }
@@ -221,20 +221,20 @@ bool RobotSolverX::setOptimalConstraint(RobotConstraintBase *constraint)
         return false;
     
     _optimal = constraint;
-    _joints = constraint->getJoints();
+    _dofs = constraint->getDofs();
     resetLimits();
     return true;
 }
 
 void RobotSolverX::resetLimits()
 {
-    min_limits.resize(_joints.size());
-    max_limits.resize(_joints.size());
+    min_limits.resize(_dofs.size());
+    max_limits.resize(_dofs.size());
     
-    for(size_t i=0; i<_joints.size(); ++i)
+    for(size_t i=0; i<_dofs.size(); ++i)
     {
-        min_limits[i] = _robot->joint(_joints[i]).min();
-        max_limits[i] = _robot->joint(_joints[i]).max();
+        min_limits[i] = _robot->dof(_dofs[i]).min();
+        max_limits[i] = _robot->dof(_dofs[i]).max();
     }
 }
 

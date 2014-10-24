@@ -25,7 +25,7 @@ public:
     
     virtual bool checkSetup() const;
     
-    const std::vector<size_t>& getJoints() const;
+    const std::vector<size_t>& getDofs() const;
     Robot* getRobot();
 
 protected:
@@ -231,11 +231,11 @@ public:
     CenterOfMassConstraint(int cspace_size) :
         RobotConstraintBase(), RobotJacobianConstraint<Q,3>(cspace_size)
     { _initializeDefaults(); }
-    CenterOfMassConstraint(Robot& robot, const std::vector<size_t>& joints) :
-        RobotConstraintBase(robot, joints)
+    CenterOfMassConstraint(Robot& robot, const std::vector<size_t>& dofs) :
+        RobotConstraintBase(robot, dofs)
     { _initializeDefaults(); }
-    CenterOfMassConstraint(int cspace_size, Robot& robot, const std::vector<size_t>& joints) :
-        RobotConstraintBase(robot, joints), RobotJacobianConstraint<Q,3>(cspace_size)
+    CenterOfMassConstraint(int cspace_size, Robot& robot, const std::vector<size_t>& dofs) :
+        RobotConstraintBase(robot, dofs), RobotJacobianConstraint<Q,3>(cspace_size)
     { _initializeDefaults(); }
 
     virtual const Jacobian& getJacobian(const VectorQ& config, bool update=true) {
@@ -246,7 +246,7 @@ public:
         double total_mass = _robot->mass();
         
         for(size_t i=0; i<this->_dofs.size(); ++i) {
-            _ex.reset(this->_robot->joint(_dofs[i]).childLink(),
+            _ex.reset(this->_robot->dof(_dofs[i]).joint().childLink(),
                       Robot::Explorer::DOWNSTREAM);
             
             Translation p;
@@ -270,7 +270,7 @@ public:
             _point = p/mass;
             
             this->_Jacobian.template block<3,1>(0,i) = mass/total_mass*
-                    this->_robot->joint(this->_dofs[i]).Jacobian_posOnly(
+                    this->_robot->dof(this->_dofs[i]).Jacobian_posOnly(
                         _point, Frame::World(), false);
         }
         
@@ -393,26 +393,26 @@ public:
                 continue;
             }
 
-            const std::vector<size_t>& joints = this->_robot->manip(i).constraint()->getJoints();
+            const std::vector<size_t>& dofs = this->_robot->manip(i).constraint()->getDofs();
             this->_robot->manip(i).constraint()->setConfiguration();
             this->_robot->manip(i).constraint()->computeJacobian();
-            for(size_t j=0; j<joints.size(); ++j) {
-                int joint = _getIndex(joints[j]); if(joint < 0) continue;
+            for(size_t j=0; j<dofs.size(); ++j) {
+                int dof = _getIndex(dofs[j]); if(dof < 0) continue;
                 for(size_t k=0; k<6; ++k) {
-                    this->_Jacobian(6*i+k, joint) =
+                    this->_Jacobian(6*i+k, dof) =
                             this->_robot->manip(i).constraint()->getJacobianComponent(k,j);
                 }
             }
         }
 
         if(this->_robot->balance()!=NULL) {
-            const std::vector<size_t>& joints = this->_robot->balance()->getJoints();
+            const std::vector<size_t>& dofs = this->_robot->balance()->getDofs();
             this->_robot->balance()->setConfiguration();
             this->_robot->balance()->computeJacobian();
-            for(size_t j=0; j<joints.size(); ++j) {
-                int joint = _getIndex(joints[j]); if(joint < 0) continue;
-                for(size_t k=0; k<joints.size(); ++k) {
-                    this->_Jacobian(6*this->_robot->numManips()+k, joint) =
+            for(size_t j=0; j<dofs.size(); ++j) {
+                int dof = _getIndex(dofs[j]); if(dof < 0) continue;
+                for(size_t k=0; k<dofs.size(); ++k) {
+                    this->_Jacobian(6*this->_robot->numManips()+k, dof) =
                             this->_robot->balance()->getJacobianComponent(k,j);
                 }
             }
@@ -472,7 +472,7 @@ protected:
         if(constraint == NULL)
             return Validity::Valid();
         
-        const std::vector<size_t>& joints = constraint->getJoints();
+        const std::vector<size_t>& joints = constraint->getDofs();
         constraint->setConfiguration();
         Validity v = constraint->computeGradient();
         for(size_t i=0; i<joints.size(); ++i) {
@@ -488,33 +488,23 @@ protected:
         if(!RobotConstraintBase::_reconfigure())
             return false;
         
-        _baseMap.clear();
-        _baseMap.resize(6, -1);
-        
-        _jointMap.clear();
-        _jointMap.resize(this->_robot->numJoints(), -1);
+        _dofMap.clear();
+        _dofMap.resize(this->_robot->numJoints(), -1);
         
         for(size_t i=0; i<this->_dofs.size(); ++i) {
-            if( DOF_POS_X <= this->_dofs[i] && this->_dofs[i] <= DOF_ROT_Z )
-                _baseMap[this->_dofs[i]-DOF_POS_X] = i;
-            else
-                _jointMap[this->_dofs[i]] = i;
+            _dofMap[this->_dofs[i]] = i;
         }
         
         return true;
     }
     
-    std::vector<int> _jointMap;
-    std::vector<int> _baseMap;
+    std::vector<int> _dofMap;
     
-    int _getIndex(size_t jointId) {
-        if( (DOF_POS_X <= jointId) && (jointId <= DOF_ROT_Z) )
-            return _baseMap[jointId-DOF_POS_X];
-        
-        if(jointId > _jointMap.size())
+    int _getIndex(size_t dofID) {
+        if(dofID > _dofMap.size())
             return -1;
         
-        return _jointMap[jointId];
+        return _dofMap[dofID];
     }
 
 };

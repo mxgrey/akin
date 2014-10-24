@@ -59,14 +59,13 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
 //    model->getLinks( links );
     
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
-    if(!robot.createRootLink(rootLink->name))
+    if(robot.numLinks() > 1)
     {
-        std::cout << "Root link already existed for the robot '" << robot.name()
+        std::cout << "Links already existed for the robot '" << robot.name()
                   << "'. Cannot load the URDF into this robot!" << std::endl;
         return false;
     }
-
-
+    robot.link(0).name(model->root_link_->name);
     linkProperties(robot.link(0), model->root_link_);
     
     robot.name(model->getName());
@@ -88,7 +87,8 @@ bool akinUtils::exploreLink(akin::Robot &robot,
     for(size_t i=0; i<link->child_joints.size(); ++i)
     {
         boost::shared_ptr<urdf::Joint> ujoint = link->child_joints[i];
-        akin::ProtectedJointProperties prop;
+        akin::ProtectedJointProperties joint_prop;
+        akin::DofProperties dof_prop;
         akin::Transform baseTransform(akin::Translation(
                                           ujoint->parent_to_joint_origin_transform.position.x,
                                           ujoint->parent_to_joint_origin_transform.position.y,
@@ -99,31 +99,35 @@ bool akinUtils::exploreLink(akin::Robot &robot,
                                           ujoint->parent_to_joint_origin_transform.rotation.y,
                                           ujoint->parent_to_joint_origin_transform.rotation.z)
                                       );
-        prop._baseTransform = baseTransform;
-        prop._type = akin::Joint::FIXED;
+        joint_prop._baseTransform = baseTransform;
+        joint_prop._type = akin::Joint::FIXED;
         if(ujoint->type == urdf::Joint::REVOLUTE)
-            prop._type = akin::Joint::REVOLUTE;
+            joint_prop._type = akin::Joint::REVOLUTE;
         else if(ujoint->type == urdf::Joint::PRISMATIC)
-            prop._type = akin::Joint::PRISMATIC;
+            joint_prop._type = akin::Joint::PRISMATIC;
+        else if(ujoint->type == urdf::Joint::FLOATING)
+            joint_prop._type = akin::Joint::FLOATING;
+        else if(ujoint->type == urdf::Joint::FIXED || ujoint->type == urdf::Joint::CONTINUOUS)
+            joint_prop._type = akin::Joint::FIXED;
 
-        prop._axis = akin::Vec3(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
-        if(prop._axis.norm() == 0)
-            prop._axis = akin::Vec3::UnitZ();
+        joint_prop._axis = akin::Vec3(ujoint->axis.x, ujoint->axis.y, ujoint->axis.z);
+        if(joint_prop._axis.norm() == 0)
+            joint_prop._axis = akin::Vec3::UnitZ();
 
         boost::shared_ptr<urdf::Link> ulink;
         model->getLink(ujoint->child_link_name, ulink);
 
         if(ujoint->limits)
         {
-            prop._minValue = ujoint->limits->lower;
-            prop._maxValue = ujoint->limits->upper;
-            prop._maxSpeed = ujoint->limits->velocity;
-            prop._maxTorque = ujoint->limits->effort;
+            dof_prop._minValue = ujoint->limits->lower;
+            dof_prop._maxValue = ujoint->limits->upper;
+            dof_prop._maxSpeed = ujoint->limits->velocity;
+            dof_prop._maxEffort = ujoint->limits->effort;
         }
 
-        prop._name = ujoint->name;
+        joint_prop._name = ujoint->name;
         
-        int newID = robot.createJointLinkPair(parentLink, ulink->name, prop);
+        int newID = robot.createJointLinkPair(parentLink, ulink->name, joint_prop, dof_prop);
         if(newID <= 0)
         {
             std::cerr << "Could not create joint/link pair for URDF joint '" << ujoint->name

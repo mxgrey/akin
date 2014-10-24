@@ -15,22 +15,22 @@ const int m = 2;
 Robot* create_simple_robot()
 {
     Robot* robot = new Robot;
-    
-    robot->createRootLink("root");
+
+//    robot->_createRootLink("root");
     robot->link(0).mass = 0;
     robot->link(0).com = Translation(0.5);
     
     robot->createJointLinkPair(robot->link(0), "link1",
-                               ProtectedJointProperties("joint1",
-                               Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1),
-                               Joint::REVOLUTE, -M_PI, M_PI));
+                               ProtectedJointProperties("joint1", Joint::REVOLUTE,
+                               Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1)),
+                               DofProperties(-M_PI, M_PI));
     robot->link(1).mass = 1;
     robot->link(1).com = Translation(0.5);
     
     robot->createJointLinkPair(robot->link(1), "link2",
-                               ProtectedJointProperties("joint2",
-                               Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1),
-                               Joint::REVOLUTE, -M_PI, M_PI));
+                               ProtectedJointProperties("joint2", Joint::REVOLUTE,
+                               Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1)),
+                               DofProperties(-M_PI, M_PI));
     robot->link(2).mass = 1;
     robot->link(2).com = Translation(0.5);
     
@@ -91,10 +91,10 @@ void generate_regression_matrices(Eigen::MatrixXd& X, Eigen::VectorXd& y,
     
     for(size_t s=0; s<C; ++s)
     {
-        for(size_t j=0; j<model->numJoints(); ++j)
+        for(size_t j=0; j<model->numDofs(); ++j)
         {
-            model->joint(j).value(configs[s][j]);
-            actual->joint(j).value(configs[s][j]);
+            model->dof(j).value(configs[s][j]);
+            actual->dof(j).value(configs[s][j]);
         }
         Translation p_robot = actual->com().respectToWorld();
         
@@ -158,11 +158,11 @@ std::vector<Eigen::VectorXd> generate_configs(Robot* model)
         for(int i=0; i<alt.size(); ++i)
         {
             if(alt[i]==1)
-                key[i] = model->joint(i).max();
+                key[i] = model->dof(i).max();
             else if(alt[i]==0)
                 key[i] = 0;
             else if(alt[i]==-1)
-                key[i] = model->joint(i).min();
+                key[i] = model->dof(i).min();
         }
         keys.push_back(key);
         

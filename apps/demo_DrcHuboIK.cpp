@@ -26,27 +26,27 @@ public:
                     "../../../resources/drchubo");
         
 //        com_joints = Robot::Explorer::getJointIds(drchubo->joint(DOF_POS_X));
-        com_joints = Robot::Explorer::getIdPath(drchubo->joint(DOF_POS_X), drchubo->joint(DOF_ROT_Z));
+        com_joints = Robot::Explorer::getDofIds(drchubo->dof(DOF_POS_X), drchubo->dof(DOF_ROT_Z));
         
 //        drchubo->manip(DrcHubo::LEFT_FOOT).mode = Manipulator::SUPPORT;
         
 //        drchubo->manip(DrcHubo::RIGHT_FOOT).mode = Manipulator::ANALYTICAL;
         rf_baseTf = drchubo->manip(DrcHubo::RIGHT_FOOT).respectToWorld();
-        rf_joints = drchubo->manip(DrcHubo::RIGHT_FOOT).constraint()->getJoints();
+        rf_joints = drchubo->manip(DrcHubo::RIGHT_FOOT).constraint()->getDofs();
         rf_config = drchubo->getConfig(rf_joints);
 
         addRobot(*drchubo);
         addRootFrame(Frame::World());
         
-        drchubo->joint(DOF_POS_Z).value( drchubo->joint(DOF_POS_Z).value()-0.2 );
+        drchubo->dof(DOF_POS_Z).value( drchubo->dof(DOF_POS_Z).value()-0.2 );
 
-        drchubo->joint("LEP").value(-90*DEG);
-        drchubo->joint("LWP").value(-90*DEG);
+        drchubo->dof("LEP").value(-90*DEG);
+        drchubo->dof("LWP").value(-90*DEG);
 
 //        drchubo->manip(DrcHubo::LEFT_HAND).mode = Manipulator::LINKAGE;
         lh_baseTf = drchubo->manip(DrcHubo::LEFT_HAND).respectToWorld();
         lh_config = drchubo->getConfig(drchubo->manip(DrcHubo::LEFT_HAND)
-                                       .constraint()->getJoints());
+                                       .constraint()->getDofs());
         drchubo->manip(DrcHubo::LEFT_HAND).constraint()->target = lh_baseTf;
         
         std::vector<Eigen::Vector2d> poly = drchubo->getSupportPolygon();

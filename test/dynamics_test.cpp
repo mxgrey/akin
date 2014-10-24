@@ -29,11 +29,11 @@ public:
 
     void simulate_step()
     {
-        ex.reset(drchubo->joint(DOF_POS_X));
-        Joint* joint;
+//        ex.reset(drchubo->dof(DOF_POS_X));
+//        Joint* joint;
 
-        while( (joint = ex.nonconst_nextJoint()) )
-            joint->velocity( joint->acceleration()*dt );
+//        while( (joint = ex.nonconst_nextJoint()) )
+//            joint->velocity( joint->acceleration()*dt );
     }
 
     virtual void customUpdate()

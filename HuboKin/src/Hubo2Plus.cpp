@@ -24,8 +24,8 @@ Hubo2Plus::Hubo2Plus(const std::string &urdf_string, Frame &referenceFrame) :
 
 void Hubo2Plus::_setup_manipulators()
 {
-    joint("LKP").min(0);
-    joint("RKP").min(0);
+    dof("LKP").min(0);
+    dof("RKP").min(0);
     
     addManipulator(joint("LWR").childLink(), "leftHandManip",
                    link("leftPalm").respectToRef());
@@ -36,44 +36,55 @@ void Hubo2Plus::_setup_manipulators()
     addManipulator(joint("RAR").childLink(), "rightFootManip",
                    link("rightFoot").respectToRef());
 
-    joint(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
+    dof(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
 
+
+    // TODO: Move these to the DrcHubo clas, since Hubo2Plus has 6 DOF arms!
     // Left Hand Constraints
+    std::vector<size_t> ids = Robot::Explorer::getDofIds(joint("LSP"),joint("LWR"));
+    for(size_t i=0; i<ids.size(); ++i)
+        std::cout << dof(ids[i]).name() << std::endl;
+
+    std::cout << "\n";
+    std::vector<size_t> joints = Robot::Explorer::getIdPath(joint("LSP"),joint("LWR"));
+    for(size_t i=0; i<joints.size(); ++i)
+        std::cout << joint(joints[i]).name() << std::endl;
+
     manip(LEFT_HAND).setConstraint(Manipulator::LINKAGE,
             new ManipConstraint<7>(manip(LEFT_HAND),
-                        Robot::Explorer::getIdPath(joint("LSP"),joint("LWR"))));
+                        Robot::Explorer::getDofIds(joint("LSP"),joint("LWR"))));
 
     // Right Hand Constraints
     manip(RIGHT_HAND).setConstraint(Manipulator::LINKAGE,
             new ManipConstraint<7>(manip(RIGHT_HAND),
-                        Robot::Explorer::getIdPath(joint("RSP"),joint("RWR"))));
+                        Robot::Explorer::getDofIds(joint("RSP"),joint("RWR"))));
 
     // Left Foot Constraints
     manip(LEFT_FOOT).setConstraint(Manipulator::LINKAGE,
             new ManipConstraint<6>(manip(LEFT_FOOT),
-                        Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
+                        Robot::Explorer::getDofIds(joint("LHY"),joint("LAR"))));
 
     manip(LEFT_FOOT).setConstraint(Manipulator::ANALYTICAL, 
             new HuboLegIK<6>(manip(LEFT_FOOT),
-                        Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
+                        Robot::Explorer::getDofIds(joint("LHY"),joint("LAR"))));
     
     manip(LEFT_FOOT).setConstraint(Manipulator::SUPPORT, 
             new HuboLegIK<6>(manip(LEFT_FOOT),
-                        Robot::Explorer::getIdPath(joint("LHY"),joint("LAR"))));
+                        Robot::Explorer::getDofIds(joint("LHY"),joint("LAR"))));
     
 
     // Right Foot Constraints
     manip(RIGHT_FOOT).setConstraint(Manipulator::LINKAGE,
             new ManipConstraint<6>(manip(RIGHT_FOOT),
-                        Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
+                        Robot::Explorer::getDofIds(joint("RHY"),joint("RAR"))));
 
     manip(RIGHT_FOOT).setConstraint(Manipulator::ANALYTICAL, 
             new HuboLegIK<6>(manip(RIGHT_FOOT),
-                        Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
+                        Robot::Explorer::getDofIds(joint("RHY"),joint("RAR"))));
     
     manip(RIGHT_FOOT).setConstraint(Manipulator::SUPPORT, 
             new HuboLegIK<6>(manip(RIGHT_FOOT),
-                        Robot::Explorer::getIdPath(joint("RHY"),joint("RAR"))));
+                        Robot::Explorer::getDofIds(joint("RHY"),joint("RAR"))));
     
     for(size_t i=0; i<2; ++i)
     {

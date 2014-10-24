@@ -32,7 +32,7 @@ public:
     {
         solver->setMandatoryConstraint(new_manip.constraint(mode));
         manip = &new_manip;
-        config = getRobot(0).getConfig(manip->constraint(mode)->getJoints());
+        config = getRobot(0).getConfig(manip->constraint(mode)->getDofs());
     }
 
     size_t addRobot(Robot &new_robot)
@@ -55,7 +55,7 @@ public:
         time += 0.01;
     
         Robot& robot = getRobot(0);
-        robot.joint("NK2").value( 45*M_PI/180 * sin(time) );
+        robot.dof("NK2").value( 45*M_PI/180 * sin(time) );
 
         if( manip != NULL )
         {
@@ -104,9 +104,9 @@ Robot& build_manual_robot()
     cout << "Size of links: " << robot.numLinks() << endl;
     
     int newID = robot.createJointLinkPair(0, "first_link",
-                                          ProtectedJointProperties("first_joint",
-                                          Transform(Translation(1,0,0), Rotation()),
-                                          Axis(1,0,0), Joint::REVOLUTE, -M_PI, M_PI));
+                                          ProtectedJointProperties("first_joint", Joint::REVOLUTE,
+                                          Transform(Translation(1,0,0), Rotation()), Axis(1,0,0)),
+                                          DofProperties(-M_PI,M_PI));
     
     cout << "created first pair" << endl;
     
@@ -120,12 +120,12 @@ Robot& build_manual_robot()
     }
     
     newID = robot.createJointLinkPair(newID, "second_link",
-                                      ProtectedJointProperties("second_joint",
-                                      Transform(Translation(0,0,1), Rotation()),
-                                      Axis(0,0,1), Joint::PRISMATIC, -10, 10));
+                                      ProtectedJointProperties("second_joint", Joint::PRISMATIC,
+                                      Transform(Translation(0,0,1), Rotation()), Axis(0,0,1)),
+                                      DofProperties(-10,10));
     
-    robot.joint(0).value(180*M_PI/180);
-    robot.joint(1).value(2);
+    robot.joint(0).dof(0).value(180*M_PI/180);
+    robot.joint(0).dof(0).value(2);
     
     cout << robot.link(2) << endl;
     
@@ -155,7 +155,7 @@ void display_robot(Robot& displaying_robot)
     
     Robot& r = displaying_robot;
 
-    r.joint(DOF_POS_Z).value(-r.link("leftFoot").respectToWorld().translation()[2]);
+    r.dof(DOF_POS_Z).value(-r.link("leftFoot").respectToWorld().translation()[2]);
 
     
     int m = r.addManipulator(r.joint("LWR").childLink(), "leftHandManip", 
@@ -172,7 +172,7 @@ void display_robot(Robot& displaying_robot)
 //    ManipConstraintX* mptr = new ManipConstraintX(7, r.manip(m), joints);
 //    delete mptr;
 
-    r.joint("LEP").value(-90*DEG);
+    r.joint("LEP").dof(0).value(-90*DEG);
     w.respectToRef(r.manip(m).respectToWorld());
     r.manip(m).constraint(mode)->target.changeRefFrame(w);
     r.manip(m).constraint(mode)->target = r.manip(m).withRespectTo(w);
@@ -185,7 +185,7 @@ void display_robot(Robot& displaying_robot)
 
     akinNode->setManipulator(r.manip(m));
 
-    std::vector<size_t> joints = r.manip(m).constraint(mode)->getJoints();
+    std::vector<size_t> joints = r.manip(m).constraint(mode)->getDofs();
     Eigen::VectorXd config = r.getConfig(joints);
     RobotSolverX solver(r);
     solver.setMandatoryConstraint(r.manip(m).constraint(mode));

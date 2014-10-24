@@ -31,10 +31,10 @@ void DrcHubo::_setup_pegs()
     // Left Peg Constraints
     manip(LEFT_PEG).setConstraint(Manipulator::LINKAGE,
                 new ManipConstraint<6>(manip(LEFT_PEG),
-                            Robot::Explorer::getIdPath(joint("LSP"),joint("LWP"))));
+                            Robot::Explorer::getDofIds(joint("LSP"),joint("LWP"))));
 
     // Right Peg Constraints
     manip(RIGHT_PEG).setConstraint(Manipulator::LINKAGE,
                 new ManipConstraint<6>(manip(RIGHT_PEG),
-                            Robot::Explorer::getIdPath(joint("RSP"),joint("RWP"))));
+                            Robot::Explorer::getDofIds(joint("RSP"),joint("RWP"))));
 }

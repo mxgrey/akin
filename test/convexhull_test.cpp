@@ -40,14 +40,14 @@ int main(int , char* [])
     std::cout << "\nCenter: " << hubo.getSupportCenter().transpose() << std::endl;
     
     
-    hubo.joint(DOF_POS_X).value(1);
+    hubo.dof(DOF_POS_X).value(1);
     std::cout << "\nMoved forward" << std::endl;
     
     const std::vector<Eigen::Vector2d>& newHull = hubo.getSupportPolygon();
     for(size_t i=0; i<newHull.size(); ++i)
         std::cout << newHull[i].transpose() << std::endl;
     
-    hubo.joint(DOF_POS_Y).value(1);
+    hubo.dof(DOF_POS_Y).value(1);
     std::cout << "\nMoved left" << std::endl;
     for(size_t i=0; i<hubo.getSupportPolygon().size(); ++i)
         std::cout << hubo.getSupportPolygon()[i].transpose() << std::endl;

@@ -88,7 +88,7 @@ public:
         _solutions.clear(); _valid.clear();
         getSolutions(lastConfig, _solutions, _valid);
         size_t selection = selectBestSolution(best, lastConfig, _solutions, _valid);
-        if(selection == DOF_INVALID)
+        if(selection == INVALID_INDEX)
             return Validity::Stuck();
         else if(_valid[selection])
             return Validity::Valid();
@@ -119,7 +119,7 @@ public:
                 _validChoices.push_back(i);
 
         bool valid_exists = _validChoices.size() > 0;
-        size_t result = DOF_INVALID; double best_cost = INFINITY;
+        size_t result = INVALID_INDEX; double best_cost = INFINITY;
         double cost=0;
         if(valid_exists)
         {
@@ -147,7 +147,7 @@ public:
             }
         }
 
-        if(result != DOF_INVALID)
+        if(result != INVALID_INDEX)
             best = solutions[result];
         return result;
     }
