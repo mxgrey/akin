@@ -323,6 +323,12 @@ void Joint::_computeRefTransform() const
     {
         respectToRef = respectToRef * Transform(dof(0).value()*_axis, Rotation());
     }
+    else if(FLOATING == _type)
+    {
+        respectToRef = respectToRef * Transform(
+                    Translation(dof(0).value(),dof(1).value(),dof(2).value()),
+                    Rotation(FreeVector(dof(3).value(),dof(4).value(),dof(5).value())));
+    }
 
     // Handle if the kinematic direction is reversed
     if(_reversed)

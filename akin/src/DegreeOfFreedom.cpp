@@ -265,26 +265,18 @@ bool DegreeOfFreedom::withinLimits(double someValue) const
 
 void DegreeOfFreedom::_computeTransformedJointAxis(Vec3 &z_i, const Frame &refFrame) const
 {
-    // TODO: Does this accomplish anything? Shouldn't the joint axis be invariant to
-    // the rotation of its frame?
 //    z_i = _parent->_reversed?
-//                Vec3(-_parent->childLink().respectToRef().rotation()*_parent*_axis) :
-//                Vec3( _parent->childLink().respectToRef().rotation()*_parent*_axis);
-
-//    if(refFrame.isWorld())
-//        z_i = _parent->childLink().respectToWorld().rotation()*z_i;
-//    else
-//        z_i = refFrame.respectToWorld().rotation().transpose()*
-//              _parent->childLink().respectToWorld().rotation()*z_i;
-
-    if(_parent->_reversed)
-        z_i = -z_i;
+//                Vec3(-_parent->childLink().respectToRef().rotation()*_parent->_axis) :
+//                Vec3( _parent->childLink().respectToRef().rotation()*_parent->_axis);
+    z_i = _parent->_reversed?
+                Vec3(-_parent->_baseTransform.rotation()*_parent->_axis) :
+                Vec3( _parent->_baseTransform.rotation()*_parent->_axis);
 
     if(refFrame.isWorld())
-        z_i = _parent->upstreamLink().respectToWorld().rotation()*z_i;
+        z_i = _parent->childLink().respectToWorld().rotation()*z_i;
     else
         z_i = refFrame.respectToWorld().rotation().transpose()*
-              _parent->upstreamLink().respectToWorld().rotation()*z_i;
+              _parent->childLink().respectToWorld().rotation()*z_i;
 }
 
 Vec3 DegreeOfFreedom::_computePosJacobian(const Vec3& z_i, const KinTranslation& point,
