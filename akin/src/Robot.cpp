@@ -372,9 +372,6 @@ bool Robot::solve()
 
     _taskConfig = getConfig(_task->getDofs());
     bool result = _solver->solve(_taskConfig);
-//    std::cout << "\nGradient:" << _taskConfig.transpose() << "\n\n" << std::endl;
-
-
 
     setConfig(_task->getDofs(), _taskConfig);
 

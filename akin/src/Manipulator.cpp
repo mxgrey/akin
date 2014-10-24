@@ -148,7 +148,6 @@ void Manipulator::setConstraint(Mode m, ManipConstraintBase *newConstraint, bool
         delete _constraints[m];
     _constraints[m] = newConstraint;
     _ownConstraint[m] = giveOwnership;
-    std::cout << "Setting Mandatory for mode " << m << std::endl;
     _solvers[m]->setMandatoryConstraint(_constraints[m]);
 }
 

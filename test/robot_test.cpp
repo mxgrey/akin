@@ -32,10 +32,6 @@ public:
     {
         solver->setMandatoryConstraint(new_manip.constraint(mode));
         manip = &new_manip;
-        std::cout << "config of " << mode << std::endl;
-        std::vector<size_t> dofs = manip->constraint(mode)->getDofs();
-        for(size_t i=0; i<dofs.size(); ++i)
-            std::cout << dofs[i] << ": " << getRobot(0).dof(dofs[i]).name() << std::endl;
         config = getRobot(0).getConfig(manip->constraint(mode)->getDofs());
     }
 
@@ -66,8 +62,7 @@ public:
             tf = manip->constraint(mode)->target.respectToRef();
             tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
             tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
-            std::cout << mode << std::endl;
-            manip->ik(config, tf, manip->constraint(mode)->target.refFrame());
+            manip->ik(mode, config, tf, manip->constraint(mode)->target.refFrame());
         }
 
 //        if(solver != NULL && manip != NULL)
