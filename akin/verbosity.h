@@ -206,6 +206,7 @@ public:
     {
         if(buffer.size() > 0)
             *_outputstream << buffer << std::endl;
+        _outputstream->flush();
         buffer.clear();
         _streamtype = LOG; // TODO: Consider making this SILENT
         return *this;
@@ -221,8 +222,8 @@ public:
     {
         if(!condition)
         {
-            brief() << brief_explanation;
-            desc() << desc_explanation;
+            log() << brief_explanation;
+            brief() << desc_explanation;
             end();
 
             if( ASSERT_NEVER < importance && importance <= assertiveness)

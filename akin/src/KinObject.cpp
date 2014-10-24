@@ -62,7 +62,8 @@ double akin::wrapToPi(double angle)
 KinObject::KinObject(Frame& referenceFrame,
                      const std::string& myName,
                      verbosity::verbosity_level_t report_level,
-                     const std::string& myType, bool thisIsTheWorld)
+                     const std::string& myType, bool thisIsTheWorld) :
+    _isWorld(false)
 {
     if(report_level == verbosity::INHERIT)
         verb.level = referenceFrame.verb.level;
@@ -87,7 +88,8 @@ KinObject::KinObject(Frame& referenceFrame,
     _referenceFrame = &referenceFrame;
 }
 
-KinObject::KinObject(const KinObject &other)
+KinObject::KinObject(const KinObject &other) :
+    _isWorld(false)
 {
     verb.level = other.verb.level;
     verb.debug() << "Making a copy of object '" << other.name() << "' which is a '" << other.type() << "'"; verb.end();
@@ -141,8 +143,8 @@ bool KinObject::changeRefFrame(Frame& newRefFrame)
     if(_referenceFrame == &newRefFrame)
         return true;
     
-    verb.desc() << "Changing the reference frame of '" << name() << "'' from '"
-                << refFrame().name() << "'' to '" << newRefFrame.name() << "'";
+    verb.desc() << "Changing the reference frame of '" << name() << "' from '"
+                << refFrame().name() << "' to '" << newRefFrame.name() << "'";
     verb.end();
 
     refFrame()._unregisterObject(this);
@@ -152,6 +154,9 @@ bool KinObject::changeRefFrame(Frame& newRefFrame)
     
     return true;
 }
+
+bool KinObject::isFrame() const { return _isFrame; }
+bool KinObject::isWorld() const { return _isWorld; }
 
 void KinObject::_registerObject(KinObject *child)
 {
@@ -164,7 +169,10 @@ void KinObject::_registerObject(KinObject *child)
 }
 
 void KinObject::_unregisterObject(KinObject *child)
-{
+{   
+    if(child->isWorld())
+        return;
+
     verb.debug() << "Removing '" << child->name() << "' as an object of the Frame '" << name() << "'";
     verb.end();
 
@@ -178,7 +186,7 @@ void KinObject::_unregisterObject(KinObject *child)
         }
     }
 
-    if(childIndex == -1)
+    if(childIndex == -1 && verb.level > verbosity::LOG)
     {
         verb.brief() << "Trying to remove '" << child->name() << "' from the parentage of '"
                      << name() << "', but they are not related!";

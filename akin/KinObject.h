@@ -425,7 +425,20 @@ public:
       */
     const GeometryArray& grabCollidersAndReset();
 
-    inline bool isFrame() const { return _isFrame; }
+    bool isFrame() const;
+
+    /*!
+      * \fn isWorld()
+      * \brief Returns true if the frame is the World Frame
+      *
+      * This can be useful for terminating a search through a kinematic tree.
+      * Every search is guaranteed to terminate at the World Frame if it is
+      * strictly moving toward the parents.
+      *
+      * This can also be useful for validity checks, because the World Frame
+      * is returned whenever an invalid frame is requested.
+      */
+    bool isWorld() const;
     
 protected:
     
@@ -462,6 +475,8 @@ protected:
     mutable bool _needsPosUpdate;
 
 private:
+
+    bool _isWorld;
 
 };
 

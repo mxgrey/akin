@@ -13,14 +13,18 @@ SolverX::SolverX() :
     perturb_seed(true),
     random_resolution(10000),
     _mandatory(NULL),
-    _optimal(NULL)
+    _optimal(NULL),
+    _expectedConfigSize(0)
 {
     srand(time(NULL));
 }
 
-bool SolverX::setMandatoryConstraint(ConstraintBase *constraint)
+bool SolverX::setMandatoryConstraint(ConstraintBase *constraint, size_t config_size)
 {
     _mandatory = constraint;
+    _expectedConfigSize = config_size;
+    _min_limits.resize(config_size);
+    _max_limits.resize(config_size);
     return true;
 }
 
@@ -42,11 +46,11 @@ ConstraintBase* SolverX::getOptimalConstraint()
 
 bool SolverX::checkLimits(const Eigen::VectorXd &config) const
 {
-    if(config.size() != min_limits.size() || config.size() != max_limits.size())
+    if(config.size() != (int)_expectedConfigSize)
         return false;
     
     for(int i=0; i<config.size(); ++i)
-        if( config[i] < min_limits[i] || max_limits[i] < config[i] )
+        if( config[i] < _min_limits[i] || _max_limits[i] < config[i] )
             return false;
     
     return true;
@@ -56,10 +60,10 @@ void SolverX::_enforceLimits(Eigen::VectorXd &config) const
 {
     for(int i=0; i<config.size(); ++i)
     {
-        if(config[i] < min_limits[i])
-            config[i] = min_limits[i];
-        else if(max_limits[i] < config[i])
-            config[i] = max_limits[i];
+        if(config[i] < _min_limits[i])
+            config[i] = _min_limits[i];
+        else if(_max_limits[i] < config[i])
+            config[i] = _max_limits[i];
     }
 }
 
@@ -86,19 +90,19 @@ bool SolverX::checkValidity(const Eigen::VectorXd &config) const
 
 bool SolverX::randomizeConfig(Eigen::VectorXd &config) const
 {
-    if(config.size() != min_limits.size() || config.size() != max_limits.size())
+    if(config.size() != (int)_expectedConfigSize)
         return false;
     
     double original = 0;
     for(int i=0; i<config.size(); ++i)
     {
         original = config[i];
-        if(std::isinf(max_limits[i]) || std::isinf(min_limits[i]))
+        if(std::isinf(_max_limits[i]) || std::isinf(_min_limits[i]))
             config[i] = (2*((double)(rand()%random_resolution)/(double)(random_resolution-1))-1)
                         * max_perturbation;
         else
             config[i] = ((double)(rand()%random_resolution)/(double)(random_resolution-1))
-                        * (max_limits[i] - min_limits[i]) + min_limits[i];
+                        * (_max_limits[i] - _min_limits[i]) + _min_limits[i];
         
         if(fabs(config[i]-original) > max_perturbation)
             config[i] = config[i]-original > 0? 
@@ -118,14 +122,38 @@ bool SolverX::optimize(Eigen::VectorXd &config) const
     return _satisfy(config, _optimal, 1);
 }
 
+size_t SolverX::expectedConfigSize() const { return _expectedConfigSize; }
+
+const Eigen::VectorXd& SolverX::min_limits() const { return _min_limits; }
+
+bool SolverX::min_limits(const Eigen::VectorXd &newLimits)
+{
+    if(newLimits.size()!=(int)_expectedConfigSize)
+        return false;
+
+    _min_limits = newLimits;
+    return true;
+}
+
+const Eigen::VectorXd& SolverX::max_limits() const { return _max_limits; }
+
+bool SolverX::max_limits(const Eigen::VectorXd &newLimits)
+{
+    if(newLimits.size()!=(int)_expectedConfigSize)
+        return false;
+
+    _max_limits = newLimits;
+    return true;
+}
+
 bool SolverX::_satisfy(Eigen::VectorXd& config, ConstraintBase* constraint, size_t max_attempts_) const
 {
-    if(config.size() != min_limits.size() || config.size() != max_limits.size())
+    if(config.size() != _min_limits.size() || config.size() != _max_limits.size())
     {
         std::cout << "Configuration-Space sizes do not match:\n" 
                   << " -- Input Dimensions:" << config.size()
-                  << " | Min Limit Dimensions:" << min_limits.size()
-                  << " | Max Limit Dimensions:" << max_limits.size() << std::endl;
+                  << " | Min Limit Dimensions:" << _min_limits.size()
+                  << " | Max Limit Dimensions:" << _max_limits.size() << std::endl;
         return false;
     }
     
@@ -205,6 +233,7 @@ bool RobotSolverX::setMandatoryConstraint(RobotConstraintBase *constraint)
     
     _mandatory = constraint;
     _dofs = constraint->getDofs();
+    _expectedConfigSize = _dofs.size();
 
     resetLimits();
     return true;
@@ -229,13 +258,13 @@ bool RobotSolverX::setOptimalConstraint(RobotConstraintBase *constraint)
 
 void RobotSolverX::resetLimits()
 {
-    min_limits.resize(_dofs.size());
-    max_limits.resize(_dofs.size());
+    _min_limits.resize(_dofs.size());
+    _max_limits.resize(_dofs.size());
     
     for(size_t i=0; i<_dofs.size(); ++i)
     {
-        min_limits[i] = _robot->dof(_dofs[i]).min();
-        max_limits[i] = _robot->dof(_dofs[i]).max();
+        _min_limits[i] = _robot->dof(_dofs[i]).min();
+        _max_limits[i] = _robot->dof(_dofs[i]).max();
     }
 }
 

@@ -14,7 +14,7 @@ public:
     SolverX();
     inline virtual ~SolverX() { }
     
-    virtual bool setMandatoryConstraint(ConstraintBase* constraint);
+    virtual bool setMandatoryConstraint(ConstraintBase* constraint, size_t config_size);
     ConstraintBase* getMandatoryConstraint();
     virtual bool setOptimalConstraint(ConstraintBase* constraint);
     ConstraintBase* getOptimalConstraint();
@@ -25,9 +25,14 @@ public:
     
     bool solve(Eigen::VectorXd& config) const;
     bool optimize(Eigen::VectorXd& config) const;
+
+    size_t expectedConfigSize() const;
     
-    Eigen::VectorXd min_limits;
-    Eigen::VectorXd max_limits;
+    const Eigen::VectorXd& min_limits() const;
+    bool min_limits(const Eigen::VectorXd& newLimits);
+    const Eigen::VectorXd& max_limits() const;
+    bool max_limits(const Eigen::VectorXd& newLimits);
+
     double step_size;
     size_t max_steps;
     size_t max_attempts;
@@ -43,6 +48,9 @@ protected:
     ConstraintBase* _mandatory;
     ConstraintBase* _optimal;
     
+    Eigen::VectorXd _min_limits;
+    Eigen::VectorXd _max_limits;
+    size_t _expectedConfigSize;
 };
 
 

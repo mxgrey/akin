@@ -62,7 +62,7 @@ public:
             tf = manip->constraint(mode)->target.respectToRef();
             tf.pretranslate( Vec3(0.5,0.5,0) * 0.2*sin(time)*0.01 );
             tf.rotate(Rotation(-90*DEG*sin(time)/2.0*0.01, Axis(1,0,0)));
-            manip->ik(mode, config, tf, manip->constraint(mode)->target.refFrame());
+            manip->ik(config, tf, manip->constraint(mode)->target.refFrame());
         }
 
 //        if(solver != NULL && manip != NULL)
@@ -248,7 +248,6 @@ void display_robot(Robot& displaying_robot)
 int main(int , char* [])
 {
 //    Robot& built_robot = build_manual_robot();
-    
     Robot& built_robot = build_urdf_robot();
 
     new Frame(akin::Transform(Translation(0,0,0),

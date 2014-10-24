@@ -131,19 +131,6 @@ public:
     virtual bool changeRefFrame(Frame& newRefFrame);
     
     /*!
-      * \fn isWorld()
-      * \brief Returns true if the frame is the World Frame
-      *
-      * This can be useful for terminating a search through a kinematic tree.
-      * Every search is guaranteed to terminate at the World Frame if it is
-      * strictly moving toward the parents.
-      *
-      * This can also be useful for validity checks, because the World Frame
-      * is returned whenever an invalid frame is requested.
-      */
-    bool isWorld() const;
-    
-    /*!
      * \fn isLink()
      * \brief Return true if the frame is also a robot's link
      * \return 
@@ -306,7 +293,6 @@ private:
 
     explicit Frame(bool);
 
-    bool _isWorld;
 };
 
 Translation computeLocation(const Translation& ofPoint,

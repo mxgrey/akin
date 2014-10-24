@@ -130,8 +130,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
     _dummyDof->_id = INVALID_INDEX;
     _dummyDof->_isDummy = true;
     
-    _dummyManip = new Manipulator(this, *_dummyLink, "dummy");
-    _dummyManip->_isDummy = true;
+    _dummyManip = new Manipulator(this, *_dummyLink, "dummy", true);
 
     _createRootLink("default_root", referenceFrame);
 

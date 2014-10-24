@@ -50,8 +50,7 @@ using namespace std;
 Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _gravity(referenceFrame.gravity()),
-    _isLink(false),
-    _isWorld(false)
+    _isLink(false)
 {
     _isFrame = true;
     referenceFrame._gainChildFrame(this);
@@ -63,8 +62,7 @@ Frame::Frame(const Transform &relativeTf, Frame &referenceFrame, string frameNam
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _respectToRef(relativeTf),
     _gravity(referenceFrame.gravity()),
-    _isLink(false),
-    _isWorld(false)
+    _isLink(false)
 {
     _isFrame = true;
     referenceFrame._gainChildFrame(this);
@@ -97,10 +95,10 @@ Frame::~Frame()
 Frame::Frame(bool) :
     KinObject(*this, "World", verbosity::LOG, "World Frame", true),
     _gravity(Eigen::Vector3d(0,0,-9.8),*this),
-    _isLink(false),
-    _isWorld(true)
+    _isLink(false)
 {
     _isFrame = true;
+    _isWorld = true;
     _needsPosUpdate = false;
     _needsVelUpdate = false;
     _needsAccUpdate = false;
@@ -129,6 +127,8 @@ void Frame::_loseChildFrame(Frame *child)
 {
 //    if(_isWorld)
 //        return;
+    if(child->isWorld())
+        return;
 
     verb.debug() << "Removing '" << child->name() << "' from the Frame '" << name() << "'";
     verb.end();
@@ -161,27 +161,13 @@ void Frame::_loseChildFrame(Frame *child)
 
 Frame& Frame::childFrame(size_t childFrameNum)
 {
-//    if(_isWorld)
-//    {
-//        verb.brief() << "The World Frame does not keep track of its children!";
-//        verb.desc() << " Returning the World Frame instead.";
-//        verb.end();
-
-//        return World();
-//    }
-
     if(verb.Assert(childFrameNum < _childFrames.size(),
                    verbosity::ASSERT_CASUAL,
-                   "Requested non-existent child frame index in Frame '"+name()+"'"))
+                   "Requested non-existent child frame index ("+to_string(childFrameNum)
+                   +") in Frame '"+name()+"'"))
         return *_childFrames[childFrameNum];
-    else
-    {
-        verb.brief() << "Requested a child of Frame '" << name()
-                     << "' which does not exist.";
-        verb.desc() << " Returning the World Frame instead.";
-        verb.end();
-        return Frame::World();
-    }
+
+    return Frame::World();
 }
 size_t Frame::numChildFrames() const { return _childFrames.size(); }
 
@@ -210,8 +196,6 @@ bool Frame::changeRefFrame(Frame &newRefFrame)
     
     return true;
 }
-
-bool Frame::isWorld() const { return _isWorld; }
 
 bool Frame::isLink() const { return _isLink; }
 

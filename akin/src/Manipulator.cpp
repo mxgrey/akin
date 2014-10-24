@@ -23,11 +23,13 @@ std::string Manipulator::mode_to_string(Mode m)
     return "IMPOSSIBLE";
 }
 
-Manipulator::Manipulator(Robot *robot, Frame &referenceFrame, const string &manipName) :
+Manipulator::Manipulator(Robot *robot, Frame &referenceFrame,
+                         const string &manipName, bool isDummy) :
     Frame(referenceFrame, manipName),
     mode(FREE),
     _point(*this, manipName+"_point"),
     _com(*this, manipName+"_com"),
+    _isDummy(isDummy),
     _myRobot(robot)
 {
     for(size_t i=0; i<NUM_MODES; ++i)
@@ -73,6 +75,19 @@ bool Manipulator::ik(Mode m, Eigen::VectorXd& config, const akin::Transform& tar
 {
     _myRobot->verb.Assert( 0 <= m && m < NUM_MODES, verbosity::ASSERT_CASUAL,
                            "Selected invalid IK mode ("+std::to_string((int)m)+")!");
+
+    if(config.size() != (int)_solvers[m]->expectedConfigSize())
+    {
+        verb.Assert(false, verbosity::ASSERT_CASUAL,
+                    "You have passed in a configuration of size "+to_string(config.size())
+                    +" for the IK of Manipulator '"+name()+"' in mode '"+mode_to_string(m)
+                    +"', but it expects a configuration of size "
+                    +to_string(_solvers[m]->expectedConfigSize())+". ",
+                    "It will be resized to "+to_string(_solvers[m]->expectedConfigSize())+
+                    ", but the values of any new components will be arbitrary.");
+
+        config.resize(_solvers[m]->expectedConfigSize());
+    }
 
     _constraints[m]->target.changeRefFrame(relativeFrame);
     _constraints[m]->target = targetTf;
@@ -419,8 +434,16 @@ const double& Manipulator::mass() const
     return _mass;
 }
 
+bool Manipulator::isDummy() const { return _isDummy; }
+
 void Manipulator::_findParentLink()
 {
+    if(_isDummy)
+    {
+        _myLink = _myRobot->_dummyLink;
+        return;
+    }
+
     Frame* checkFrame = &refFrame();
     
     do

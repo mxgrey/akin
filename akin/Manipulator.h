@@ -91,7 +91,9 @@ public:
     
 protected:
     
-    Manipulator(Robot* robot, Frame& referenceFrame, const std::string& manipName);
+    Manipulator(Robot* robot, Frame& referenceFrame, const std::string& manipName,
+                bool isDummy=false);
+
     virtual ~Manipulator();
     
     bool _ownConstraint[NUM_MODES];
