@@ -1,9 +1,8 @@
 #ifndef AKIN_JOINT_H
 #define AKIN_JOINT_H
 
-#include "Frame.h"
 #include "DegreeOfFreedom.h"
-#include "Screw.h"
+#include "Body.h"
 
 namespace akin {
 
@@ -169,6 +168,8 @@ public:
      */
     const Transform& baseTransform() const;
 
+    void integrate(integration_method_t method, double dt);
+
     /*!
      * \fn id()
      * \brief Get this joint's index ID
@@ -253,6 +254,8 @@ protected:
           Link* mParentLink, Link* mChildLink,
           const ProtectedJointProperties& joint_properties,
           const DofProperties& dof_properties);
+
+    void _explicit_euler_integration(double dt);
 
     // TODO: Implement this for multi-dof joints
 //    Joint(Robot* mRobot, size_t jointID, const ProtectedJointProperties& joint_properties,

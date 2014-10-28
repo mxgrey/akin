@@ -118,6 +118,10 @@ const Eigen::VectorXd& InertiaBase::_ABA_qdd() const
     return _qdd;
 }
 
+void InertiaBase::integrate(double dt)
+{
+    integrate(integration_method, dt);
+}
 
 std::string akin::inertia_param_to_string(size_t param)
 {
@@ -382,6 +386,36 @@ const Acceleration& Body::relativeAngularAcceleration() const
         _computeABA_pass3();
 
     return _relativeAngularAcc;
+}
+
+void Body::integrate(integration_method_t method, double dt)
+{
+    switch(method)
+    {
+        case EXPLICIT_EULER: return _explicit_euler_integration(dt);
+        default:
+            verb.Assert(false, verbosity::ASSERT_CASUAL,
+                        "Calling integrate(~) method on a Body with an invalid method ("
+                        +to_string(method)+")");
+    }
+}
+
+void Body::_explicit_euler_integration(double dt)
+{
+    const Transform& tf0 = respectToRef();
+    Transform tf;
+
+    tf.translate(tf0.translation()+relativeLinearVelocity()*dt);
+    tf.rotate(Rotation(FreeVector(relativeAngularVelocity()*dt)));
+    tf.rotate(tf0.rotation());
+
+    const Acceleration& a = relativeLinearAcceleration();
+    const Acceleration& alpha = relativeAngularAcceleration();
+
+    relativeLinearVelocity(a*dt);
+    relativeAngularVelocity(alpha*dt);
+
+    respectToRef(tf);
 }
 
 void Body::_computeABA_pass2() const

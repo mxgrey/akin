@@ -1,7 +1,6 @@
 #ifndef AKIN_LINK_H
 #define AKIN_LINK_H
 
-#include "Body.h"
 #include "Joint.h"
 #include "Manipulator.h"
 
@@ -121,11 +120,15 @@ public:
     
     void setDynamicsMode(dynamics_mode_t mode);
 
+    void integrate(integration_method_t method, double dt);
+
     bool notifyDynUpdate();
 
 protected:
     
     Link(Robot* mRobot, Frame& referenceFrame, std::string linkName, size_t mID, bool root=false);
+
+    void _explicit_euler_integration(double dt);
 
     void _computeABA_pass2() const;
     void _computeABA_pass3() const;

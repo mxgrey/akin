@@ -7,6 +7,14 @@
 namespace akin {
 
 typedef enum {
+
+    EXPLICIT_EULER=0,
+
+    NUM_INTEGRATION_METHODS
+
+} integration_method_t;
+
+typedef enum {
     
     // TODO: Think carefully how to name these enums
     FORWARD=0,
@@ -68,6 +76,10 @@ public:
     virtual const Eigen::VectorXd& _ABA_u() const;
     virtual const Eigen::MatrixXd& _ABA_d() const;
     virtual const Eigen::VectorXd& _ABA_qdd() const;
+
+    integration_method_t integration_method;
+    void integrate(double dt);
+    virtual void integrate(integration_method_t method, double dt) = 0;
 
 protected:
 
@@ -183,8 +195,12 @@ public:
 
     virtual const Acceleration& relativeLinearAcceleration() const;
     virtual const Acceleration& relativeAngularAcceleration() const;
+
+    virtual void integrate(integration_method_t method, double dt);
     
 protected:
+
+    virtual void _explicit_euler_integration(double dt);
 
     virtual void _computeABA_pass2() const;
     virtual void _computeABA_pass3() const;

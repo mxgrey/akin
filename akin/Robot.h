@@ -107,17 +107,15 @@ public:
 
         const DegreeOfFreedom* currentDof() const;
         DegreeOfFreedom* nonconst_currentDof() const;
-        
+
         const Link* nextLink();
         Link* nonconst_nextLink();
-        
+
         const Joint* nextJoint();
         Joint* nonconst_nextJoint();
 
         const DegreeOfFreedom* nextDof();
         DegreeOfFreedom* nonconst_nextDof();
-        
-        bool stopAtRoot;
         
     protected:
 
@@ -294,6 +292,8 @@ public:
     void setDynamicsMode(dynamics_mode_t mode);
     dynamics_mode_t getDynamicsMode() const;
 
+    void integrate(integration_method_t method, double dt);
+
     bool notifyDynUpdate();
     bool needsDynUpdate() const;
 
@@ -312,6 +312,8 @@ protected:
 
     void _initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level);
     bool _createRootLink(const std::string& rootLinkName, akin::Frame& referenceFrame);
+
+    void _explicit_euler_integration(double dt);
     
     bool _enforceJointLimits;
 

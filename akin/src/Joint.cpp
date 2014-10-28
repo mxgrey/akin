@@ -626,6 +626,24 @@ void Joint::baseTransform(const Transform &newBaseTf)
 
 const Transform& Joint::baseTransform() const { return _baseTransform; }
 
+void Joint::integrate(integration_method_t method, double dt)
+{
+    switch(method)
+    {
+        case EXPLICIT_EULER: return _explicit_euler_integration(dt);
+        default:
+            verb.Assert(false, verbosity::ASSERT_CASUAL,
+                        "Trying to integrate Joint '"+name()+"' with invalid method ("
+                        +to_string(method)+")");
+    }
+}
+
+void Joint::_explicit_euler_integration(double dt)
+{
+    // TODO
+
+}
+
 size_t Joint::id() const { return _id; }
 
 const std::string& Joint::name() const { return _name; }

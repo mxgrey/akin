@@ -1039,6 +1039,28 @@ dynamics_mode_t Robot::getDynamicsMode() const
     return anchorLink().getDynamicsMode();
 }
 
+void Robot::integrate(integration_method_t method, double dt)
+{
+    switch(method)
+    {
+        case EXPLICIT_EULER: return _explicit_euler_integration(dt);
+        default:
+            verb.Assert(false, verbosity::ASSERT_CASUAL,
+                        "Requested invalid integration method ("+to_string(method)+")");
+    }
+}
+
+void Robot::_explicit_euler_integration(double dt)
+{
+    _crawler.reset(joint(BASE_INDEX));
+
+    Joint* J;
+    while( (J = _crawler.nonconst_nextJoint()) )
+    {
+
+    }
+}
+
 bool Robot::notifyDynUpdate()
 {
     return anchorLink().notifyDynUpdate();
@@ -1241,7 +1263,6 @@ void Robot::Explorer::_init()
     _recorder.reserve(100);
     _path.reserve(100);
     _temp.reserve(100);
-    stopAtRoot = false;
     _dof_counter = 0;
 }
 

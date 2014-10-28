@@ -361,6 +361,16 @@ void Link::setDynamicsMode(dynamics_mode_t mode)
     upstreamLink().setDynamicsMode(mode);
 }
 
+void Link::integrate(integration_method_t method, double dt)
+{
+    upstreamJoint().integrate(method, dt);
+}
+
+void Link::_explicit_euler_integration(double dt)
+{
+    upstreamJoint().integrate(EXPLICIT_EULER, dt);
+}
+
 bool Link::notifyDynUpdate()
 {
     if(!InertiaBase::notifyDynUpdate())
