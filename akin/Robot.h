@@ -305,15 +305,13 @@ public:
 
     const Matrix6Xd& _ABA_h() const;
     const Eigen::VectorXd& _ABA_u() const;
-    const Eigen::MatrixXd& _ABA_d() const;
+    const Eigen::MatrixXd& _ABA_D() const;
     const Eigen::VectorXd& _ABA_qdd() const;
 
 protected:
 
     void _initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_level_t report_level);
     bool _createRootLink(const std::string& rootLinkName, akin::Frame& referenceFrame);
-
-    void _explicit_euler_integration(double dt);
     
     bool _enforceJointLimits;
 

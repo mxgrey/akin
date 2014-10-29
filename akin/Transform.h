@@ -99,14 +99,21 @@ public:
         Screw result;
 
         result.block<3,1>(0,0) = this->translation() - other.translation();
-        const Eigen::Matrix3d& rot =
-                Eigen::AngleAxisd(this->rotation() * other.rotation().transpose()).matrix();
+//        const Eigen::Matrix3d& rot =
+//                Eigen::AngleAxisd(this->rotation() * other.rotation().transpose()).matrix();
 
-        result[3] =  atan2(rot(2,1), rot(2,2));
-        result[4] = -asin(rot(2,0));
-        result[5] =  atan2(rot(1,0), rot(0,0));
+//        result[3] =  atan2(rot(2,1), rot(2,2));
+//        result[4] = -asin(rot(2,0));
+//        result[5] =  atan2(rot(1,0), rot(0,0));
+        result.block<3,1>(3,0) = Rotation(this->rotation() * other.rotation().transpose())
+                .getEulerAngles();
 
         return result;
+    }
+
+    inline Eigen::Vector3d getEulerAngles() const
+    {
+        return Rotation(rotation()).getEulerAngles();
     }
 
     inline akin::Transform operator*(const akin::Transform& other) const

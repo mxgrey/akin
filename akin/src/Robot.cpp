@@ -692,7 +692,7 @@ const Vector6d& Robot::_ABA_arel() const { return anchorLink()._ABA_arel(); }
 
 const Matrix6Xd& Robot::_ABA_h() const { return anchorLink()._ABA_h(); }
 const Eigen::VectorXd& Robot::_ABA_u() const { return anchorLink()._ABA_u(); }
-const Eigen::MatrixXd& Robot::_ABA_d() const { return anchorLink()._ABA_d(); }
+const Eigen::MatrixXd& Robot::_ABA_D() const { return anchorLink()._ABA_D(); }
 const Eigen::VectorXd& Robot::_ABA_qdd() const { return anchorLink()._ABA_qdd(); }
 
 Joint& Robot::joint(size_t jointNum)
@@ -1041,24 +1041,12 @@ dynamics_mode_t Robot::getDynamicsMode() const
 
 void Robot::integrate(integration_method_t method, double dt)
 {
-    switch(method)
-    {
-        case EXPLICIT_EULER: return _explicit_euler_integration(dt);
-        default:
-            verb.Assert(false, verbosity::ASSERT_CASUAL,
-                        "Requested invalid integration method ("+to_string(method)+")");
-    }
-}
+    for(size_t i=0; i<numLinks(); ++i)
+        link(i).acceleration(); // Make sure all accelerations are up to date
 
-void Robot::_explicit_euler_integration(double dt)
-{
-    _crawler.reset(joint(BASE_INDEX));
-
-    Joint* J;
-    while( (J = _crawler.nonconst_nextJoint()) )
-    {
-
-    }
+    joint(BASE_INDEX)._integrate(method, dt);
+    for(size_t i=0; i<numJoints(); ++i)
+        joint(i)._integrate(method, dt);
 }
 
 bool Robot::notifyDynUpdate()

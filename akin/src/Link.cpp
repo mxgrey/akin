@@ -363,12 +363,12 @@ void Link::setDynamicsMode(dynamics_mode_t mode)
 
 void Link::integrate(integration_method_t method, double dt)
 {
-    upstreamJoint().integrate(method, dt);
+    robot().integrate(method, dt);
 }
 
 void Link::_explicit_euler_integration(double dt)
 {
-    upstreamJoint().integrate(EXPLICIT_EULER, dt);
+    robot().integrate(EXPLICIT_EULER,dt);
 }
 
 bool Link::notifyDynUpdate()
@@ -411,6 +411,7 @@ void Link::_computeABA_pass2() const
     _c.block<3,1>(0,0) = v.upper().cross(relativeAngularVelocity());
     _c.block<3,1>(0,0) = v.lower().cross(relativeAngularVelocity())
             + v.upper().cross(relativeLinearVelocity());
+    _c += parentJoint().getDofMatrixDerivative()*parentJoint().velocities();
 
     _pa.block<3,1>(0,0) = v.upper().cross(_Ia.block<3,3>(0,0)*v.upper())
             + mass*com.cross(v.upper().cross(v.lower()));
@@ -454,11 +455,6 @@ void Link::_computeABA_pass2() const
         }
     }
 
-    const Matrix6Xd& s = parentJoint().getDofMatrix();
-
-    _h = _Ia*s;
-    _d = s.transpose()*_h;
-
     Spatial F;
     const Eigen::Matrix3d& R = respectToWorld().rotation();
     const Eigen::Vector3d& g = R.transpose()*_gravity.respectToWorld();
@@ -466,25 +462,16 @@ void Link::_computeABA_pass2() const
     F.upper() = R.transpose()*_appliedMoments_wrtWorld + mass*com.cross(g);
     F.lower() = R.transpose()*_appliedForces_wrtWorld + mass*g;
 
-    if(isAnchor())
-    {
-        F[0] += _myRobot->dof(0).effort();
-        F[1] += _myRobot->dof(1).effort();
-        F[2] += _myRobot->dof(2).effort();
+    _pa -= F;
 
-        F[3] += _myRobot->dof(3).effort();
-        F[4] += _myRobot->dof(4).effort();
-        F[5] += _myRobot->dof(5).effort();
-    }
-    else
-    {
-        F += s*parentJoint().dof(0).effort();
-    }
+    const Matrix6Xd& s = parentJoint().getDofMatrix();
 
-    _u = s.transpose()*F - s.transpose()*_pa;
+    _h = _Ia*s;
+    _D = (s.transpose()*_h).inverse();
+    _u = parentJoint().efforts() - _h.transpose()*_c - s.transpose()*_pa;
 
-    _Ia = _Ia - _d.inverse()*_h*_h.transpose();
-    _pa = _pa + _Ia*_c + _d.inverse()*_h*_u;
+    _Ia = _Ia - _D.inverse()*_h*_h.transpose();
+    _pa = _pa + _Ia*_c + _D.inverse()*_h*_u;
 
     _needsAbiUpdate = false;
 }
@@ -498,6 +485,10 @@ void Link::_computeABA_pass3() const
     const Matrix6Xd& s = parentJoint().getDofMatrix();
     const Frame& frame = isAnchor()? _myRobot->refFrame() : (const Frame&)parentLink();
 
+    // TODO: Use attachment pointer to make this whole thing a lot smarter
+    // i.e. attach child links to their parents and leave the root link
+    // pointer blank. In fact, this should make it so that no special case
+    // is really needed for link (as opposed to bodies)
     Vector6d a_ref;
     a_ref.block<3,1>(0,0) = frame.respectToWorld().rotation().transpose()*
             frame.angularAcceleration();
@@ -506,26 +497,9 @@ void Link::_computeABA_pass3() const
             - frame.angularVelocity().cross(frame.linearVelocity()) );
 
     _a = X*a_ref + _ABA_c();
-    _qdd = _ABA_d().inverse()*(_ABA_u()-_ABA_h().transpose()*_a);
+    _qdd = _ABA_D().inverse()*(_ABA_u()-_ABA_h().transpose()*_a);
     _arel = s*_qdd;
     _a = _a + _arel;
-
-    if(isAnchor())
-    {
-        // ... Why don't these need const_cast?
-        _myRobot->dof(0).acceleration(_qdd[0]);
-        _myRobot->dof(1).acceleration(_qdd[1]);
-        _myRobot->dof(2).acceleration(_qdd[2]);
-
-        _myRobot->dof(3).acceleration(_qdd[3]);
-        _myRobot->dof(4).acceleration(_qdd[4]);
-        _myRobot->dof(5).acceleration(_qdd[5]);
-    }
-    else
-    {
-        // TODO: Think about this const_cast and decide if it's both necessary and appropriate
-        const_cast<DegreeOfFreedom&>(parentJoint().dof(0)).acceleration(_qdd[0]);
-    }
 
     _needsDynUpdate = false;
 }

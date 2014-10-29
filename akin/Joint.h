@@ -40,6 +40,11 @@ public:
     Transform _baseTransform;
     Vec3 _axis;
     Matrix6Xd _dofMatrix;
+    Matrix6Xd _dofMatrixDerivative;
+    mutable Eigen::VectorXd _values;
+    mutable Eigen::VectorXd _velocities;
+    mutable Eigen::VectorXd _accelerations;
+    mutable Eigen::VectorXd _efforts;
 
     PublicJointProperties::Type _type;
 
@@ -61,74 +66,14 @@ public:
     const DegreeOfFreedom& dof(size_t num) const;
     size_t numDofs() const;
 
-//    /*!
-//     * \fn value(double newJointValue)
-//     * \brief Set this joint's value
-//     * \param newJointValue
-//     */
-//    bool value(double newJointValue);
-
-//    /*!
-//     * \fn value()
-//     * \brief Get this joint's value
-//     * \return
-//     */
-//    double value() const;
-
-//    bool velocity(double newJointVelocity);
-//    double velocity() const;
-
-//    bool acceleration(double newJointAcceleration);
-//    double acceleration() const;
-    
-//    bool torque(double newTorque);
-//    double torque() const;
-    
-//    Screw reciprocalWrench() const;
-    
-//    Vec3 Jacobian_posOnly(const KinTranslation& point, const Frame& refFrame,
-//                      bool checkDependence=true) const;
-//    Vec3 Jacobian_rotOnly(const KinTranslation& point, const Frame& refFrame,
-//                      bool checkDependence=true) const;
-//    Screw Jacobian(const KinTranslation& point, const Frame& refFrame,
-//                   bool checkDependence=true) const;
-
-//    /*!
-//     * \fn min(double newMinValue)
-//     * \brief Set this joint's minimum value
-//     * \param newMinValue
-//     */
-//    bool min(double newMinValue);
-
-//    /*!
-//     * \fn min()
-//     * \brief Get this joint's minimum value
-//     * \return This joint's minimum value
-//     */
-//    double min() const;
-
-//    /*!
-//     * \fn max(double newMaxValue)
-//     * \brief Set this joint's maximum value
-//     * \param newMaxValue
-//     */
-//    bool max(double newMaxValue);
-
-//    /*!
-//     * \fn max()
-//     * \brief Get this joint's maximum value
-//     * \return This joint's maximum value
-//     */
-//    double max() const;
-
-//    void maxSpeed(double newMaxSpeed);
-//    double maxSpeed() const;
-
-//    void maxAcceleration(double newMaxAcceleration);
-//    double maxAcceleration() const;
-    
-//    bool withinLimits() const;
-//    bool withinLimits(double someValue) const;
+    const Eigen::VectorXd& values() const;
+    bool values(const Eigen::VectorXd& newValues);
+    const Eigen::VectorXd& velocities() const;
+    bool velocities(const Eigen::VectorXd& newVelocities);
+    const Eigen::VectorXd& accelerations() const;
+    bool accelerations(const Eigen::VectorXd& newAccelerations);
+    const Eigen::VectorXd& efforts() const;
+    bool efforts(const Eigen::VectorXd& newEfforts);
 
     /*!
      * \fn jointType()
@@ -136,7 +81,7 @@ public:
      * \return This joint's type
      */
     Type type() const;
-    void type(Type newType);
+    void type(Type newType, const DofProperties& properties = DofProperties());
 
     /*!
      * \fn jointAxis(Axis& jointAxis)
@@ -153,6 +98,7 @@ public:
     const Vec3& axis() const;
 
     const Matrix6Xd& getDofMatrix() const;
+    const Matrix6Xd& getDofMatrixDerivative() const;
 
     /*!
      * \fn baseTransform(const Transform& newBaseTf)
@@ -167,8 +113,6 @@ public:
      * \return
      */
     const Transform& baseTransform() const;
-
-    void integrate(integration_method_t method, double dt);
 
     /*!
      * \fn id()
@@ -255,6 +199,7 @@ protected:
           const ProtectedJointProperties& joint_properties,
           const DofProperties& dof_properties);
 
+    void _integrate(integration_method_t method, double dt);
     void _explicit_euler_integration(double dt);
 
     // TODO: Implement this for multi-dof joints

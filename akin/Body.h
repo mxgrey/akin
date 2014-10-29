@@ -74,7 +74,7 @@ public:
 
     virtual const Matrix6Xd& _ABA_h() const;
     virtual const Eigen::VectorXd& _ABA_u() const;
-    virtual const Eigen::MatrixXd& _ABA_d() const;
+    virtual const Eigen::MatrixXd& _ABA_D() const;
     virtual const Eigen::VectorXd& _ABA_qdd() const;
 
     integration_method_t integration_method;
@@ -102,7 +102,7 @@ protected:
     // Templates might be a possible solution
     mutable Matrix6Xd _h;               // 6 x DOF          pass2
     mutable Eigen::VectorXd _u;         // DOF x 1          pass2
-    mutable Eigen::MatrixXd _d;         // DOF x DOF        pass2
+    mutable Eigen::MatrixXd _D;         // DOF x DOF        pass2
     mutable Eigen::VectorXd _qdd;       // DOF x 1          pass3
 
 };

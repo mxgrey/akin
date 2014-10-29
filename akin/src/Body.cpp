@@ -102,12 +102,12 @@ const Eigen::VectorXd& InertiaBase::_ABA_u() const
     return _u;
 }
 
-const Eigen::MatrixXd& InertiaBase::_ABA_d() const
+const Eigen::MatrixXd& InertiaBase::_ABA_D() const
 {
     if(_needsAbiUpdate)
         _computeABA_pass2();
 
-    return _d;
+    return _D;
 }
 
 const Eigen::VectorXd& InertiaBase::_ABA_qdd() const
@@ -449,7 +449,7 @@ void Body::_computeABA_pass2() const
         _c.block<3,1>(3,0) = v.lower().cross(relativeAngularVelocity())
                 + v.upper().cross(relativeLinearVelocity());
         _h = _Ia;
-        _d = _h;
+        _D = _h;
         Vector6d F;
         F.block<3,1>(0,0) = _appliedMoments_wrtWorld;
         F.block<3,1>(3,0) = _sumForces_wrtWorld();
@@ -481,7 +481,7 @@ void Body::_computeABA_pass3() const
                     - refFrame().angularVelocity().cross(refFrame().linearVelocity()) );
 
         _a = X*a_ref + _ABA_c();
-        _arel = _ABA_d().inverse()*(_ABA_u() - _ABA_h().transpose()*_a);
+        _arel = _ABA_D().inverse()*(_ABA_u() - _ABA_h().transpose()*_a);
         _qdd = _arel;
         _a = _a + _arel;
     }

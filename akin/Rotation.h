@@ -50,6 +50,7 @@
 
 namespace akin {
 
+
 /*!
  * \class Rotation
  * \brief Raw representation of a rotation, derived from the Eigen C++ Quaterniond
@@ -106,11 +107,16 @@ public:
         
     }
 
-//    inline Rotation(const Eigen::RotationBase<Eigen::Quaternion<double>,3>::RotationMatrixType someMatrix) :
-//        Eigen::Quaterniond(someMatrix)
-//    {
+    inline Eigen::Vector3d getEulerAngles() const
+    {
+        Eigen::Vector3d v;
+        const Eigen::Matrix3d& rot = matrix();
+        v[0] =  atan2(rot(2,1), rot(2,2));
+        v[1] = -asin(rot(2,0));
+        v[2] =  atan2(rot(1,0), rot(0,0));
 
-//    }
+        return v;
+    }
 
     // This constructor allows you to construct MyVectorType from Eigen expressions
     template<typename OtherDerived>

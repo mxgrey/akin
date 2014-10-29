@@ -41,271 +41,105 @@ const DegreeOfFreedom& Joint::dof(size_t num) const
 
 size_t Joint::numDofs() const { return _dofs.size(); }
 
-//bool Joint::value(double newJointValue)
-//{
-//    bool inBounds = true;
-    
-//    if(newJointValue != newJointValue)
-//    {
-//        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set value for joint '"
-//                    +name()+"' to NaN!");
-//        return false;
-//    }
-    
-//    if(newJointValue < _minValue)
-//    {
-//        if(_myRobot->enforceJointLimits())
-//            newJointValue = _minValue;
-//        inBounds = false;
-//    }
-    
-//    if(newJointValue > _maxValue)
-//    {
-//        if(_myRobot->enforceJointLimits())
-//            newJointValue = _maxValue;
-//        inBounds = false;
-//    }
-    
-//    if(newJointValue == _value)
-//        return inBounds;
-    
-//    _value = newJointValue;
-    
-//    _computeRefTransform();
-    
-//    return inBounds;
-//}
+const Eigen::VectorXd& Joint::values() const
+{
+    for(size_t i=0; i<numDofs(); ++i)
+        _values[i] = dof(i).value();
 
-//double Joint::value() const { return _value; }
+    return _values;
+}
 
-//bool Joint::velocity(double newJointVelocity)
-//{
-//    bool inBounds = true;
+bool Joint::values(const Eigen::VectorXd &newValues)
+{
+    if(newValues.size() != (int)numDofs())
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
+                    "Error: Passing a VectorXd with "+to_string(newValues.size())
+                    +" components to values(~) function of Joint '"+name()
+                    +"' which has "+to_string(numDofs())+" Degrees of Freedom!");
+        return false;
+    }
 
-//    if(newJointVelocity != newJointVelocity)
-//    {
-//        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set velocity for joint '"
-//                    +name()+"' to Nan!");
-//        return false;
-//    }
+    bool inBounds = true;
+    for(size_t i=0; i<numDofs(); ++i)
+        inBounds &= dof(i).value(newValues[i]);
+    return inBounds;
+}
 
-//    if(fabs(newJointVelocity) > _maxSpeed)
-//    {
-//        if(_myRobot->enforceJointLimits())
-//            newJointVelocity = newJointVelocity>0? _maxSpeed : -_maxSpeed;
-//        inBounds = false;
-//    }
+const Eigen::VectorXd& Joint::velocities() const
+{
+    for(size_t i=0; i<numDofs(); ++i)
+        _velocities[i] = dof(i).velocity();
 
-//    if(newJointVelocity==_velocity)
-//        return inBounds;
+    return _velocities;
+}
 
-//    _velocity = newJointVelocity;
+bool Joint::velocities(const Eigen::VectorXd &newVelocities)
+{
+    if(newVelocities.size() != (int)numDofs())
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
+                    "Error: Passing a VectorXd with "+to_string(newVelocities.size())
+                    +" components to velocities(~) function of Joint '"+name()
+                    +"' which has "+to_string(numDofs())+" Degrees of Freedom!");
+        return false;
+    }
 
-//    Frame::coord_t C;
-//    if(REVOLUTE == _type)
-//        C = Frame::ANGULAR;
-//    else if(PRISMATIC == _type)
-//        C = Frame::LINEAR;
-//    else
-//        return false;
+    bool inBounds = true;
+    for(size_t i=0; i<numDofs(); ++i)
+        inBounds &= dof(i).velocity(newVelocities[i]);
+    return inBounds;
+}
 
-//    if(_reversed)
-//        _downstreamLink->relativeVelocity(
-//                    -_velocity*_downstreamLink->respectToRef().rotation()*_axis, C);
-//        // TODO: Test the crap out of this _reversed case
-//    else
-//        _downstreamLink->relativeVelocity(_velocity*_baseTransform.rotation()*_axis, C);
+const Eigen::VectorXd& Joint::accelerations() const
+{
+    for(size_t i=0; i<numDofs(); ++i)
+        _accelerations[i] = dof(i).acceleration();
 
-//    return inBounds;
-//}
+    return _accelerations;
+}
 
-//double Joint::velocity() const { return _velocity; }
+bool Joint::accelerations(const Eigen::VectorXd &newAccelerations)
+{
+    if(newAccelerations.size() != (int)numDofs())
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
+                    "Error: Passing a VectorXd with "+to_string(newAccelerations.size())
+                    +" components to accelerations(~) function of Joint '"+name()
+                    +"' which has "+to_string(numDofs())+" Degrees of Freedom!");
+        return false;
+    }
 
-//bool Joint::acceleration(double newJointAcceleration)
-//{
-//    bool inBounds = true;
+    bool inBounds = true;
+    for(size_t i=0; i<numDofs(); ++i)
+        inBounds &= dof(i).acceleration(newAccelerations[i]);
+    return inBounds;
+}
 
-//    if(newJointAcceleration != newJointAcceleration)
-//    {
-//        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set acceleration for joint '"
-//                    +name()+"' to NaN!");
-//        return false;
-//    }
+const Eigen::VectorXd& Joint::efforts() const
+{
+    for(size_t i=0; i<numDofs(); ++i)
+        _efforts[i] = dof(i).effort();
 
-//    if(fabs(newJointAcceleration) > _maxAcceleration)
-//    {
-//        if(_myRobot->enforceJointLimits())
-//            newJointAcceleration = newJointAcceleration>0? _maxAcceleration : -_maxAcceleration;
-//        inBounds = false;
-//    }
+    return _efforts;
+}
 
-//    if(newJointAcceleration==_acceleration)
-//        return inBounds;
+bool Joint::efforts(const Eigen::VectorXd &newEfforts)
+{
+    if(newEfforts.size() != (int)numDofs())
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
+                    "Error: Passing a VectorXd with "+to_string(newEfforts.size())
+                    +" components to efforts(~) function of Joint '"+name()
+                    +"' which has "+to_string(numDofs())+" Degrees of Freedom!");
+        return false;
+    }
 
-//    _acceleration = newJointAcceleration;
-
-//    Frame::coord_t C;
-//    if(REVOLUTE == _type)
-//        C = Frame::ANGULAR;
-//    else if(PRISMATIC == _type)
-//        C = Frame::LINEAR;
-//    else
-//        return false;
-
-//    if(_reversed)
-//        _downstreamLink->relativeAcceleration(
-//                    -_acceleration*_downstreamLink->respectToRef().rotation()*_axis, C);
-//        // TODO: Test the crap out of this _reversed case
-//    else
-//        _downstreamLink->relativeAcceleration(
-//                    _acceleration*_baseTransform.rotation()*_axis, C);
-
-//    return inBounds;
-//}
-
-//double Joint::acceleration() const
-//{
-//    if(downstreamLink().getDynamicsMode()==INVERSE)
-//        return _acceleration;
-
-//    if(!isDummy())
-//    {
-//        if(downstreamLink().needsDynUpdate())
-//            downstreamLink()._computeABA_pass3();
-//    }
-//    else
-//    {
-//        if(_myRobot->anchorLink().needsDynUpdate())
-//            _myRobot->anchorLink()._computeABA_pass3();
-//    }
-
-//    return _acceleration;
-//}
-
-//void Joint::_computeTransformedJointAxis(Vec3 &z_i, const akin::Frame& refFrame) const
-//{
-//    z_i = _reversed ?
-//            Vec3(-childLink().respectToRef().rotation()*_axis) :
-//            Vec3(childLink().respectToRef().rotation()*_axis);
-    
-//    // Put z_i into the reference frame
-//    if(refFrame.isWorld())
-//        z_i = childLink().respectToWorld().rotation()*z_i;
-//    else
-//        z_i = refFrame.respectToWorld().rotation().transpose()
-//              *childLink().respectToWorld().rotation()*z_i;
-//}
-
-//Vec3 Joint::_computePosJacobian(const Vec3 &z_i, const KinTranslation &point,
-//                                const Frame &refFrame) const
-//{
-//    if(type()==REVOLUTE)
-//    {
-//        return z_i.cross( point.withRespectTo(refFrame)
-//                          - childLink().withRespectTo(refFrame).translation() );
-//    }
-//    else if(type()==PRISMATIC)
-//        return z_i;
-    
-//    return Vec3::Zero();
-//}
-
-//Vec3 Joint::_computeRotJacobian(const Vec3 &z_i) const
-//{
-//    if(type()==REVOLUTE)
-//        return z_i;
-//    else if(type()==PRISMATIC)
-//        return Vec3::Zero();
-    
-//    return Vec3::Zero();
-//}
-
-//Vec3 Joint::Jacobian_rotOnly(const KinTranslation &point, const Frame &refFrame,
-//                         bool checkDependence) const
-//{
-//    if(checkDependence)
-//    {
-//        if(!point.descendsFrom(childLink()))
-//            return Vec3::Zero();
-//    }
-    
-//    Vec3 z_i;
-//    _computeTransformedJointAxis(z_i, refFrame);
-    
-//    return _computeRotJacobian(z_i);
-//}
-
-//bool Joint::torque(double newTorque)
-//{
-
-//    bool inBounds = true;
-
-//    if(newTorque != newTorque)
-//    {
-//        verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set torque for joint '"
-//                    +name()+"' to NaN!");
-//        return false;
-//    }
-
-//    if(fabs(newTorque) > _maxTorque)
-//    {
-//        if(_myRobot->enforceJointLimits())
-//            newTorque = newTorque<0? -_maxTorque : _maxTorque;
-//        inBounds = false;
-//    }
-
-//    if(newTorque == _torque)
-//        return inBounds;
-
-//    _torque = newTorque;
-
-//    if(_myRobot->getDynamicsMode()==FORWARD)
-//        childLink().notifyDynUpdate();
-
-//    return inBounds;
-//}
-
-//double Joint::torque() const
-//{
-//    return _torque;
-//}
-
-//Screw Joint::reciprocalWrench() const
-//{
-//    // TODO FIXME
-//    verb.Assert(false, verbosity::ASSERT_CASUAL, "Joint reciprocal wrench calculations are not ready yet");
-//    return Screw::Zero();
-//}
-
-//Vec3 Joint::Jacobian_posOnly(const KinTranslation &point, const Frame &refFrame,
-//                      bool checkDependence) const
-//{
-//    if(checkDependence)
-//    {
-//        if(!point.descendsFrom(childLink()))
-//            return Vec3::Zero();
-//    }
-    
-//    Vec3 z_i;
-//    _computeTransformedJointAxis(z_i, refFrame);
-    
-//    return _computePosJacobian(z_i, point, refFrame);
-//}
-
-//Screw Joint::Jacobian(const KinTranslation& point, const Frame &refFrame,
-//                      bool checkDependence) const
-//{
-//    if(checkDependence)
-//    {
-//        if(!point.descendsFrom(childLink()))
-//            return Screw::Zero();
-//    }
-    
-//    Vec3 z_i;
-//    _computeTransformedJointAxis(z_i, refFrame);
-    
-//    return Screw(_computePosJacobian(z_i,point,refFrame), _computeRotJacobian(z_i));
-//}
+    bool inBounds = true;
+    for(size_t i=0; i<numDofs(); ++i)
+        inBounds &= dof(i).effort(newEfforts[i]);
+    return inBounds;
+}
 
 void Joint::_computeRefTransform() const
 {
@@ -325,9 +159,13 @@ void Joint::_computeRefTransform() const
     }
     else if(FLOATING == _type)
     {
-        respectToRef = respectToRef * Transform(
-                    Translation(dof(0).value(),dof(1).value(),dof(2).value()),
-                    Rotation(FreeVector(dof(3).value(),dof(4).value(),dof(5).value())));
+//        respectToRef = respectToRef * Transform(
+//                    Translation(dof(0).value(),dof(1).value(),dof(2).value()),
+//                    Rotation(FreeVector(dof(3).value(),dof(4).value(),dof(5).value())));
+        respectToRef.translate(Vec3(dof(0).value(),dof(1).value(),dof(2).value()));
+        respectToRef.rotate(Rotation(dof(3).value(),Vec3(1,0,0)));
+        respectToRef.rotate(Rotation(dof(4).value(),Vec3(0,1,0)));
+        respectToRef.rotate(Rotation(dof(5).value(),Vec3(0,0,1)));
     }
 
     // Handle if the kinematic direction is reversed
@@ -446,10 +284,12 @@ Joint::Joint(Robot* mRobot, size_t jointID, Link* mParentLink, Link* mChildLink,
                 +"'!", " A joint must always connect a link to its parent frame!");
 
     _createDofs(dof_properties);
+    axis(_axis);
 }
 
 void Joint::_createDofs(const DofProperties& dof_properties)
 {
+    _dofs.clear();
     if(type()==PRISMATIC || type()==REVOLUTE)
     {
         DegreeOfFreedom* newdof = new DegreeOfFreedom(this, _name, dof_properties);
@@ -493,32 +333,6 @@ void Joint::_createDofs(const DofProperties& dof_properties)
     notifyDynUpdate();
 }
 
-//Joint::Joint(Robot *mRobot, size_t jointID, const string &jointName,
-//             Link *mParentLink, Link *mChildLink,
-//             const Transform &mBaseTransform,
-//             const Vec3& mJointAxis, akin::Joint::Type mType,
-//             double mininumValue, double maximumValue,
-//             double maxSpeed, double maxAcceleration, double maxTorque) :
-//    ProtectedJointProperties(jointName, mBaseTransform, mJointAxis, mType),
-//    verb(mRobot->verb),
-//    _parentLink(mParentLink),
-//    _childLink(mChildLink),
-//    _reversed(false),
-//    _upstreamLink(mParentLink),
-//    _downstreamLink(mChildLink),
-//    _robot(mRobot)
-//{
-//    _id = jointID;
-//    axis(_axis);
-    
-//    if( !mChildLink->isDummy() )
-//        verb.Assert(mParentLink == &mChildLink->refFrame(), verbosity::ASSERT_CRITICAL,
-//                "Joint '"+jointName+"' wants to connect '"+mChildLink->name()
-//                +"' to '"+mParentLink->name()+"' but '"+mChildLink->name()
-//                +"' is in the reference frame of '"+mChildLink->refFrame().name()
-//                +"'!", " A joint must always connect a link to its parent frame!");
-//}
-
 Joint::~Joint()
 {
     
@@ -532,53 +346,13 @@ Joint& Joint::operator=(const Joint& otherJoint)
     return *this;
 }
 
-//bool Joint::min(double newMinValue)
-//{
-//    bool inBounds = true;
-//    if(newMinValue > _maxValue)
-//    {
-//        newMinValue = _maxValue;
-//        inBounds = false;
-//    }
-    
-//    value(value());
-    
-//    return inBounds;
-//}
-
-//double Joint::min() const { return _minValue; }
-
-//bool Joint::max(double newMaxValue)
-//{
-//    bool inBounds = true;
-//    if(newMaxValue < _minValue)
-//    {
-//        newMaxValue = _minValue;
-//        inBounds = false;
-//    }
-    
-//    value(value());
-    
-//    return inBounds;
-//}
-
-//double Joint::max() const { return _maxValue; }
-
-//bool Joint::withinLimits() const
-//{
-//    return withinLimits(value());
-//}
-
-//bool Joint::withinLimits(double someValue) const
-//{
-//    if( min() <= someValue && someValue <= max() )
-//        return true;
-    
-//    return false;
-//}
-
 Joint::Type Joint::type() const { return _type; }
-void Joint::type(akin::Joint::Type newType) { _type = newType; _computeRefTransform(); }
+void Joint::type(akin::Joint::Type newType, const akin::DofProperties& properties)
+{
+    _type = newType;
+    _createDofs(properties);
+    axis(_axis);
+}
 
 void Joint::_changeParentLink(Link *newParent)
 {
@@ -590,9 +364,10 @@ void Joint::axis(const akin::Vec3& newAxis)
 {
     _axis = Axis(newAxis);
 
-    if(childLink().isAnchor())
+    if(childLink().isAnchor() || FLOATING == _type)
     {
         _dofMatrix = Matrix6d::Identity();
+        _dofMatrixDerivative = Matrix6d::Zero();
     }
     else
     {
@@ -607,15 +382,24 @@ void Joint::axis(const akin::Vec3& newAxis)
             _dofMatrix.block<3,1>(0,0) = _axis;
             _dofMatrix.block<3,1>(3,0).setZero();
         }
+        _dofMatrixDerivative = Vector6d::Zero();
     }
 
-    _computeRefTransform();
+    notifyPosUpdate();
+    notifyVelUpdate();
+    notifyAccUpdate();
+    notifyDynUpdate();
 }
 const Vec3& Joint::axis() const { return _axis; }
 
 const Matrix6Xd& Joint::getDofMatrix() const
 {
     return _dofMatrix;
+}
+
+const Matrix6Xd& Joint::getDofMatrixDerivative() const
+{
+    return _dofMatrixDerivative;
 }
 
 void Joint::baseTransform(const Transform &newBaseTf)
@@ -626,7 +410,7 @@ void Joint::baseTransform(const Transform &newBaseTf)
 
 const Transform& Joint::baseTransform() const { return _baseTransform; }
 
-void Joint::integrate(integration_method_t method, double dt)
+void Joint::_integrate(integration_method_t method, double dt)
 {
     switch(method)
     {
@@ -641,6 +425,28 @@ void Joint::integrate(integration_method_t method, double dt)
 void Joint::_explicit_euler_integration(double dt)
 {
     // TODO
+    if(REVOLUTE==_type || PRISMATIC==_type)
+    {
+        dof(0).value(dof(0)._value + dof(0)._velocity*dt);
+        dof(0).velocity(dof(0)._velocity+ dof(0)._acceleration*dt);
+    }
+    else if(FLOATING==_type)
+    {
+        for(size_t i=0; i<3; ++i)
+            dof(i).value( dof(i).value() + dof(i)._velocity*dt );
+
+        Rotation R(dof(3).value(),Vec3(1,0,0));
+        R *= Rotation(dof(4).value(),Vec3(0,1,0));
+        R *= Rotation(dof(5).value(),Vec3(0,0,1));
+        R *= Rotation(FreeVector(dt*Vec3(dof(3)._velocity,dof(4)._velocity,dof(5)._velocity)));
+
+        const Vec3& angles = R.getEulerAngles();
+        for(size_t i=0; i<3; ++i)
+            dof(i+3).value(angles[i]);
+
+        for(size_t i=0; i<6; ++i)
+            dof(i).velocity(dof(i)._velocity + dof(i)._acceleration*dt);
+    }
 
 }
 
