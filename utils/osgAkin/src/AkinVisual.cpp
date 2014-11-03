@@ -39,30 +39,54 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
         {
 //            file_node->getOrCreateStateSet()->setGlobalDefaults();
 
-//            if(file_node->asGroup())
-//            {
-//                std::cout << "Got a group" << std::endl;
+            if(file_node->asGroup())
+            {
+                std::cout << "Got a group" << std::endl;
 //                osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
 //                colors->push_back(osg::Vec4(1,1,1,1));
 
-//                for(size_t j=0, last_j=file_node->asGroup()->getNumChildren(); j<last_j; ++j)
-//                {
-//                    osg::ref_ptr<osg::Geode> geode = file_node->asGroup()->getChild(j)->asGeode();
-//                    if(geode)
-//                    {
-//                        std::cout << "Got a geode" << std::endl;
-//                        for(size_t i=0, last_i=geode->getNumDrawables(); i<last_i; ++i)
-//                        {
-//                            osg::ref_ptr<osg::Geometry> G = geode->getDrawable(i)->asGeometry();
-//                            if(G)
-//                            {
+                for(size_t j=0, last_j=file_node->asGroup()->getNumChildren(); j<last_j; ++j)
+                {
+                    osg::ref_ptr<osg::Geode> geode = file_node->asGroup()->getChild(j)->asGeode();
+                    if(geode)
+                    {
+                        std::cout << "Got a geode" << std::endl;
+                        for(size_t i=0, last_i=geode->getNumDrawables(); i<last_i; ++i)
+                        {
+                            osg::ref_ptr<osg::Geometry> G = geode->getDrawable(i)->asGeometry();
+                            if(G)
+                            {
 //                                G->setColorArray(colors, osg::Array::BIND_OVERALL);
 //                                std::cout << "Binding color" << std::endl;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+                                osg::ref_ptr<osg::Vec3Array> A = dynamic_cast<osg::Vec3Array*>
+                                        (G->getNormalArray());
+                                osg::ref_ptr<osg::Vec3Array> V = dynamic_cast<osg::Vec3Array*>
+                                        (G->getVertexArray());
+                                if(V)
+                                {
+                                    std::cout << "Got vertex array (" << V->size() << ")" << std::endl;
+                                }
+
+                                if(A)
+                                {
+                                    std::cout << "Got normal array (" << A->size() << ")" << std::endl;
+                                    for(size_t k=0; k<A->size(); ++k)
+                                    {
+                                        double x=(*A)[k][0], y=(*A)[k][1], z=(*A)[k][2];
+                                        std::cout << "#" << k
+                                                  << "\t("
+                                                  << sqrt(x*x+y*y+z*z)
+                                                  << ")\t";
+                                        for(size_t n=0; n<3; ++n)
+                                            std::cout << (*A)[k][n] << " ";
+                                        std::cout << "\n";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             addChild(file_node);
         }
