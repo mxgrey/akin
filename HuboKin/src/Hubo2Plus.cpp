@@ -36,7 +36,7 @@ void Hubo2Plus::_setup_manipulators()
     addManipulator(joint("RAR").childLink(), "rightFootManip",
                    link("rightFoot").respectToRef());
 
-    dof(DOF_POS_Z).value(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
+    dof(DOF_POS_Z).position(-link("leftFoot").withRespectTo(refFrame()).translation()[2]);
 
 
     // TODO: Move these to the DrcHubo clas, since Hubo2Plus has 6 DOF arms!

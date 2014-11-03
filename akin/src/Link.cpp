@@ -188,6 +188,7 @@ void Link::_setParentJoint(Joint *newParent)
 {
     _parentJoint = newParent;
     _upstreamJoint = newParent;
+    _attachment = _upstreamJoint->_parentLink;
 }
 
 Link& Link::parentLink()
@@ -476,75 +477,75 @@ void Link::_computeABA_pass2() const
     _needsAbiUpdate = false;
 }
 
-void Link::_computeABA_pass3() const
+//void Link::_computeABA_pass3() const
+//{
+//    if(isDummy())
+//        return;
+
+//    const Matrix6d& X = spatial_transform(respectToRef());
+//    const Matrix6Xd& s = parentJoint().getDofMatrix();
+//    const Frame& frame = isAnchor()? _myRobot->refFrame() : (const Frame&)parentLink();
+
+//    // TODO: Use attachment pointer to make this whole thing a lot smarter
+//    // i.e. attach child links to their parents and leave the root link
+//    // pointer blank. In fact, this should make it so that no special case
+//    // is really needed for link (as opposed to bodies)
+//    Vector6d a_ref;
+//    a_ref.block<3,1>(0,0) = frame.respectToWorld().rotation().transpose()*
+//            frame.angularAcceleration();
+//    a_ref.block<3,1>(3,0) = frame.respectToWorld().rotation().transpose()*(
+//            frame.linearAcceleration()
+//            - frame.angularVelocity().cross(frame.linearVelocity()) );
+
+//    _a = X*a_ref + _ABA_c();
+//    _qdd = _ABA_D().inverse()*(_ABA_u()-_ABA_h().transpose()*_a);
+//    _arel = s*_qdd;
+//    _a = _a + _arel;
+
+//    _needsDynUpdate = false;
+//}
+
+std::ostream& operator<<(std::ostream& stream, const akin::Link& someLink)
 {
-    if(isDummy())
-        return;
-
-    const Matrix6d& X = spatial_transform(respectToRef());
-    const Matrix6Xd& s = parentJoint().getDofMatrix();
-    const Frame& frame = isAnchor()? _myRobot->refFrame() : (const Frame&)parentLink();
-
-    // TODO: Use attachment pointer to make this whole thing a lot smarter
-    // i.e. attach child links to their parents and leave the root link
-    // pointer blank. In fact, this should make it so that no special case
-    // is really needed for link (as opposed to bodies)
-    Vector6d a_ref;
-    a_ref.block<3,1>(0,0) = frame.respectToWorld().rotation().transpose()*
-            frame.angularAcceleration();
-    a_ref.block<3,1>(3,0) = frame.respectToWorld().rotation().transpose()*(
-            frame.linearAcceleration()
-            - frame.angularVelocity().cross(frame.linearVelocity()) );
-
-    _a = X*a_ref + _ABA_c();
-    _qdd = _ABA_D().inverse()*(_ABA_u()-_ABA_h().transpose()*_a);
-    _arel = s*_qdd;
-    _a = _a + _arel;
-
-    _needsDynUpdate = false;
-}
-
-std::ostream& operator<<(std::ostream& oStrStream, const akin::Link& someLink)
-{
-    oStrStream << "Link named '" << someLink.name() << "' ";
+    stream << "Link named '" << someLink.name() << "' ";
     if(someLink.isRoot())
     {
-        oStrStream << "is the root link ";
+        stream << "is the root link ";
     }
     if(someLink.isAnchor())
     {
         if(someLink.isRoot())
-            oStrStream << "and ";
-        oStrStream << "is the anchor link ";
+            stream << "and ";
+        stream << "is the anchor link ";
     }
     
     if(!someLink.isRoot())
     {
         if(someLink.isAnchor())
-            oStrStream << "with ";
+            stream << "with ";
         else
-            oStrStream << " has ";
-        oStrStream << "parent joint " << someLink.parentJoint().name();
+            stream << " has ";
+        stream << "parent joint " << someLink.parentJoint().name();
     }
     
-    oStrStream << "\n";
+    stream << "\n";
     
     if(someLink.numChildJoints() == 0)
     {
-        oStrStream << "This link has no child joints";
+        stream << "This link has no child joints";
     }
     else
     {
-        oStrStream << "Child joints are: ";
+        stream << "Child joints are: ";
         for(size_t i=0; i<someLink.numChildJoints(); ++i)
         {
-            oStrStream << someLink.childJoint(i).name();
+            stream << someLink.childJoint(i).name();
             if(i+1 < someLink.numChildJoints())
-                oStrStream << ", ";
+                stream << ", ";
         }
     }
     
-    oStrStream << "\n" << (akin::Body&)someLink;
+    stream << "\n" << (akin::Body&)someLink;
     
-    return oStrStream;
+    return stream;
 }

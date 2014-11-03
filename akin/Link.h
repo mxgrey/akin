@@ -131,7 +131,7 @@ protected:
     void _explicit_euler_integration(double dt);
 
     void _computeABA_pass2() const;
-    void _computeABA_pass3() const;
+//    void _computeABA_pass3() const;
 
     size_t _id;
     

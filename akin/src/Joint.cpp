@@ -44,7 +44,7 @@ size_t Joint::numDofs() const { return _dofs.size(); }
 const Eigen::VectorXd& Joint::values() const
 {
     for(size_t i=0; i<numDofs(); ++i)
-        _values[i] = dof(i).value();
+        _values[i] = dof(i).position();
 
     return _values;
 }
@@ -62,7 +62,7 @@ bool Joint::values(const Eigen::VectorXd &newValues)
 
     bool inBounds = true;
     for(size_t i=0; i<numDofs(); ++i)
-        inBounds &= dof(i).value(newValues[i]);
+        inBounds &= dof(i).position(newValues[i]);
     return inBounds;
 }
 
@@ -151,21 +151,21 @@ void Joint::_computeRefTransform() const
     if(REVOLUTE == _type)
     {
         respectToRef = respectToRef * Transform(Translation(0,0,0),
-                                                Rotation(dof(0).value(), _axis));
+                                                Rotation(dof(0).position(), _axis));
     }
     else if(PRISMATIC == _type)
     {
-        respectToRef = respectToRef * Transform(dof(0).value()*_axis, Rotation());
+        respectToRef = respectToRef * Transform(dof(0).position()*_axis, Rotation());
     }
     else if(FLOATING == _type)
     {
 //        respectToRef = respectToRef * Transform(
 //                    Translation(dof(0).value(),dof(1).value(),dof(2).value()),
 //                    Rotation(FreeVector(dof(3).value(),dof(4).value(),dof(5).value())));
-        respectToRef.translate(Vec3(dof(0).value(),dof(1).value(),dof(2).value()));
-        respectToRef.rotate(Rotation(dof(3).value(),Vec3(1,0,0)));
-        respectToRef.rotate(Rotation(dof(4).value(),Vec3(0,1,0)));
-        respectToRef.rotate(Rotation(dof(5).value(),Vec3(0,0,1)));
+        respectToRef.translate(Vec3(dof(0).position(),dof(1).position(),dof(2).position()));
+        respectToRef.rotate(Rotation(dof(3).position(),Vec3(1,0,0)));
+        respectToRef.rotate(Rotation(dof(4).position(),Vec3(0,1,0)));
+        respectToRef.rotate(Rotation(dof(5).position(),Vec3(0,0,1)));
     }
 
     // Handle if the kinematic direction is reversed
@@ -427,22 +427,22 @@ void Joint::_explicit_euler_integration(double dt)
     // TODO
     if(REVOLUTE==_type || PRISMATIC==_type)
     {
-        dof(0).value(dof(0)._value + dof(0)._velocity*dt);
+        dof(0).position(dof(0)._value + dof(0)._velocity*dt);
         dof(0).velocity(dof(0)._velocity+ dof(0)._acceleration*dt);
     }
     else if(FLOATING==_type)
     {
         for(size_t i=0; i<3; ++i)
-            dof(i).value( dof(i).value() + dof(i)._velocity*dt );
+            dof(i).position( dof(i).position() + dof(i)._velocity*dt );
 
-        Rotation R(dof(3).value(),Vec3(1,0,0));
-        R *= Rotation(dof(4).value(),Vec3(0,1,0));
-        R *= Rotation(dof(5).value(),Vec3(0,0,1));
+        Rotation R(dof(3).position(),Vec3(1,0,0));
+        R *= Rotation(dof(4).position(),Vec3(0,1,0));
+        R *= Rotation(dof(5).position(),Vec3(0,0,1));
         R *= Rotation(FreeVector(dt*Vec3(dof(3)._velocity,dof(4)._velocity,dof(5)._velocity)));
 
         const Vec3& angles = R.getEulerAngles();
         for(size_t i=0; i<3; ++i)
-            dof(i+3).value(angles[i]);
+            dof(i+3).position(angles[i]);
 
         for(size_t i=0; i<6; ++i)
             dof(i).velocity(dof(i)._velocity + dof(i)._acceleration*dt);
@@ -583,7 +583,7 @@ std::ostream& operator<<(std::ostream& oStrStream, const akin::Joint& someJoint)
         oStrStream << "[Parent/Child are currently kinematically reversed]\n";
     oStrStream << "Axis: <" << someJoint.axis().transpose() << "> (" << someJoint.type() 
                << ") with Base Transform:\n" << someJoint.baseTransform() << "\n";
-    oStrStream << "Current value: " << someJoint.dof(0).value() << " (min "
+    oStrStream << "Current value: " << someJoint.dof(0).position() << " (min "
                << someJoint.dof(0).min() << " | max " << someJoint.dof(0).max() << ")";
     if(!someJoint.dof(0).withinLimits())
         oStrStream << " [Currently outside its limits!]";

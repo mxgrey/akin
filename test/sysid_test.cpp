@@ -93,8 +93,8 @@ void generate_regression_matrices(Eigen::MatrixXd& X, Eigen::VectorXd& y,
     {
         for(size_t j=0; j<model->numDofs(); ++j)
         {
-            model->dof(j).value(configs[s][j]);
-            actual->dof(j).value(configs[s][j]);
+            model->dof(j).position(configs[s][j]);
+            actual->dof(j).position(configs[s][j]);
         }
         Translation p_robot = actual->com().respectToWorld();
         

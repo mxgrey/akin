@@ -35,7 +35,7 @@ public:
                               std::vector<bool>& valid) {
         for(int i=6; i<this->_config_dim; ++i)
         {
-            this->_robot->dof(this->_dofs[i]).value(lastConfig[i]);
+            this->_robot->dof(this->_dofs[i]).position(lastConfig[i]);
             testQ[i] = lastConfig[i];
         }
         solutions.clear();

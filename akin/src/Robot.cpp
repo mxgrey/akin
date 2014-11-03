@@ -265,7 +265,7 @@ Eigen::VectorXd Robot::getConfig(const std::vector<size_t>& dofs) const
 {
     Eigen::VectorXd config(dofs.size());
     for(size_t i=0; i<dofs.size(); ++i)
-        config[i] = dof(dofs[i]).value();
+        config[i] = dof(dofs[i]).position();
     return config;
 }
 
@@ -279,7 +279,7 @@ bool Robot::setConfig(const std::vector<size_t>& dofs, const Eigen::VectorXd &va
     bool result = true;
     for(size_t i=0; i<dofs.size(); ++i)
     {
-        if(!dof(dofs[i]).value(values[i]))
+        if(!dof(dofs[i]).position(values[i]))
             result = false;
     }
 
@@ -498,23 +498,6 @@ bool Robot::_createRootLink(const std::string& rootLinkName, Frame& referenceFra
                 "Cannot create a root link, because one already exists!"))
         return false;
 
-//    Link* rootLink = new Link(this, *_root_dummy_links.back(), rootLinkName, 0, true);
-//    _insertLink(rootLink);
-//    _root = rootLink;
-//    _anchor = rootLink;
-    
-//    Joint* rot_z_joint = new Joint(this, DOF_ROT_Z, "DOF_ROT_Z",
-//                                   _root_dummy_links.back(), rootLink,
-//                                   Transform::Identity(), Axis(0,0,1), Joint::REVOLUTE);
-//    rot_z_joint->_isDummy = true;
-//    _root_dummy_joints.push_back(rot_z_joint);
-//    _jointNameToIndex[rot_z_joint->name()] = DOF_ROT_Z;
-    
-////    _com.changeRefFrame(*rootLink);
-
-//    _root_dummy_links.back()->_addChildJoint(rot_z_joint);
-//    rootLink->_setParentJoint(rot_z_joint);
-
     _pseudo_link = new Link(this, referenceFrame, "pseudo_link", INVALID_INDEX, false);
     _pseudo_link->_isDummy = true;
     _pseudo_link->_setParentJoint(_dummyJoint);
@@ -536,10 +519,6 @@ bool Robot::_createRootLink(const std::string& rootLinkName, Frame& referenceFra
 }
 
 
-//int Robot::createJointLinkPair(Link &parentLink,
-//                               const string &newLinkName, const string &newJointName,
-//                               const Transform &baseTransform, const Axis &jointAxis,
-//                               Joint::Type jointType, double minJointValue, double maxJointValue)
 int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
                                const ProtectedJointProperties& joint_properties,
                                const DofProperties& dof_properties)
@@ -556,14 +535,14 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
     
     if(!verb.Assert(!checkForLinkName(newLinkName), verbosity::ASSERT_CRITICAL,
                     "Error: You wanted to create a new link named '"+newLinkName+
-                    "' but a link by that name already exists in the robot named '"
-                    +name()+"'!"))
+                    "' but a link ("+to_string(link(newLinkName).id())+
+                    ") by that name already exists in the robot named '"+name()+"'!"))
         return -3;
     
     if(!verb.Assert(!checkForJointName(joint_properties._name), verbosity::ASSERT_CRITICAL,
                     "Error: You wanted to create a new joint named '"+joint_properties._name+
-                    "' but a joint by that name already exists in the robot named '"
-                    +name()+"'!"))
+                    "' but a joint (#"+to_string(joint(joint_properties._name).id())
+                    +") by that name already exists in the robot named '"+name()+"'!"))
         return -4;
 
     Link* newLink = new Link(this, parentLink, newLinkName, _links.size(), false);
@@ -1024,7 +1003,7 @@ void Robot::enforceJointLimits(bool enforce)
         for(size_t i=0; i<numDofs(); ++i)
         {
             if(!dof(i).withinLimits())
-                dof(i).value(dof(i).value());
+                dof(i).position(dof(i).position());
         }
     }
 }

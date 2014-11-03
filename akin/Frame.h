@@ -60,6 +60,19 @@ namespace akin {
  * convenience functions for finding relationships between arbitrary frames.
  */
 
+typedef enum {
+
+    POSITION,
+    VELOCITY,
+    ACCELERATION,
+    EFFORT,
+
+    NUM_PROPERTIES
+
+} property_t;
+
+std::string property_to_string(property_t property);
+
 class Frame : public KinObject
 {
 public:

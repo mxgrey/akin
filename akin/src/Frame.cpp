@@ -47,6 +47,20 @@
 using namespace akin;
 using namespace std;
 
+std::string akin::property_to_string(property_t property)
+{
+    switch(property)
+    {
+        case POSITION:      return "POSITION";
+        case VELOCITY:      return "VELOCITY";
+        case ACCELERATION:  return "ACCELERATION";
+        case EFFORT:        return "EFFORT";
+
+        default:
+            return "INVALID_PROPERTY("+to_string(property)+")";
+    }
+}
+
 Frame::Frame(Frame& referenceFrame, std::string frameName, verbosity::verbosity_level_t report_level) :
     KinObject(referenceFrame, frameName, report_level, "Frame"),
     _gravity(referenceFrame.gravity()),

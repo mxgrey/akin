@@ -28,41 +28,41 @@ DegreeOfFreedom::DegreeOfFreedom(Joint* parentJoint, const std::string& name,
 }
 
 
-bool DegreeOfFreedom::value(double newDofValue)
+bool DegreeOfFreedom::position(double newDofPosition)
 {
     bool inBounds = true;
 
-    if(newDofValue != newDofValue)
+    if(newDofPosition != newDofPosition)
     {
         verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set value for DOF '"
                     +name()+"' to NaN!");
         return false;
     }
 
-    if(newDofValue < _minValue)
+    if(newDofPosition < _minValue)
     {
         if(_robot->enforceJointLimits())
-            newDofValue = _minValue;
+            newDofPosition = _minValue;
         inBounds = false;
     }
 
-    if(newDofValue > _maxValue)
+    if(newDofPosition > _maxValue)
     {
         if(_robot->enforceJointLimits())
-            newDofValue = _maxValue;
+            newDofPosition = _maxValue;
         inBounds = false;
     }
 
-    if(newDofValue == _value)
+    if(newDofPosition == _value)
         return inBounds;
 
-    _value = newDofValue;
+    _value = newDofPosition;
     _parent->notifyPosUpdate();
 
     return inBounds;
 }
 
-double DegreeOfFreedom::value() const { return _value; }
+double DegreeOfFreedom::position() const { return _value; }
 
 bool DegreeOfFreedom::velocity(double newDofVelocity)
 {
@@ -140,7 +140,7 @@ double DegreeOfFreedom::acceleration() const
     return _acceleration;
 }
 
-bool DegreeOfFreedom::effort(double newEffort)
+bool DegreeOfFreedom::effort(double newDofEffort)
 {
     if(_robot->getDynamicsMode()==INVERSE)
     {
@@ -152,24 +152,24 @@ bool DegreeOfFreedom::effort(double newEffort)
 
     bool inBounds = true;
 
-    if(newEffort != newEffort)
+    if(newDofEffort != newDofEffort)
     {
         verb.Assert(false, verbosity::ASSERT_CRITICAL, "Attempting to set torque for DOF '"
                     +name()+"' to NaN!");
         return false;
     }
 
-    if(fabs(newEffort) > _maxEffort)
+    if(fabs(newDofEffort) > _maxEffort)
     {
         if(_robot->enforceJointLimits())
-            newEffort = newEffort>0? _maxEffort : -_maxEffort;
+            newDofEffort = newDofEffort>0? _maxEffort : -_maxEffort;
         inBounds = false;
     }
 
-    if(newEffort == _effort)
+    if(newDofEffort == _effort)
         return inBounds;
 
-    _effort = newEffort;
+    _effort = newDofEffort;
     _parent->notifyDynUpdate();
 
     return inBounds;
@@ -177,8 +177,40 @@ bool DegreeOfFreedom::effort(double newEffort)
 
 double DegreeOfFreedom::effort() const
 {
-    // TODO: Compute torque if we're in INVERSE dynamics mode
+    // TODO: Compute torque if we're in inverse dynamics mode
     return _effort;
+}
+
+bool DegreeOfFreedom::property(property_t p, double newValue)
+{
+    switch(p)
+    {
+        case POSITION:      return position(newValue);
+        case VELOCITY:      return velocity(newValue);
+        case ACCELERATION:  return acceleration(newValue);
+        case EFFORT:        return effort(newValue);
+        default:
+            verb.Assert(false, verbosity::ASSERT_CASUAL,
+                        "Called property(~,~) on DegreeOfFreedom named '"+name()+"' with invalid "
+                        "property_t: "+property_to_string(p));
+            return false;
+    }
+}
+
+double DegreeOfFreedom::property(property_t p) const
+{
+    switch(p)
+    {
+        case POSITION:      return position();
+        case VELOCITY:      return velocity();
+        case ACCELERATION:  return acceleration();
+        case EFFORT:        return effort();
+        default:
+            verb.Assert(false, verbosity::ASSERT_CASUAL,
+                        "Called property(~) on DegreeOfFreedom named '"+name()+"' with invalid "
+                        "property_t: "+property_to_string(p));
+            return 0;
+    }
 }
 
 void DegreeOfFreedom::limits(double newMinValue, double newMaxValue)
@@ -191,7 +223,7 @@ void DegreeOfFreedom::limits(double newMinValue, double newMaxValue)
     _minValue = newMinValue;
     _maxValue = newMaxValue;
 
-    value(value());
+    position(position());
 }
 
 void DegreeOfFreedom::limits(const std::pair<double, double> &newLimits)
@@ -213,7 +245,7 @@ bool DegreeOfFreedom::min(double newMinValue)
         inBounds = false;
     }
 
-    value(value());
+    position(position());
 
     return inBounds;
 }
@@ -229,7 +261,7 @@ bool DegreeOfFreedom::max(double newMaxValue)
         inBounds = false;
     }
 
-    value(value());
+    position(position());
 
     return inBounds;
 }
@@ -252,7 +284,7 @@ void DegreeOfFreedom::maxAcceleration(double newMaxAcceleration)
 
 bool DegreeOfFreedom::withinLimits() const
 {
-    return withinLimits(value());
+    return withinLimits(position());
 }
 
 bool DegreeOfFreedom::withinLimits(double someValue) const

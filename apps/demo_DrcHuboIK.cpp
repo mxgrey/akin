@@ -40,10 +40,10 @@ public:
         addRobot(*drchubo);
         addRootFrame(Frame::World());
         
-        drchubo->dof(DOF_POS_Z).value( drchubo->dof(DOF_POS_Z).value()-0.2 );
+        drchubo->dof(DOF_POS_Z).position( drchubo->dof(DOF_POS_Z).position()-0.2 );
 
-        drchubo->dof("LEP").value(-90*DEG);
-        drchubo->dof("LWP").value(-90*DEG);
+        drchubo->dof("LEP").position(-90*DEG);
+        drchubo->dof("LWP").position(-90*DEG);
 
         drchubo->manip(DrcHubo::LEFT_HAND).mode = Manipulator::LINKAGE;
         lh_baseTf = drchubo->manip(DrcHubo::LEFT_HAND).respectToWorld();

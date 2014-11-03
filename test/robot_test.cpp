@@ -55,7 +55,7 @@ public:
         time += 0.01;
     
         Robot& robot = getRobot(0);
-        robot.dof("NK2").value( 45*M_PI/180 * sin(time) );
+        robot.dof("NK2").position( 45*M_PI/180 * sin(time) );
 
         if( manip != NULL )
         {
@@ -124,8 +124,8 @@ Robot& build_manual_robot()
                                       Transform(Translation(0,0,1), Rotation()), Axis(0,0,1)),
                                       DofProperties(-10,10));
     
-    robot.joint(0).dof(0).value(180*M_PI/180);
-    robot.joint(0).dof(0).value(2);
+    robot.joint(0).dof(0).position(180*M_PI/180);
+    robot.joint(0).dof(0).position(2);
     
     cout << robot.link(2) << endl;
     
@@ -155,7 +155,7 @@ void display_robot(Robot& displaying_robot)
     
     Robot& r = displaying_robot;
 
-    r.dof(DOF_POS_Z).value(-r.link("leftFoot").respectToWorld().translation()[2]);
+    r.dof(DOF_POS_Z).position(-r.link("leftFoot").respectToWorld().translation()[2]);
 
     
     int m = r.addManipulator(r.joint("LWR").childLink(), "leftHandManip", 
@@ -172,7 +172,7 @@ void display_robot(Robot& displaying_robot)
 //    ManipConstraintX* mptr = new ManipConstraintX(7, r.manip(m), joints);
 //    delete mptr;
 
-    r.joint("LEP").dof(0).value(-90*DEG);
+    r.joint("LEP").dof(0).position(-90*DEG);
     w.respectToRef(r.manip(m).respectToWorld());
     r.manip(m).constraint(mode)->target.changeRefFrame(w);
     r.manip(m).constraint(mode)->target = r.manip(m).withRespectTo(w);

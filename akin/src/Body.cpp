@@ -461,6 +461,7 @@ void Body::_computeABA_pass2() const
 
 void Body::_computeABA_pass3() const
 {
+    // TODO: This is all horribly wrong
     if(_attachment)
     {
         // TODO: Investigate whether I am handling the "weld joint" case correctly.

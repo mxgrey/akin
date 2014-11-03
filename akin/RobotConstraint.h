@@ -53,14 +53,14 @@ public:
 
     virtual void setConfiguration() {
         for(size_t i=0; i<this->_dofs.size(); ++i)
-            this->_config[i] = this->_robot->dof(this->_dofs[i]).value();
+            this->_config[i] = this->_robot->dof(this->_dofs[i]).position();
     }
     
 protected:
     
     virtual void _update(const VectorQ& config){
         for(int i=0; i<this->_config_dim; ++i)
-            _robot->dof(_dofs[i]).value(config[i]);
+            _robot->dof(_dofs[i]).position(config[i]);
     }
     
 };

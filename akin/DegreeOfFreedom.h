@@ -41,8 +41,8 @@ public:
     friend class Joint;
     friend class Robot;
 
-    bool value(double newDofValue);
-    double value() const;
+    bool position(double newDofPosition);
+    double position() const;
 
     bool velocity(double newDofVelocity);
     double velocity() const;
@@ -50,8 +50,11 @@ public:
     bool acceleration(double newDofAcceleration);
     double acceleration() const;
 
-    bool effort(double newEffort);
+    bool effort(double newDofEffort);
     double effort() const;
+
+    bool property(property_t p, double newValue);
+    double property(property_t p) const;
 
     void limits(double newMinValue, double newMaxValue);
     void limits(const std::pair<double,double>& newLimits);
