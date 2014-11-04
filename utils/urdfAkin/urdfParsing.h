@@ -3,7 +3,7 @@
 
 #include "akin/Robot.h"
 
-namespace akinUtils {
+namespace urdfAkin {
 
 bool loadURDF(akin::Robot& robot, 
               const std::string& filename, 

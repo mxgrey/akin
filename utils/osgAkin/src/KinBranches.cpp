@@ -25,7 +25,7 @@ void KinBranches::setRootFrame(akin::Frame &root_frame)
         return;
     
     _root = &root_frame;
-    _findTrueRoot();
+//    _findTrueRoot();
     
     _indices.erase(_indices.begin(),_indices.end());
     
@@ -34,7 +34,7 @@ void KinBranches::setRootFrame(akin::Frame &root_frame)
 
 const akin::Frame *KinBranches::getRootFrame()
 {
-    _findTrueRoot();
+//    _findTrueRoot();
     return _root;
 }
 
@@ -47,7 +47,7 @@ void KinBranches::update()
         return;
     }
     
-    _findTrueRoot();
+//    _findTrueRoot();
     
     _recursiveUpdate(*_root);
     
@@ -57,16 +57,16 @@ void KinBranches::update()
 void KinBranches::initialize()
 {
     clear();
-    _findTrueRoot();
+//    _findTrueRoot();
     _recursiveInitialize(*_root, 0);
     _initialized = true;
 }
 
-void KinBranches::_findTrueRoot()
-{
-    while(!_root->refFrame().isWorld())
-        _root = &_root->refFrame();
-}
+//void KinBranches::_findTrueRoot()
+//{
+//    while(!_root->refFrame().isWorld())
+//        _root = &_root->refFrame();
+//}
 
 void KinBranches::_recursiveUpdate(akin::Frame &next_frame)
 {

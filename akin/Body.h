@@ -177,6 +177,7 @@ class Body : public Frame, public InertiaBase
 public:
     
     Body(Frame& referenceFrame, const std::string& bodyName);
+    inline virtual ~Body() { }
     
     double mass;
     KinTranslation com;

@@ -49,7 +49,7 @@ protected:
     std::vector<osg::Geode*> _axisGeodes;
     std::vector<osgAkin::Axes*> _axes;
     
-    void _findTrueRoot();
+//    void _findTrueRoot();
     void _recursiveInitialize(akin::Frame& next_frame);
     void _recursiveUpdate(akin::Frame& next_frame);
     void _renderChildObjects(akin::Frame& frame);

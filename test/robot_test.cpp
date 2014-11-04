@@ -135,7 +135,7 @@ Robot& build_manual_robot()
 Robot& build_urdf_robot()
 {
     Robot* rb_ptr = new Robot(akin::Frame::World(), verbosity::DEBUG);
-    akinUtils::loadURDF(*rb_ptr, "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
+    urdfAkin::loadURDF(*rb_ptr, "../../../resources/drchubo/drchubo_v2/robots/drchubo_v2.urdf",
                         "../../../resources/drchubo");
     Robot& robot = *rb_ptr;
     

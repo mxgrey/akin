@@ -9,7 +9,7 @@
 #include <fstream>
 #include <boost/shared_ptr.hpp>
 
-namespace akinUtils {
+namespace urdfAkin {
 
 bool exploreLink(akin::Robot& robot, boost::shared_ptr<urdf::ModelInterface> model,
                  boost::shared_ptr<urdf::Link> link, akin::Link& parentLink);
@@ -18,9 +18,9 @@ bool exploreLink(akin::Robot& robot, boost::shared_ptr<urdf::ModelInterface> mod
 bool linkProperties(akin::Link& link, boost::shared_ptr<urdf::Link> ulink);
 
 
-} // namespace akinUtils
+} // namespace urdfAkin
 
-bool akinUtils::loadURDF(akin::Robot &robot, const std::string &filename,
+bool urdfAkin::loadURDF(akin::Robot &robot, const std::string &filename,
                          const std::string& package_directory)
 {
     std::string xml_model_string;
@@ -42,21 +42,17 @@ bool akinUtils::loadURDF(akin::Robot &robot, const std::string &filename,
     
     xml_file.close();
 
-//    size_t dir = filename.find_last_of("/\\");
     robot.robotPackageDirectory = package_directory;
     
-    return akinUtils::loadURDFstring(robot, xml_model_string);
+    return urdfAkin::loadURDFstring(robot, xml_model_string);
 }
 
 
-bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_string)
+bool urdfAkin::loadURDFstring(akin::Robot &robot, const std::string &urdf_string)
 {
     boost::shared_ptr<urdf::ModelInterface> model;
     
     model = urdf::parseURDF( urdf_string );
-    
-//    std::vector< boost::shared_ptr<urdf::Link> > links;
-//    model->getLinks( links );
     
     boost::shared_ptr<urdf::Link> rootLink = model->root_link_;
     if(robot.numLinks() > 1)
@@ -70,14 +66,14 @@ bool akinUtils::loadURDFstring(akin::Robot &robot, const std::string &urdf_strin
     
     robot.name(model->getName());
     
-    bool result = akinUtils::exploreLink(robot, model, rootLink, robot.link(0));
-    
+    bool result = urdfAkin::exploreLink(robot, model, rootLink, robot.link(0));
+
     robot.setDefaultRobotConstraints();
 
     return result;
 }
 
-bool akinUtils::exploreLink(akin::Robot &robot,
+bool urdfAkin::exploreLink(akin::Robot &robot,
                             boost::shared_ptr<urdf::ModelInterface> model,
                             boost::shared_ptr<urdf::Link> link,
                             akin::Link &parentLink)
@@ -126,7 +122,7 @@ bool akinUtils::exploreLink(akin::Robot &robot,
         }
 
         joint_prop._name = ujoint->name;
-        
+
         int newID = robot.createJointLinkPair(parentLink, ulink->name, joint_prop, dof_prop);
         if(newID <= 0)
         {
@@ -145,7 +141,7 @@ bool akinUtils::exploreLink(akin::Robot &robot,
     return success;
 }
 
-bool akinUtils::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> ulink)
+bool urdfAkin::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> ulink)
 {
     akin::Geometry visual;
     if(ulink->visual)

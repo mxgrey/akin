@@ -446,6 +446,7 @@ protected:
     
     void _registerObject(KinObject* child);
     void _unregisterObject(KinObject* child);
+    void _setReferenceFrame(Frame& newRefFrame);
 
     void _copyValues(const KinObject& other);
     

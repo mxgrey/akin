@@ -49,7 +49,7 @@ void KinTree::setRootFrame(Frame &root_frame)
         return;
     
     _root = &root_frame;
-    _findTrueRoot();
+//    _findTrueRoot();
     
     _branches->setRootFrame(*_root);
     
@@ -60,7 +60,7 @@ void KinTree::setRootFrame(Frame &root_frame)
 
 Frame *KinTree::getRootFrame()
 {
-    _findTrueRoot();
+//    _findTrueRoot();
     return _root;
 }
 
@@ -72,7 +72,7 @@ void KinTree::update()
         return;
     }
     
-    _findTrueRoot();
+//    _findTrueRoot();
     _recursiveUpdate(*_root);
     _branches->update();
 }
@@ -80,7 +80,7 @@ void KinTree::update()
 void KinTree::initialize()
 {
     _frameMtfMap.erase(_frameMtfMap.begin(),_frameMtfMap.end());
-    _findTrueRoot();
+//    _findTrueRoot();
     _recursiveInitialize(*_root);
     _branches->initialize();
     _initialized = true;
@@ -88,11 +88,11 @@ void KinTree::initialize()
 
 const NodeObjectMap& KinTree::getNodeObjectMap() const { return _nodeObjectMap; }
 
-void KinTree::_findTrueRoot()
-{
-    while(!_root->refFrame().isWorld())
-        _root = &_root->refFrame();
-}
+//void KinTree::_findTrueRoot()
+//{
+//    while(!_root->refFrame().isWorld())
+//        _root = &_root->refFrame();
+//}
 
 void KinTree::_recursiveUpdate(Frame &next_frame)
 {

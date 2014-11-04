@@ -84,8 +84,8 @@ KinObject::KinObject(Frame& referenceFrame,
     _visualsUpdate = false;
     
     _needsPosUpdate = false;
-    referenceFrame._registerObject(this);
-    _referenceFrame = &referenceFrame;
+
+    _setReferenceFrame(referenceFrame);
 }
 
 KinObject::KinObject(const KinObject &other) :
@@ -113,8 +113,7 @@ void KinObject::_copyValues(const KinObject &other)
     _type = other.type();
     
     _needsPosUpdate = false;
-    other.refFrame()._registerObject(this);
-    _referenceFrame = &(other.refFrame());
+    _setReferenceFrame(other.refFrame());
 
     _isFrame = other.isFrame();
 }
@@ -148,9 +147,8 @@ bool KinObject::changeRefFrame(Frame& newRefFrame)
     verb.end();
 
     refFrame()._unregisterObject(this);
-    newRefFrame._registerObject(this);
 
-    _referenceFrame = &newRefFrame;
+    _setReferenceFrame(newRefFrame);
     
     return true;
 }
@@ -201,6 +199,15 @@ void KinObject::_unregisterObject(KinObject *child)
     {
         _registeredObjects.erase(_registeredObjects.begin()+childIndex);
     }
+}
+
+void KinObject::_setReferenceFrame(Frame &newRefFrame)
+{
+    if(isWorld())
+        return;
+
+    newRefFrame._registerObject(this);
+    _referenceFrame = &newRefFrame;
 }
 
 KinObject& KinObject::registeredObject(size_t objNum)
@@ -265,7 +272,7 @@ bool KinObject::needsUpdate() const { return _needsPosUpdate; }
 
 void KinObject::_loseParent(akin::KinObject*)
 {
-    _referenceFrame = &Frame::World();
+    _setReferenceFrame(Frame::World());
 }
 
 

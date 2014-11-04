@@ -101,6 +101,9 @@ void Frame::_kinitialize(const Frame &other)
 
 Frame::~Frame()
 {
+    if(isWorld())
+        return;
+
     for(size_t i=0; i < _registeredObjects.size(); ++i)
         _registeredObjects[i]->_loseParent(this);
     refFrame()._loseChildFrame(this);
@@ -139,8 +142,6 @@ void Frame::_gainChildFrame(Frame *child)
 
 void Frame::_loseChildFrame(Frame *child)
 {
-//    if(_isWorld)
-//        return;
     if(child->isWorld())
         return;
 
@@ -161,7 +162,8 @@ void Frame::_loseChildFrame(Frame *child)
         verb.brief() << "Trying to remove frame '" << child->name() << "' from the parentage of '"
                      << name() << "'', that is not its parent!";
         verb.desc() << " Child frames of '" << name() << "' include: ";
-        for(size_t i=0; i<_registeredObjects.size(); i++)
+//        for(size_t i=0; i<_registeredObjects.size(); ++i)
+        for(size_t i=0; i<_childFrames.size(); ++i)
             verb.desc() << " -- " << childFrame(i).name() << "\n";
         verb.end();
 

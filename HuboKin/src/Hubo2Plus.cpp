@@ -11,14 +11,14 @@ Hubo2Plus::Hubo2Plus(const std::string &urdf_file,
                      Frame& referenceFrame) :
     Robot(referenceFrame)
 {
-    akinUtils::loadURDF(*this, urdf_file, urdf_package_directory);
+    urdfAkin::loadURDF(*this, urdf_file, urdf_package_directory);
     _setup_manipulators();
 }
 
 Hubo2Plus::Hubo2Plus(const std::string &urdf_string, Frame &referenceFrame) :
     Robot(referenceFrame)
 {
-    akinUtils::loadURDFstring(*this, urdf_string);
+    urdfAkin::loadURDFstring(*this, urdf_string);
     _setup_manipulators();
 }
 
@@ -41,14 +41,6 @@ void Hubo2Plus::_setup_manipulators()
 
     // TODO: Move these to the DrcHubo clas, since Hubo2Plus has 6 DOF arms!
     // Left Hand Constraints
-    std::vector<size_t> ids = Robot::Explorer::getDofIds(joint("LSP"),joint("LWR"));
-    for(size_t i=0; i<ids.size(); ++i)
-        std::cout << dof(ids[i]).name() << std::endl;
-
-    std::cout << "\n";
-    std::vector<size_t> joints = Robot::Explorer::getIdPath(joint("LSP"),joint("LWR"));
-    for(size_t i=0; i<joints.size(); ++i)
-        std::cout << joint(joints[i]).name() << std::endl;
 
     manip(LEFT_HAND).setConstraint(Manipulator::LINKAGE,
             new ManipConstraint<7>(manip(LEFT_HAND),

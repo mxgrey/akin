@@ -25,7 +25,7 @@ public:
     
 protected:
     
-    void _findTrueRoot();
+//    void _findTrueRoot();
     void _recursiveInitialize(akin::Frame& next_frame, ushort parent_num);
     void _recursiveUpdate(akin::Frame& next_frame);
     

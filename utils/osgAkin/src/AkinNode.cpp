@@ -67,12 +67,24 @@ akin::Frame* AkinNode::_findTrueRoot(Frame &some_frame)
 
 size_t AkinNode::addRootFrame(akin::Frame &new_root_frame)
 {
-    Frame* true_root = _findTrueRoot(new_root_frame);
+//    Frame* true_root = _findTrueRoot(new_root_frame);
+//    for(size_t i=0; i<_kinTrees.size(); ++i)
+//        if(_kinTrees[i]->getRootFrame() == true_root)
+//            return i;
+
     for(size_t i=0; i<_kinTrees.size(); ++i)
-        if(_kinTrees[i]->getRootFrame() == true_root)
+    {
+        if(new_root_frame.descendsFrom(*_kinTrees[i]->getRootFrame()))
             return i;
+
+        if(_kinTrees[i]->getRootFrame()->descendsFrom(new_root_frame))
+        {
+            _kinTrees[i]->setRootFrame(new_root_frame);
+            return i;
+        }
+    }
     
-    KinTree* new_tree = new KinTree(*true_root);
+    KinTree* new_tree = new KinTree(new_root_frame);
     _kinTrees.push_back(new_tree);
     
     addChild(new_tree);
@@ -83,7 +95,7 @@ size_t AkinNode::addRootFrame(akin::Frame &new_root_frame)
 
 size_t AkinNode::addRobot(Robot &new_robot)
 {
-//    addRootFrame(new_robot.link(0));
+    addRootFrame(new_robot.link(BASE_INDEX));
 
     for(size_t i=0; i<_robots.size(); ++i)
         if(_robots[i] == &new_robot)
@@ -93,16 +105,22 @@ size_t AkinNode::addRobot(Robot &new_robot)
     return _robots.size()-1;
 }
 
-void AkinNode::removeRootFrame(akin::Frame &existing_frame)
+void AkinNode::removeRootFrame(size_t num)
 {
-    Frame* true_root = _findTrueRoot(existing_frame);
-    for(size_t i=0; i<_kinTrees.size(); ++i)
+//    Frame* true_root = _findTrueRoot(num);
+//    for(size_t i=0; i<_kinTrees.size(); ++i)
+//    {
+//        if(true_root == _kinTrees[i]->getRootFrame())
+//        {
+//            removeChild(_kinTrees[i]);
+//            _kinTrees.erase(_kinTrees.begin()+i);
+//        }
+//    }
+
+    if(num < _kinTrees.size())
     {
-        if(true_root == _kinTrees[i]->getRootFrame())
-        {
-            removeChild(_kinTrees[i]);
-            _kinTrees.erase(_kinTrees.begin()+i);
-        }
+        removeChild(_kinTrees[num]);
+        _kinTrees.erase(_kinTrees.begin()+num);
     }
 }
 

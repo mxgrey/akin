@@ -358,7 +358,9 @@ void Robot::setDefaultTaskConstraint()
 
 void Robot::setDefaultRobotConstraints()
 {
+    std::cout << "Setting balance" << std::endl;
     setDefaultBalanceConstraint();
+    std::cout << "Setting task" << std::endl;
     setDefaultTaskConstraint();
 }
 
@@ -523,27 +525,39 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
                                const ProtectedJointProperties& joint_properties,
                                const DofProperties& dof_properties)
 {
-    if(!verb.Assert(!parentLink.isDummy(), verbosity::ASSERT_CRITICAL,
+    if(parentLink.isDummy())
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
                     "Error: You wanted to make '"+newLinkName+
-                    "' a child of a dummy link in robot '"+name()+"'!"))
+                    "' a child of a dummy link in robot '"+name()+"'!");
         return -1;
+    }
     
-    if(!verb.Assert(parentLink.belongsTo(*this), verbosity::ASSERT_CRITICAL,
-                "Error: You wanted to make '"+newLinkName+"' a child of '"+parentLink.name()+
-                "', but '"+parentLink.name()+"' does not belong to the robot '"+name()+"'!"))
+    if(!parentLink.belongsTo(*this))
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
+                    "Error: You wanted to make '"+newLinkName+"' a child of '"+parentLink.name()+
+                    "', but '"+parentLink.name()+"' does not belong to the robot '"+name()+"'!");
         return -2;
+    }
     
-    if(!verb.Assert(!checkForLinkName(newLinkName), verbosity::ASSERT_CRITICAL,
+    if(checkForLinkName(newLinkName))
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
                     "Error: You wanted to create a new link named '"+newLinkName+
                     "' but a link ("+to_string(link(newLinkName).id())+
-                    ") by that name already exists in the robot named '"+name()+"'!"))
+                    ") by that name already exists in the robot named '"+name()+"'!");
         return -3;
+    }
     
-    if(!verb.Assert(!checkForJointName(joint_properties._name), verbosity::ASSERT_CRITICAL,
+    if(checkForJointName(joint_properties._name))
+    {
+        verb.Assert(false, verbosity::ASSERT_CRITICAL,
                     "Error: You wanted to create a new joint named '"+joint_properties._name+
                     "' but a joint (#"+to_string(joint(joint_properties._name).id())
-                    +") by that name already exists in the robot named '"+name()+"'!"))
+                    +") by that name already exists in the robot named '"+name()+"'!");
         return -4;
+    }
 
     Link* newLink = new Link(this, parentLink, newLinkName, _links.size(), false);
     _insertLink(newLink);
@@ -551,7 +565,7 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
     Joint* newJoint = new Joint(this, _joints.size(), &parentLink, newLink,
                                 joint_properties, dof_properties);
     _insertJoint(newJoint);
-    
+
     parentLink._addChildJoint(newJoint);
     newLink->_setParentJoint(newJoint);
     
