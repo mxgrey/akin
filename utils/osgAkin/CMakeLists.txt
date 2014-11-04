@@ -7,13 +7,13 @@ if(osg_FOUND)
   include_directories(${OpenSceneGraph_INCLUDE_DIRS})
   add_definitions(${OpenSceneGraph_DEFINITIONS})
 
-  set(OSG_LIBRARIES 	${OSG_LIBRARY}
-						${OSGVIEWER_LIBRARY}
-						${OSGDB_LIBRARY}
-						${OSGMANIPULATOR_LIBRARY}
-						${OSGGA_LIBRARY}
-						${OSGUTIL_LIBRARY}
-		CACHE STRING "Libraries for OpenSceneGraph")
+  set(OSG_LIBRARIES     ${OSG_LIBRARY}
+                        ${OSGVIEWER_LIBRARY}
+                        ${OSGDB_LIBRARY}
+                        ${OSGMANIPULATOR_LIBRARY}
+                        ${OSGGA_LIBRARY}
+                        ${OSGUTIL_LIBRARY}
+           CACHE STRING "Libraries for OpenSceneGraph")
 
   get_filename_component(dir_name ${CMAKE_CURRENT_LIST_DIR} NAME)
 
