@@ -16,3 +16,11 @@ else(build_osgAkin)
   MESSAGE(STATUS "Ignoring osgAkin")
   set(COMPLETED_BUILD FALSE CACHE INTERNAL)
 endif(build_osgAkin)
+
+
+if(build_dartAkin)
+  MESSAGE(STATUS "Building dartAkin")
+  add_subdirectory(dartAkin)
+else(build_dartAkin)
+  MESSAGE(STATUS "Ignoring dartAkin")
+endif(build_dartAkin)

@@ -32,7 +32,7 @@ public:
         drchubo->manip(DrcHubo::RIGHT_FOOT).mode = Manipulator::ANALYTICAL;
         rf_baseTf = drchubo->manip(DrcHubo::RIGHT_FOOT).respectToWorld();
         
-        // Move the robot's z-position Degree of Freedom up so that the feet are at 0 height
+        // Make Hubo squat by 20cm
         drchubo->dof(DOF_POS_Z).position( drchubo->dof(DOF_POS_Z).position()-0.2 );
 
         // Move the left arm to a starting configuration
