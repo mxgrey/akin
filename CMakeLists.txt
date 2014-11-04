@@ -17,12 +17,12 @@ option(build_urdfAkin "Build URDF support for akin" ON)
 option(build_HuboKin "Build the Hubo extension of akin" ON)
 
 if(build_Core_Only)
-  set(build_osgAkin OFF)
-  set(build_urdfAkin OFF)
-  set(build_HuboKin OFF)
+  set(build_osgAkin OFF CACHE FORCE)
+  set(build_urdfAkin OFF CACHE FORCE)
+  set(build_HuboKin OFF CACHE FORCE)
 endif(build_Core_Only)
 
-set(COMPLETED_BUILD TRUE)
+set(COMPLETED_BUILD TRUE CACHE BOOL INTERNAL)
 
 add_definitions("-Wall -Wextra")
 

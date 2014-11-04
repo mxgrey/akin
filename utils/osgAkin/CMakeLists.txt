@@ -31,6 +31,6 @@ if(osg_FOUND)
   
 else(osg_FOUND)
   MESSAGE(WARNING "Could NOT find OpenSceneGraph -- We will NOT build osgAkin!")
-  set(COMPLETED_BUILD FALSE PARENT_SCOPE)
-  set(build_osgAkin OFF PARENT_SCOPE)
+  set(COMPLETED_BUILD FALSE CACHE INTERNAL)
+  set(build_osgAkin OFF CACHE FORCE)
 endif(osg_FOUND)
