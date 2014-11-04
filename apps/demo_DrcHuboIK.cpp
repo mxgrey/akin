@@ -111,13 +111,11 @@ protected:
 
 int main()
 {
-    osg::ref_ptr<osg::Group> root = new osg::Group;
     osg::ref_ptr<CustomNode> node = new CustomNode;
-    root->addChild(node);
 
     osgViewer::Viewer viewer;
     viewer.getCamera()->setClearColor(osg::Vec4(0.3,0.3,0.3,1));
-    viewer.setSceneData(root);
+    viewer.setSceneData(node);
 
     viewer.getCamera()->getOrCreateStateSet()->setGlobalDefaults();
 
