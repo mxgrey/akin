@@ -60,11 +60,11 @@ endif(build_HuboKin)
 
 if(COMPLETED_BUILD)
 
-    set(exec_dependencies 	osgAkin
-							${OSG_LIBRARIES}
-							HuboKin
-							urdfAkin
-							${urdfdom_LIBRARIES}
+    set(exec_dependencies   osgAkin
+                            ${OSG_LIBRARIES}
+                            HuboKin
+                            urdfAkin
+                            ${urdfdom_LIBRARIES}
                             akin
                             GL )
 
