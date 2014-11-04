@@ -24,8 +24,6 @@ public:
 
         // Add drchubo into the scene so it is visible
         addRobot(*drchubo);
-        // Add the world frame into the scene so we can see the world axis
-//        addRootFrame(Frame::World());
         
         // Set the left foot to support mode, so it will stand on just that foot
         drchubo->manip(DrcHubo::LEFT_FOOT).mode = Manipulator::SUPPORT;
@@ -55,7 +53,7 @@ public:
         for(size_t i=0; i<poly.size(); ++i)
             std::cout << poly[i].transpose() << std::endl;
         
-        // Print out where the center of mass is
+        // Print out where the center of mass is (no real reason for this)
         std::cout << "Center: " << drchubo->getSupportCenter().transpose() << std::endl;
 
         // Change some solver settings
@@ -111,7 +109,7 @@ protected:
 
 };
 
-int main(int , char* [])
+int main()
 {
     osg::ref_ptr<osg::Group> root = new osg::Group;
     osg::ref_ptr<CustomNode> node = new CustomNode;
@@ -124,6 +122,4 @@ int main(int , char* [])
     viewer.getCamera()->getOrCreateStateSet()->setGlobalDefaults();
 
     viewer.run();
-
-    return 0;
 }
