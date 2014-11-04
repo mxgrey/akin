@@ -35,11 +35,11 @@ public:
         // Move the robot's z-position Degree of Freedom up so that the feet are at 0 height
         drchubo->dof(DOF_POS_Z).position( drchubo->dof(DOF_POS_Z).position()-0.2 );
 
-        // Move the left arm
+        // Move the left arm to a starting configuration
         drchubo->dof("LEP").position(-90*DEG);
         drchubo->dof("LWP").position(-90*DEG);
 
-        // Move the right arm
+        // Move the right arm to a starting configuration
         drchubo->dof("RSR").position(-90*DEG);
         drchubo->dof("REP").position(-90*DEG);
 
@@ -68,6 +68,7 @@ public:
         drchubo->manip(DrcHubo::LEFT_HAND).constraint()->min_limits.angular()[0] = -INFINITY;
         // Note: min_limits.angular()[0] can be replaced with min_limits[3]
 
+        // Initialize time
         time = 0;
     }
 
