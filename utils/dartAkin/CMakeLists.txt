@@ -39,5 +39,5 @@ if(DART_FOUND)
 else(DART_FOUND)
   MESSAGE(WARNING "Could NOT find DART -- We will NOT build dartAkin!")
   # TODO: Decide whether COMPLETED_BUILD is needed here... hopefully not
-  set(build_dartAkin OFF CACHE BOOL "Cannot build dartAkin" FORCE)
+  set(didBuild_dartAkin FALSE CACHE BOOL INTERNAL)
 endif(DART_FOUND)
