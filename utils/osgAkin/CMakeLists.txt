@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-find_package(OpenSceneGraph 3.0 QUIET COMPONENTS osg osgViewer osgManipulator osgGA osgDB osgUtil)
+find_package(OpenSceneGraph 3.0 COMPONENTS osg osgViewer osgManipulator osgGA osgDB osgUtil)
 set(osg_FOUND ${OSG_LIBRARY})
 if(osg_FOUND)
 

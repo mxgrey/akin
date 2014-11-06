@@ -37,6 +37,7 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
         }
         else
         {
+            file_node->getOrCreateStateSet()->setGlobalDefaults();
             addChild(file_node);
         }
     }

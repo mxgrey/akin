@@ -58,7 +58,7 @@ if(build_HuboKin)
   endif(didBuild_urdfAkin)
 else(build_HuboKin)
   MESSAGE(STATUS "Ignoring HuboKin")
-  set(COMPLETED_BUILD FALSE CACHE INTERNAL)
+  set(COMPLETED_BUILD FALSE CACHE BOOL INTERNAL)
 endif(build_HuboKin)
 
 if(COMPLETED_BUILD)

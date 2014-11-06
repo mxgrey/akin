@@ -119,7 +119,7 @@ const string& Link::name() const
 
 bool Link::name(const string& newName)
 {
-    if( _myRobot->verb.Assert(!_myRobot->checkForLinkName(newName),
+    if( !_myRobot->verb.Assert(!_myRobot->checkForLinkName(newName),
                     verbosity::ASSERT_CRITICAL,
                     "You requested to change link named '"+name()+"' to '"
                     +newName+"', but robot '"+_myRobot->name()+"' already has "

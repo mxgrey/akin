@@ -245,6 +245,7 @@ bool DegreeOfFreedom::min(double newMinValue)
         inBounds = false;
     }
 
+    _minValue = newMinValue;
     position(position());
 
     return inBounds;
@@ -261,6 +262,7 @@ bool DegreeOfFreedom::max(double newMaxValue)
         inBounds = false;
     }
 
+    _maxValue = newMaxValue;
     position(position());
 
     return inBounds;
@@ -421,7 +423,7 @@ const std::string& DegreeOfFreedom::name() const { return _name; }
 
 bool DegreeOfFreedom::name(const std::string &newName)
 {
-    if( verb.Assert(!_robot->checkForDofName(newName),
+    if( !verb.Assert(!_robot->checkForDofName(newName),
                     verbosity::ASSERT_CRITICAL,
                     "You requested to change DOF named '"+name()+"' to '"
                     +newName+"', but robot '"+_robot->name()+"' already has "

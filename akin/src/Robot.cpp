@@ -261,27 +261,55 @@ Robot::~Robot()
     delete _solver;
 }
 
+Eigen::VectorXd Robot::getConfig() const
+{
+    Eigen::VectorXd config(numDofs());
+    for(size_t i=0; i<numDofs(); ++i)
+        config[i] = dof(i).position();
+
+    return config;
+}
+
 Eigen::VectorXd Robot::getConfig(const std::vector<size_t>& dofs) const
 {
     Eigen::VectorXd config(dofs.size());
     for(size_t i=0; i<dofs.size(); ++i)
         config[i] = dof(dofs[i]).position();
+
     return config;
+}
+
+bool Robot::setConfig(const Eigen::VectorXd &values)
+{
+    if(values.size()!=(int)numDofs())
+    {
+        verb.Assert(false, verbosity::ASSERT_CASUAL,
+                    "Invalid array size ("+std::to_string(values.size())+
+                    ") in call to Robot::setConfig(~) [valid size = "+
+                    to_string(numDofs())+"]");
+        return false;
+    }
+
+    bool result = true;
+    for(size_t i=0; i<numDofs(); ++i)
+        result &= dof(i).position(values[i]);
+
+    return result;
 }
 
 bool Robot::setConfig(const std::vector<size_t>& dofs, const Eigen::VectorXd &values)
 {
-    if(!verb.Assert((int)dofs.size()==values.size(), verbosity::ASSERT_CASUAL,
-                    "Mismatch in array sizes ("+std::to_string(dofs.size())+":"
-                    +std::to_string(values.size())+") in call to Robot::setConfig(~,~)"))
+    if((int)dofs.size()!=values.size())
+    {
+        verb.Assert(false, verbosity::ASSERT_CASUAL,
+                "Mismatch in array sizes ("+std::to_string(dofs.size())+":"
+                +std::to_string(values.size())+") in call to Robot::setConfig(~,~)");
         return false;
+    }
 
     bool result = true;
     for(size_t i=0; i<dofs.size(); ++i)
-    {
-        if(!dof(dofs[i]).position(values[i]))
-            result = false;
-    }
+        result &= dof(dofs[i]).position(values[i]);
 
     return result;
 }
@@ -358,9 +386,7 @@ void Robot::setDefaultTaskConstraint()
 
 void Robot::setDefaultRobotConstraints()
 {
-    std::cout << "Setting balance" << std::endl;
     setDefaultBalanceConstraint();
-    std::cout << "Setting task" << std::endl;
     setDefaultTaskConstraint();
 }
 
@@ -516,6 +542,13 @@ bool Robot::_createRootLink(const std::string& rootLinkName, Frame& referenceFra
 
     _pseudo_link->_addChildJoint(_pseudo_joint);
     rootLink->_setParentJoint(_pseudo_joint);
+
+    dof(DOF_POS_X).name("DOF_POS_X");
+    dof(DOF_POS_Y).name("DOF_POS_Y");
+    dof(DOF_POS_Z).name("DOF_POS_Z");
+    dof(DOF_ROT_X).name("DOF_ROT_X");
+    dof(DOF_ROT_Y).name("DOF_ROT_Y");
+    dof(DOF_ROT_Z).name("DOF_ROT_Z");
     
     return true;
 }

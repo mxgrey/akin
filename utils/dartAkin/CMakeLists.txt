@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-find_package(DART QUIET)
+find_package(DART)
 if(DART_FOUND)
 
   include_directories(${DART_INCLUDE_DIRS})

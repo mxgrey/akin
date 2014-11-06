@@ -458,7 +458,7 @@ const std::string& Joint::name() const { return _name; }
 
 bool Joint::name(const string &new_name)
 {
-    if( verb.Assert(!_robot->checkForJointName(new_name),
+    if( !verb.Assert(!_robot->checkForJointName(new_name),
                          verbosity::ASSERT_CRITICAL,
                          "You requested to change joint named '"+name()+"' to '"
                          +new_name+"', but robot '"+_robot->name()+"' already has "

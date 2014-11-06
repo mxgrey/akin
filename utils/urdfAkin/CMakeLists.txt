@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 find_package(urdfdom QUIET)
 if(urdfdom_FOUND)
   
-  find_package(urdfdom_headers QUIET)
+  find_package(urdfdom_headers)
   if(urdfdom_headers_FOUND)
 
     get_filename_component(dir_name ${CMAKE_CURRENT_LIST_DIR} NAME)

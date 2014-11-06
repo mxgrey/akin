@@ -173,7 +173,9 @@ public:
 
     virtual ~Robot();
 
+    Eigen::VectorXd getConfig() const;
     Eigen::VectorXd getConfig(const std::vector<size_t>& dofs) const;
+    bool setConfig(const Eigen::VectorXd& values);
     bool setConfig(const std::vector<size_t>& dofs, const Eigen::VectorXd& values);
 
     const std::vector<Eigen::Vector2d>& getSupportPolygon();
