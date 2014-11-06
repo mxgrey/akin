@@ -15,8 +15,9 @@ void createSimpleRobot(Robot& robot)
 {
     Geometry c;
     c.type = Geometry::CYLINDER;
-    c.scale = Eigen::Vector3d(0.5,0.5,0.1);
+    c.scale = Eigen::Vector3d(0.05,0.05,0.1);
     c.colors.push_back(ColorSpec::White());
+    c.relative_pose.rotate(Rotation(90*DEG,Vec3(1,0,0)));
     Geometry b;
     b.type = Geometry::BOX;
     b.scale = Eigen::Vector3d(0.05,0.05,1);

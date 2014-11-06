@@ -13,6 +13,7 @@ using namespace osgAkin;
 using namespace std;
 
 
+
 AkinVisual::AkinVisual(const Geometry &visual)
 {
     _colors = new osg::Vec4Array;
@@ -94,6 +95,7 @@ osg::Geode* AkinVisual::_makeAxes(const Geometry &visual)
     return axes_node;
 }
 
+// TODO: Split out the vertices to be per-primitive and then add normal array data
 osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
 {
     osg::ref_ptr<osg::Geometry> boxGeom = new osg::Geometry;
@@ -212,12 +214,18 @@ osg::Geode* AkinVisual::_makeCylinder(const Geometry &visual)
     cap->reserve(2*res);
     for(size_t i=0; i<res; ++i)
     {
+        if(i < res-1)
+            cap->push_back(2*i+2);
+        else
+            cap->push_back(0);
         cap->push_back(2*i);
-        cap->push_back(2*i+1);
         cap->push_back(res);
 
-        cap->push_back(2*i+2);
-        cap->push_back(2*i+3);
+        cap->push_back(2*i+1);
+        if(i < res-1)
+            cap->push_back(2*i+3);
+        else
+            cap->push_back(1);
         cap->push_back(res+1);
     }
 
