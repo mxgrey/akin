@@ -128,8 +128,18 @@ osg::Geode* AkinVisual::_makeBox(const Geometry &visual)
     faces->push_back(3); faces->push_back(7); faces->push_back(6); faces->push_back(2); // right
 
     osg::ref_ptr<osg::DrawElementsUShort> lines = new osg::DrawElementsUShort(osg::PrimitiveSet::LINES, 0);
-    for(size_t i=0; i<faces->size(); ++i)
-        lines->push_back((*faces)[i]);
+    for(size_t i=0; i<faces->size()/4; ++i)
+    {
+        osg::DrawElementsUShort& f = *faces;
+        lines->push_back(f[4*i]);
+        lines->push_back(f[4*i+1]);
+        lines->push_back(lines->back());
+        lines->push_back(f[4*i+2]);
+        lines->push_back(lines->back());
+        lines->push_back(f[4*i+3]);
+        lines->push_back(lines->back());
+        lines->push_back(f[4*i]);
+    }
 //    lines->push_back(2); lines->push_back(0);
 //    lines->push_back(5); lines->push_back(4);
 //    lines->push_back(3); lines->push_back(1);
