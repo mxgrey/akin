@@ -29,6 +29,7 @@ protected:
 
 //    osg::Geode* _makeSphere(const akin::Geometry& visual);
     osg::Geode* _makeBox(const akin::Geometry& visual);
+    osg::Geode* _makeCylinder(const akin::Geometry& visual);
     osg::Geode* _makeAxes(const akin::Geometry& visual);
 
     void _setGeodeModes(osg::Geode* geode);
