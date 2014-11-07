@@ -167,8 +167,12 @@ public:
     static void computeDampedPseudoInverse(PseudoInverse& pseudoInverse, const Jacobian& J,
                                            double damp_factor=0.05)
     {
-        pseudoInverse = J.transpose()*(J*J.transpose()+
+        if(J.rows() <= J.cols())
+            pseudoInverse = J.transpose()*(J*J.transpose()+
                             damp_factor*damp_factor*MatrixW::Identity(J.rows(),J.rows())).inverse();
+        else
+            pseudoInverse = (J.transpose()*J+damp_factor*damp_factor*
+                             MatrixQ::Identity(J.cols(),J.cols())).inverse()*J.transpose();
     }
     
     static void clampErrorNorm(Error& error, double clamp=0.2) {

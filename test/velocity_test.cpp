@@ -141,7 +141,7 @@ public:
     virtual void accept(osgGA::GUIEventHandlerVisitor& v) { v.visit(*this); }
 };
 
-int main(int, char* [])
+int main()
 {
     osg::ref_ptr<CustomNode> node = new CustomNode;
     osg::ref_ptr<CustomEventHandler> hevent = new CustomEventHandler;

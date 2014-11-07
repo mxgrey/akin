@@ -151,6 +151,7 @@ public:
         if(update) this->_update(config);
 
         this->_displacement = _manip->withRespectTo(target.refFrame()).diff(target.respectToRef());
+//        std::cout << "disp: " << this->_displacement.transpose() << "\n";
 
         for(int i=0; i<6; ++i)
         {
@@ -175,10 +176,12 @@ public:
         if(this->error_weights.size() == 6)
             for(int i=0; i<6; ++i)
                 this->_error[i] *= this->error_weights[i];
+
         
         if(this->_error.norm() < this->_robot->zeroValue)
             this->_error.setZero();
 
+//        std::cout << "error: " << this->_error.transpose() << std::endl;
         return this->_error;
     }
     
@@ -472,11 +475,11 @@ protected:
         if(constraint == NULL)
             return Validity::Valid();
         
-        const std::vector<size_t>& joints = constraint->getDofs();
+        const std::vector<size_t>& dofs = constraint->getDofs();
         constraint->setConfiguration();
         Validity v = constraint->computeGradient();
-        for(size_t i=0; i<joints.size(); ++i) {
-            int index = _getIndex(joints[i]);
+        for(size_t i=0; i<dofs.size(); ++i) {
+            int index = _getIndex(dofs[i]);
             if(index >= 0)
                 gradient[index] += constraint->getGradientComponent(i);
         }

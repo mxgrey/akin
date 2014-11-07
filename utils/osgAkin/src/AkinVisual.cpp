@@ -52,7 +52,6 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
     }
     else if(Geometry::CYLINDER == visual.type)
     {
-        std::cout << "Making cylinder" << std::endl;
         _makeCylinder(visual);
     }
 }
@@ -84,7 +83,11 @@ void AkinVisual::_initializeVisual(const Geometry &visual)
 
 osg::Geode* AkinVisual::_makeAxes(const Geometry &visual)
 {
-    osg::ref_ptr<osg::Geometry> axesGeom = new osgAkin::Axes(visual.scale[0]);
+    osg::ref_ptr<osg::Geometry> axesGeom;
+    if(visual.scale[1]==0 || visual.scale[2]==0)
+        axesGeom = new osgAkin::Axes(visual.scale[0]);
+    else
+        axesGeom = new osgAkin::Axes(visual.scale[0],visual.scale[1],visual.scale[2]);
 
     osg::ref_ptr<osg::Geode> axes_node = new osg::Geode;
     _setGeodeModes(axes_node);

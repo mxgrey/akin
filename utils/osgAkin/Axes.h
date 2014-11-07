@@ -17,16 +17,26 @@ public:
         _verts->resize(5);
         
         _setElements();
-        setScale(scale);
+        setScale(scale, scale, scale);
+    }
+
+    inline Axes(float x_scale, float y_scale, float z_scale)
+    {
+        _verts = new osg::Vec3Array;
+        _colors = new osg::Vec4Array;
+        _verts->resize(5);
+
+        _setElements();
+        setScale(x_scale, y_scale, z_scale);
     }
     
-    inline void setScale(float new_scale)
+    inline void setScale(float x_scale, float y_scale, float z_scale)
     {
         (*_verts)[0] = osg::Vec3(0,0,0);
-        (*_verts)[1] = osg::Vec3(new_scale,0,0);
-        (*_verts)[2] = osg::Vec3(0,new_scale,0);
-        (*_verts)[3] = osg::Vec3(0,0,new_scale);
-        (*_verts)[4] = osg::Vec3(new_scale,new_scale,0);
+        (*_verts)[1] = osg::Vec3(x_scale,0,0);
+        (*_verts)[2] = osg::Vec3(0,y_scale,0);
+        (*_verts)[3] = osg::Vec3(0,0,z_scale);
+        (*_verts)[4] = osg::Vec3(x_scale,y_scale,0);
         
         setVertexArray(_verts);
     }
@@ -72,8 +82,8 @@ protected:
         setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
     }
     
-    osg::Vec3Array* _verts;
-    osg::Vec4Array* _colors;
+    osg::ref_ptr<osg::Vec3Array> _verts;
+    osg::ref_ptr<osg::Vec4Array> _colors;
     
 };
 
