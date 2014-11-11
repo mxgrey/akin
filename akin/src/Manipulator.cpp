@@ -387,30 +387,29 @@ bool Manipulator::changeRefFrame(Frame &newRefFrame)
     return true;
 }
 
-const KinTranslation& Manipulator::com() const
+akin::Translation Manipulator::com(const akin::Frame& withRespectToFrame) const
 {
     _com.setZero();
     _mass = 0;
-    double bmass;
     
     for(size_t i=0; i<_items.size(); ++i)
     {
         const Body* item_ = _items[i];
-        bmass = item_->mass;
-        _com += bmass*item_->com.withRespectTo(refFrame());
-        _mass += bmass;
+        const double& body_mass = item_->mass();
+        _com += body_mass*item_->com(withRespectToFrame);
+        _mass += body_mass;
     }
     
     for(size_t i=0; i<_robots.size(); ++i)
     {
         const Robot* robot_ = _robots[i];
-        bmass = robot_->mass();
-        _com += bmass*robot_->com().withRespectTo(refFrame());
-        _mass += bmass;
+        const double& body_mass = robot_->mass();
+        _com += body_mass*robot_->com(withRespectToFrame);
+        _mass += body_mass;
     }
     
     if(_mass>0)
-        _com = _com.respectToRef()/_mass;
+        _com = _com/_mass;
     
     return _com;
 }
@@ -422,7 +421,7 @@ const double& Manipulator::mass() const
     for(size_t i=0; i<_items.size(); ++i)
     {
         const Body* item_ = _items[i];
-        _mass += item_->mass;
+        _mass += item_->mass();
     }
     
     for(size_t i=0; i<_robots.size(); ++i)

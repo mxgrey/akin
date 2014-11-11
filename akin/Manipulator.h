@@ -76,7 +76,7 @@ public:
     bool detachRobot(Robot* robot);
     bool detachRobot(size_t robotNum);
     
-    const KinTranslation& com() const;
+    Translation com(const Frame& withRespectToFrame = Frame::World()) const;
     const double& mass() const;
     
     Robot& parentRobot();

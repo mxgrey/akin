@@ -85,13 +85,13 @@ void createSimpleRobot(Robot& robot)
     p._name = "r1";
     p._type = Joint::REVOLUTE;
     p._baseTransform.translate(Vec3(0,0,L1));
-    robot.createJointLinkPair(0, "link2", p, DofProperties());
+    robot.createJointLinkPair(robot.link(0), "link2", p, DofProperties());
     robot.link(1).addVisual(c);
     robot.link(1).addVisual(b2);
 
     p._name = "r2";
     p._baseTransform.translation()[2] = L2;
-    robot.createJointLinkPair(1, "link3", p, DofProperties());
+    robot.createJointLinkPair(robot.link(1), "link3", p, DofProperties());
     robot.link(2).addVisual(c);
     robot.link(2).addVisual(b1);
 

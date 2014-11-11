@@ -164,6 +164,54 @@ InertiaParameters::InertiaParameters(const MinimalInertiaParameters& parameters)
     *this = parameters.parameters;
 }
 
+StandardInertiaParameters::StandardInertiaParameters() :
+    type(INERTIA_WRT_COM),
+    mass(0),
+    centerOfMass(Eigen::Vector3d(0,0,0)),
+    tensor(Eigen::Matrix3d::Zero())
+{
+
+}
+
+void StandardInertiaParameters::mirrorTheCurrentTensorValues(bool useUpperRight)
+{
+    if(useUpperRight)
+        for(size_t i=0; i<2; ++i)
+            for(size_t j=i+1; j<3; ++j)
+                tensor(j,i) = tensor(i,j);
+    else
+        for(size_t i=0; i<2; ++i)
+            for(size_t j=i+1; j<3; ++j)
+                tensor(i,j) = tensor(j,i);
+}
+
+static double kronecker(size_t i, size_t j)
+{
+    if( i == j )
+        return 1.0;
+    return 0.0;
+}
+
+void StandardInertiaParameters::convertTo(inertia_type_t newType)
+{
+    if(newType == type)
+        return;
+
+    double sign = 0.0;
+    if(INERTIA_WRT_FRAME == newType)
+        sign =  1.0;
+    else if(INERTIA_WRT_COM == newType)
+        sign = -1.0;
+
+    for(size_t i=0; i<3; ++i)
+        for(size_t j=0; j<3; ++j)
+            tensor(i,j) += sign*mass*(
+                        kronecker(i,j)*centerOfMass.dot(centerOfMass)
+                        - centerOfMass(i)*centerOfMass(j));
+
+    type = newType;
+}
+
 InertiaParameters StandardInertiaParameters::getParameters() const
 {
     InertiaParameters result;
@@ -177,14 +225,14 @@ InertiaParameters StandardInertiaParameters::getParameters() const
     result[3] = InertiaValue(FIRST_MOMENT_Z, first_moment[2]);
     
     
-    result[4] = InertiaValue(SECOND_MOMENT_XX, inertiaTensor(0,0));
-    result[5] = InertiaValue(SECOND_MOMENT_XY, inertiaTensor(0,1));
-    result[6] = InertiaValue(SECOND_MOMENT_XZ, inertiaTensor(0,2));
+    result[4] = InertiaValue(SECOND_MOMENT_XX, tensor(0,0));
+    result[5] = InertiaValue(SECOND_MOMENT_XY, tensor(0,1));
+    result[6] = InertiaValue(SECOND_MOMENT_XZ, tensor(0,2));
     
-    result[7] = InertiaValue(SECOND_MOMENT_YY, inertiaTensor(1,1));
-    result[8] = InertiaValue(SECOND_MOMENT_YZ, inertiaTensor(1,2));
+    result[7] = InertiaValue(SECOND_MOMENT_YY, tensor(1,1));
+    result[8] = InertiaValue(SECOND_MOMENT_YZ, tensor(1,2));
     
-    result[9] = InertiaValue(SECOND_MOMENT_ZZ, inertiaTensor(2,2));
+    result[9] = InertiaValue(SECOND_MOMENT_ZZ, tensor(2,2));
     
     return result;
 }
@@ -276,7 +324,7 @@ bool StandardInertiaParameters::setParameters(const InertiaParameters& parameter
     
     valid &= checkCount(6, sm_count, "the second moment of inertia");
     if(sm_count==6)
-        inertiaTensor = second_moment;
+        tensor = second_moment;
     
     return valid;
 }
@@ -284,36 +332,94 @@ bool StandardInertiaParameters::setParameters(const InertiaParameters& parameter
 
 
 Body::Body(Frame &referenceFrame, const string &bodyName) :
-    Frame(referenceFrame, bodyName),
-    mass(0),
-    com(*this, bodyName+"_com")
+    Frame(referenceFrame, bodyName)
 {
-    com.setZero();
+
 }
 
-Translation Body::getCom(const Frame &withRespectToFrame) const
+Translation Body::localCom() const
 {
-    return com.withRespectTo(withRespectToFrame);
+    return _inertia.centerOfMass;
 }
 
-double Body::getMass() const
-{
-    return mass;
-}
-
-Eigen::Matrix3d Body::getInertiaTensor(const Frame &withRespectToFrame) const
+Translation Body::com(const Frame &withRespectToFrame) const
 {
     if(this == &withRespectToFrame)
-        return _inertiaTensor_wrtLocalFrame;
+        return _inertia.centerOfMass;
+
+    return withRespectTo(withRespectToFrame)*Translation(_inertia.centerOfMass);
+}
+
+double Body::mass() const
+{
+    return _inertia.mass;
+}
+
+Eigen::Matrix3d Body::inertiaTensor(const Frame &withRespectToFrame) const
+{
+    if(this == &withRespectToFrame)
+        return _inertia.tensor;
 
     if(withRespectToFrame.isWorld())
         return respectToWorld().rotation()
-                *_inertiaTensor_wrtLocalFrame
+                *_inertia.tensor
                 *respectToWorld().rotation().transpose();
 
     const Eigen::Isometry3d& wrt = withRespectTo(withRespectToFrame);
 
-    return wrt.rotation()*_inertiaTensor_wrtLocalFrame*wrt.rotation().transpose();
+    return wrt.rotation()*_inertia.tensor*wrt.rotation().transpose();
+}
+
+const StandardInertiaParameters& Body::inertia() const
+{
+    return _inertia;
+}
+
+void Body::mass(double newMass)
+{
+    _inertia.mass = newMass;
+    _recompute_Ia();
+}
+
+void Body::com(const Translation &newCoM)
+{
+    _inertia.centerOfMass = newCoM;
+    _recompute_Ia();
+}
+
+bool Body::inertiaTensor(const Eigen::Matrix3d &newTensor, inertia_type_t type)
+{
+    bool valid = true;
+    for(size_t i=0; i<2; ++i)
+        for(size_t j=i+1; j<3; ++j)
+            if(newTensor(i,j) != newTensor(j,i))
+                valid = verb.Assert(false, verbosity::ASSERT_CASUAL,
+                    "Trying to set invalid inertia tensor for '"+name()
+                    +"': entry ("+to_string(i)+","+to_string(j)+") has value "
+                    +to_string(newTensor(i,j))+", but ("+to_string(i)+","+to_string(j)
+                    +") has value "+to_string(newTensor(j,i)));
+
+    // TODO: Consider checking for positive definiteness
+    _inertia.tensor = newTensor;
+    _inertia.type = type;
+    _recompute_Ia();
+    return valid;
+}
+
+void Body::inertia(const StandardInertiaParameters &newInertia)
+{
+    _inertia = newInertia;
+    _recompute_Ia();
+}
+
+void Body::_recompute_Ia()
+{
+    _inertia.convertTo(INERTIA_WRT_FRAME);
+
+    _Ia.block<3,3>(0,0) = _inertia.tensor;
+    _Ia.block<3,3>(0,3) = _inertia.mass*skew(_inertia.centerOfMass);
+    _Ia.block<3,3>(3,0) = -_Ia.block<3,3>(0,3);
+    _Ia.block<3,3>(3,3) = _inertia.mass*Eigen::Matrix3d::Identity();
 }
 
 FreeVector Body::getForces(const Frame& withRespectToFrame) const
@@ -420,21 +526,14 @@ void Body::_explicit_euler_integration(double dt)
 
 void Body::_computeABA_pass2() const
 {
-    // TODO: Consider computing this when new inertial parameters are passed in instead of
-    // computing it each time we pass through
-    _Ia.block<3,3>(0,0) = _inertiaTensor_wrtLocalFrame;
-    _Ia.block<3,3>(0,3) = mass*skew(com.respectToRef());
-    _Ia.block<3,3>(3,0) = -_Ia.block<3,3>(0,3);
-    _Ia.block<3,3>(3,3) = mass*Eigen::Matrix3d::Identity();
-
     Spatial v;
     v.upper() = respectToWorld().rotation()*angularVelocity();
     v.lower() = respectToWorld().rotation()*linearVelocity();
 
     _pa.block<3,1>(0,0) = v.upper().cross(_Ia.block<3,3>(0,0)*v.upper())
-            + mass*com.cross(v.upper().cross(v.lower()));
-    _pa.block<3,1>(3,0) = mass*v.upper().cross(v.upper().cross(com))
-            + mass*v.upper().cross(v.lower());
+            + _inertia.mass*_inertia.centerOfMass.cross(v.upper().cross(v.lower()));
+    _pa.block<3,1>(3,0) = _inertia.mass*v.upper().cross(v.upper().cross(_inertia.centerOfMass))
+            + _inertia.mass*v.upper().cross(v.lower());
 
     if(_attachment)
     {
@@ -496,13 +595,13 @@ void Body::_computeABA_pass3() const
 
 Eigen::Vector3d Body::_sumForces_wrtWorld() const
 {
-    return _appliedForces_wrtWorld+mass*_gravity.respectToWorld();
+    return _appliedForces_wrtWorld+_inertia.mass*_gravity.respectToWorld();
 }
 
 std::ostream& operator<<(std::ostream& stream, const akin::Body& someBody)
 {
-    std::cout << "Body named '" << someBody.name() << "' has mass " << someBody.mass 
-              << " and a relative Center of Mass <" << someBody.com.transpose() << ">\n";
+    std::cout << "Body named '" << someBody.name() << "' has mass " << someBody.mass()
+              << " and a relative Center of Mass <" << someBody.com().transpose() << ">\n";
     stream << (akin::Frame&)someBody;
     return stream;
 }
@@ -557,7 +656,7 @@ std::ostream& operator<<(std::ostream& stream, const akin::StandardInertiaParame
     stream << "Mass: " << standard.mass << "\n";
     stream << "Center of Mass: " << standard.centerOfMass << "\n";
     stream << "(First Moment: " << standard.mass*standard.centerOfMass << ")\n";
-    stream << "Inertia Tensor:\n" << standard.inertiaTensor << "\n";
+    stream << "Inertia Tensor:\n" << standard.tensor << "\n";
     
     return stream;
 }

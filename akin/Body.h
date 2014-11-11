@@ -51,9 +51,9 @@ public:
 
     friend class Manipulator;
 
-    virtual Translation getCom(const Frame& withRespectToFrame = Frame::World()) const = 0;
-    virtual double getMass() const = 0;
-    virtual Eigen::Matrix3d getInertiaTensor(
+    virtual Translation com(const Frame& withRespectToFrame = Frame::World()) const = 0;
+    virtual double mass() const = 0;
+    virtual Eigen::Matrix3d inertiaTensor(
             const Frame& withRespectToFrame = Frame::World()) const = 0;
 
     virtual FreeVector getForces(const Frame& withRepsectToFrame = Frame::World()) const = 0;
@@ -128,6 +128,15 @@ typedef enum {
 
 } inertia_param_t;
 
+typedef enum {
+
+    INERTIA_WRT_COM,
+    INERTIA_WRT_FRAME,
+
+    NUM_INERTIA_TYPES
+
+} inertia_type_t;
+
 std::string inertia_param_to_string(size_t param);
 
 class StandardInertiaParameters;
@@ -152,9 +161,16 @@ class StandardInertiaParameters
 {
 public:
 
+    StandardInertiaParameters();
+
+    inertia_type_t type;
+
     double mass;
     Eigen::Vector3d centerOfMass;
-    Eigen::Matrix3d inertiaTensor;
+    Eigen::Matrix3d tensor;
+
+    void mirrorTheCurrentTensorValues(bool useUpperRight = true);
+    void convertTo(inertia_type_t newType);
 
     InertiaParameters getParameters() const;
     bool setParameters(const InertiaParameters& parameters);
@@ -178,13 +194,18 @@ public:
     
     Body(Frame& referenceFrame, const std::string& bodyName);
     inline virtual ~Body() { }
-    
-    double mass;
-    KinTranslation com;
 
-    Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
-    double getMass() const;
-    virtual Eigen::Matrix3d getInertiaTensor(const Frame &withRespectToFrame) const;
+    Translation localCom() const;
+    Translation com(const Frame& withRespectToFrame = Frame::World()) const;
+    double mass() const;
+    Eigen::Matrix3d inertiaTensor(const Frame& withRespectToFrame = Frame::World()) const;
+    const StandardInertiaParameters& inertia() const;
+
+    void mass(double newMass);
+    void com(const Translation& newCoM);
+    bool inertiaTensor(const Eigen::Matrix3d& newTensor,
+                       inertia_type_t type = INERTIA_WRT_COM);
+    void inertia(const StandardInertiaParameters& newInertia);
 
     virtual FreeVector getForces(const Frame &withRespectToFrame) const;
     virtual FreeVector getMoments(const Frame &withRespectToFrame) const;
@@ -201,13 +222,15 @@ public:
     
 protected:
 
+    StandardInertiaParameters _inertia;
+    void _recompute_Ia();
+
     virtual void _explicit_euler_integration(double dt);
 
     virtual void _computeABA_pass2() const;
     virtual void _computeABA_pass3() const;
 
     Eigen::Vector3d _sumForces_wrtWorld() const;
-    Eigen::Matrix3d _inertiaTensor_wrtLocalFrame;
     FreeVector _appliedForces_wrtWorld;
     FreeVector _appliedMoments_wrtWorld;
     

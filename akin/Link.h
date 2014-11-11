@@ -93,7 +93,7 @@ public:
     const Joint& childJoint(size_t num) const;
 
     size_t numChildJoints() const;
-    inline size_t numChildLinks() const;
+    size_t numChildLinks() const;
 
     Joint& upstreamJoint();
     const Joint& upstreamJoint() const;

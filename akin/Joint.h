@@ -82,6 +82,7 @@ public:
      */
     Type type() const;
     void type(Type newType, const DofProperties& properties = DofProperties());
+    void type(Type newType, const std::vector<DofProperties>& properties);
 
     /*!
      * \fn jointAxis(Axis& jointAxis)
@@ -197,7 +198,7 @@ protected:
     Joint(Robot* mRobot, size_t jointID,
           Link* mParentLink, Link* mChildLink,
           const ProtectedJointProperties& joint_properties,
-          const DofProperties& dof_properties);
+          const std::vector<DofProperties>& dof_properties);
 
     void _integrate(integration_method_t method, double dt);
     void _explicit_euler_integration(double dt);
@@ -206,7 +207,7 @@ protected:
 //    Joint(Robot* mRobot, size_t jointID, const ProtectedJointProperties& joint_properties,
 //          const DofPropertyArray& dof_properties);
 
-    void _createDofs(const DofProperties& dof_properties);
+    void _createDofs(const std::vector<DofProperties>& dof_properties);
 
     Joint& operator=(const Joint& otherJoint);
 

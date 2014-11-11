@@ -207,15 +207,13 @@ public:
     bool solve();
 
     // Inertia functions
-    const KinTranslation& com() const;
     Translation com(const Link& startLink, const Frame& referenceFrame = Frame::World(),
                     Explorer::policy p = Explorer::DOWNSTREAM) const;
-    const double& mass() const;
     double mass(const Link& startLink, Explorer::policy p = Explorer::DOWNSTREAM) const;
 
-    Translation getCom(const Frame& withRespectToFrame = Frame::World()) const;
-    double getMass() const;
-    Eigen::Matrix3d getInertiaTensor(const Frame &withRespectToFrame) const;
+    Translation com(const Frame& withRespectToFrame = Frame::World()) const;
+    double mass() const;
+    Eigen::Matrix3d inertiaTensor(const Frame &withRespectToFrame) const;
 
     FreeVector getForces(const Frame &withRepsectToFrame) const;
     FreeVector getMoments(const Frame &withRespectToFrame) const;
@@ -229,9 +227,10 @@ public:
                             const ProtectedJointProperties& joint_properties,
                             const DofProperties& dof_properties);
 
-    int createJointLinkPair(size_t parentLinkID, const std::string& newLinkName,
+    int createJointLinkPair(Link& parentLink, const std::string& newLinkName,
                             const ProtectedJointProperties& joint_properties,
-                            const DofProperties& dof_properties);
+                            const std::vector<DofProperties>& dof_properties);
+
     
     void removeConnection(size_t jointNum, bool fillInGap=false);
     void removeConnection(std::string& jointName, bool fillInGap=false);

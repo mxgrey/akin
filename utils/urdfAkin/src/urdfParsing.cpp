@@ -180,10 +180,20 @@ bool urdfAkin::linkProperties(akin::Link &link, boost::shared_ptr<urdf::Link> ul
     
     if(ulink->inertial)
     {
-        link.com = akin::Translation(ulink->inertial->origin.position.x,
-                                     ulink->inertial->origin.position.y,
-                                     ulink->inertial->origin.position.z);
-        link.mass = ulink->inertial->mass;
+        akin::StandardInertiaParameters inertia;
+        inertia.mass = ulink->inertial->mass;
+        inertia.centerOfMass = akin::Translation(ulink->inertial->origin.position.x,
+                                                 ulink->inertial->origin.position.y,
+                                                 ulink->inertial->origin.position.z);
+        inertia.tensor(0,0) = ulink->inertial->ixx;
+        inertia.tensor(0,1) = ulink->inertial->ixy;
+        inertia.tensor(0,2) = ulink->inertial->ixz;
+        inertia.tensor(1,1) = ulink->inertial->iyy;
+        inertia.tensor(1,2) = ulink->inertial->iyz;
+        inertia.tensor(2,2) = ulink->inertial->izz;
+        inertia.mirrorTheCurrentTensorValues();
+
+        link.inertia(inertia);
     }
 
     return true;

@@ -257,15 +257,15 @@ public:
             double mass_l;
             const Link* nextLink;
             while( (nextLink = _ex.nextLink()) ) {
-                mass_l = nextLink->mass;
-                p += mass_l*nextLink->com.respectToWorld();
+                mass_l = nextLink->mass();
+                p += mass_l*nextLink->com();
                 mass += mass_l;
                 
                 for(size_t m=0; m<nextLink->numManips(); ++m)
                 {
                     const Manipulator& manip = nextLink->manip(m);
                     mass_l = manip.mass();
-                    p += mass_l*manip.com().respectToWorld();
+                    p += mass_l*manip.com();
                     mass += mass_l;
                 }
             }
@@ -285,7 +285,7 @@ public:
         
         if(update) this->_update(config);
         
-        Translation com = _robot->com().respectToWorld();
+        Translation com = _robot->com();
         
         if(isInsideConvexHull(com.template block<2,1>(0,0), _robot->getSupportPolygon())) {
             this->_error.template block<2,1>(0,0).setZero();

@@ -264,7 +264,7 @@ ProtectedJointProperties::ProtectedJointProperties(const string &jointName,
 
 Joint::Joint(Robot* mRobot, size_t jointID, Link* mParentLink, Link* mChildLink,
              const ProtectedJointProperties &joint_properties,
-             const DofProperties& dof_properties) :
+             const std::vector<akin::DofProperties>& dof_properties) :
     ProtectedJointProperties(joint_properties),
     verb(mRobot->verb),
     _parentLink(mParentLink),
@@ -287,12 +287,17 @@ Joint::Joint(Robot* mRobot, size_t jointID, Link* mParentLink, Link* mChildLink,
     axis(_axis);
 }
 
-void Joint::_createDofs(const DofProperties& dof_properties)
+void Joint::_createDofs(const std::vector<DofProperties>& dof_properties)
 {
     _dofs.clear();
+    std::vector<DofProperties> dp = dof_properties;
+
     if(type()==PRISMATIC || type()==REVOLUTE)
     {
-        DegreeOfFreedom* newdof = new DegreeOfFreedom(this, _name, dof_properties);
+        if(dp.size() < 1)
+            dp.resize(1);
+
+        DegreeOfFreedom* newdof = new DegreeOfFreedom(this, _name, dp[0]);
         newdof->_localID = 0;
         newdof->_id = _robot->_dofs.size();
 
@@ -307,6 +312,9 @@ void Joint::_createDofs(const DofProperties& dof_properties)
     {
         DegreeOfFreedom* newdof;
 
+        if(dp.size() < 6)
+            dp.resize(6);
+
         for(size_t i=0; i<6; ++i)
         {
             std::string dofname;
@@ -319,7 +327,7 @@ void Joint::_createDofs(const DofProperties& dof_properties)
                 case 4: dofname = _name+"_ROT_Y"; break;
                 case 5: dofname = _name+"_ROT_Z"; break;
             }
-            newdof = new DegreeOfFreedom(this, dofname, dof_properties);
+            newdof = new DegreeOfFreedom(this, dofname, dp[i]);
             newdof->_localID = i;
             newdof->_id = _robot->_dofs.size();
             _robot->_insertDof(newdof);
@@ -350,7 +358,8 @@ Joint::Type Joint::type() const { return _type; }
 void Joint::type(akin::Joint::Type newType, const akin::DofProperties& properties)
 {
     _type = newType;
-    _createDofs(properties);
+    std::vector<DofProperties> dp; dp.push_back(properties);
+    _createDofs(dp);
     axis(_axis);
 }
 

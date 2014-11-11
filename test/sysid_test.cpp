@@ -17,22 +17,22 @@ Robot* create_simple_robot()
     Robot* robot = new Robot;
 
 //    robot->_createRootLink("root");
-    robot->link(0).mass = 0;
-    robot->link(0).com = Translation(0.5);
+    robot->link(0).mass(0);
+    robot->link(0).com(Translation(0.5));
     
     robot->createJointLinkPair(robot->link(0), "link1",
                                ProtectedJointProperties("joint1", Joint::REVOLUTE,
                                Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1)),
                                DofProperties(-M_PI, M_PI));
-    robot->link(1).mass = 1;
-    robot->link(1).com = Translation(0.5);
+    robot->link(1).mass(1);
+    robot->link(1).com(Translation(0.5));
     
     robot->createJointLinkPair(robot->link(1), "link2",
                                ProtectedJointProperties("joint2", Joint::REVOLUTE,
                                Transform(Translation(1,0,0), Rotation()), Vec3(0,0,1)),
                                DofProperties(-M_PI, M_PI));
-    robot->link(2).mass = 1;
-    robot->link(2).com = Translation(0.5);
+    robot->link(2).mass(1);
+    robot->link(2).com(Translation(0.5));
     
 //    robot->createJointLinkPair(robot->link(2), "link3", "joint3",
 //                               Transform(Translation(1,0,0)), Vec3(0,0,1),
@@ -60,8 +60,8 @@ void mangle_mass_properties(Robot* model)
     
     for(size_t i=1; i<model->numLinks(); ++i)
     {
-        model->link(i).mass += max_mass_error_factor*model->link(i).mass;
-        model->link(i).com[0] += max_com_error;
+        model->link(i).mass((1+max_mass_error_factor)*model->link(i).mass());
+        model->link(i).com(model->link(i).localCom() + Translation(max_com_error));
     }
 }
 
@@ -71,9 +71,9 @@ Eigen::VectorXd compute_model_error(Robot* model, Robot* actual)
     
     for(size_t i=0; i<model->numLinks()-1; ++i)
     {
-        error.block<w,1>(n*i,0) = actual->link(i+1).com.respectToRef().block<w,1>(0,0) 
-                - model->link(i+1).com.respectToRef().block<w,1>(0,0);
-        error[n*i+w] = actual->link(i+1).mass - model->link(i+1).mass;
+        error.block<w,1>(n*i,0) = actual->link(i+1).com().block<w,1>(0,0)
+                - model->link(i+1).com().block<w,1>(0,0);
+        error[n*i+w] = actual->link(i+1).mass() - model->link(i+1).mass();
     }
     
     
@@ -96,21 +96,21 @@ void generate_regression_matrices(Eigen::MatrixXd& X, Eigen::VectorXd& y,
             model->dof(j).position(configs[s][j]);
             actual->dof(j).position(configs[s][j]);
         }
-        Translation p_robot = actual->com().respectToWorld();
+        Translation p_robot = actual->com();
         
         for(size_t i=0; i<N; ++i)
         {
-            double mi = model->link(i+1).mass;
+            double mi = model->link(i+1).mass();
             X.block<m,w>(m*s,n*i) = mi*model->link(i+1).respectToWorld()
                                     .rotation().matrix().block<m,w>(0,0);
-            X.block<m,1>(m*s,n*i+w) = (model->link(i+1).com.respectToWorld()
+            X.block<m,1>(m*s,n*i+w) = (model->link(i+1).com()
                                        - p_robot).block<m,1>(0,0);
         }
         
         Eigen::Vector2d v(0,0);
         for(size_t i=0; i<N; ++i)
-            v += (p_robot-model->link(i+1).com.respectToWorld()).block<m,1>(0,0)
-                    *model->link(i+1).mass;
+            v += (p_robot-model->link(i+1).com()).block<m,1>(0,0)
+                    *model->link(i+1).mass();
         y.block<m,1>(m*s,0) = v;
     }
     
@@ -122,7 +122,7 @@ void generate_regression_matrices(Eigen::MatrixXd& X, Eigen::VectorXd& y,
     
     double sum_m = 0;
     for(size_t i=0; i<N; ++i)
-        sum_m += model->link(i+1).mass;
+        sum_m += model->link(i+1).mass();
     y[m*C] = actual->mass() - sum_m;
 }
 
@@ -192,13 +192,13 @@ Eigen::VectorXd perform_regression(const Eigen::MatrixXd& X, const Eigen::Vector
     return (X.transpose()*X).inverse()*X.transpose()*y;
 }
 
-void apply_delta_model(Robot* model, const Eigen::VectorXd& b)
+void apply_delta_model(Robot* /*model*/, const Eigen::VectorXd& /*b*/)
 {
-    for(size_t i=0; i<model->numLinks()-1; ++i)
-    {
-        model->link(i+1).com.block<w,1>(0,0) += b.block<w,1>(n*i,0);
-        model->link(i+1).mass += b[n*i+w];
-    }
+//    for(size_t i=0; i<model->numLinks()-1; ++i)
+//    {
+//        model->link(i+1).com.block<w,1>(0,0) += b.block<w,1>(n*i,0);
+//        model->link(i+1).mass() += b[n*i+w];
+//    }
 }
 
 int main(int , char* [])

@@ -399,12 +399,6 @@ void Link::_computeABA_pass2() const
     if(isDummy())
         return;
 
-    // TODO: Consider computing this when new inertial parameters are passed in
-    _Ia.block<3,3>(0,0) = _inertiaTensor_wrtLocalFrame;
-    _Ia.block<3,3>(0,3) = mass*skew(com.respectToRef());
-    _Ia.block<3,3>(3,0) = -_Ia.block<3,3>(0,3);
-    _Ia.block<3,3>(3,3) = mass*Eigen::Matrix3d::Identity();
-
     Spatial v;
     v.upper() = respectToWorld().rotation()*angularVelocity();
     v.lower() = respectToWorld().rotation()*linearVelocity();
@@ -415,9 +409,9 @@ void Link::_computeABA_pass2() const
     _c += parentJoint().getDofMatrixDerivative()*parentJoint().velocities();
 
     _pa.block<3,1>(0,0) = v.upper().cross(_Ia.block<3,3>(0,0)*v.upper())
-            + mass*com.cross(v.upper().cross(v.lower()));
-    _pa.block<3,1>(3,0) = mass*v.upper().cross(v.upper().cross(com))
-            + mass*v.upper().cross(v.lower());
+            + mass()*_inertia.centerOfMass.cross(v.upper().cross(v.lower()));
+    _pa.block<3,1>(3,0) = mass()*v.upper().cross(v.upper().cross(_inertia.centerOfMass))
+            + mass()*v.upper().cross(v.lower());
 
     for(size_t i=0, end=numDownstreamLinks(); i<end; ++i)
     {
@@ -460,8 +454,9 @@ void Link::_computeABA_pass2() const
     const Eigen::Matrix3d& R = respectToWorld().rotation();
     const Eigen::Vector3d& g = R.transpose()*_gravity.respectToWorld();
 
-    F.upper() = R.transpose()*_appliedMoments_wrtWorld + mass*com.cross(g);
-    F.lower() = R.transpose()*_appliedForces_wrtWorld + mass*g;
+    F.upper() = R.transpose()*_appliedMoments_wrtWorld
+            + _inertia.mass*_inertia.centerOfMass.cross(g);
+    F.lower() = R.transpose()*_appliedForces_wrtWorld + _inertia.mass*g;
 
     _pa -= F;
 

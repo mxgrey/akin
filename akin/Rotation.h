@@ -79,7 +79,7 @@ public:
             setIdentity();
     }
     
-    inline Rotation(const FreeVector& angular_displacement)
+    inline explicit Rotation(const FreeVector& angular_displacement)
     {
         double _norm = angular_displacement.norm();
         if(_norm == 0)

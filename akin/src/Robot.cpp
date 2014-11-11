@@ -121,7 +121,7 @@ void Robot::_initializeRobot(akin::Frame& referenceFrame, verbosity::verbosity_l
 
     _dummyJoint = new Joint(this, INVALID_INDEX, _dummyLink, _dummyLink,
                             ProtectedJointProperties("dummy"),
-                            DofProperties());
+                            std::vector<DofProperties>());
     _dummyJoint->_isDummy = true;
 
     _dummyLink->_setParentJoint(_dummyJoint);
@@ -405,12 +405,6 @@ bool Robot::solve()
     return result;
 }
 
-const KinTranslation& Robot::com() const
-{
-    _com = com(anchorLink(), _com.refFrame());
-    return _com;
-}
-
 Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
                        Explorer::policy p) const
 {
@@ -421,15 +415,15 @@ Translation Robot::com(const Link& startLink, const Frame& referenceFrame,
     const Link* current = _crawler.nextLink();
     while(current != NULL)
     {
-        lmass = current->mass;
-        fcom += lmass*current->com.withRespectTo(referenceFrame);
+        lmass = current->mass();
+        fcom += lmass*current->com(referenceFrame);
         fmass += lmass;
 
         for(size_t i=0; i<current->numManips(); ++i)
         {
             const Manipulator& manip_ = current->manip(i);
             lmass = manip_.mass();
-            fcom += lmass*manip_.com().withRespectTo(referenceFrame);
+            fcom += lmass*manip_.com(referenceFrame);
             fmass += lmass;
         }
 
@@ -455,7 +449,7 @@ double Robot::mass(const Link &startLink, Explorer::policy p) const
     const Link* current = _crawler.nextLink();
     while(current != NULL)
     {
-        mass_ += current->mass;
+        mass_ += current->mass();
 
         for(size_t i=0; i<current->numManips(); ++i)
         {
@@ -469,23 +463,17 @@ double Robot::mass(const Link &startLink, Explorer::policy p) const
     return mass_;
 }
 
-const double& Robot::mass() const
+Translation Robot::com(const Frame &withRespectToFrame) const
 {
-    _mass = mass(anchorLink());
-    return _mass;
+    return com(anchorLink(), withRespectToFrame);
 }
 
-Translation Robot::getCom(const Frame &withRespectToFrame) const
+double Robot::mass() const
 {
-    return com().withRespectTo(withRespectToFrame);
+    return mass(anchorLink());
 }
 
-double Robot::getMass() const
-{
-    return mass();
-}
-
-Eigen::Matrix3d Robot::getInertiaTensor(const Frame& ) const
+Eigen::Matrix3d Robot::inertiaTensor(const Frame& ) const
 {
     // TODO FIXME
     verb.Assert(false, verbosity::ASSERT_CASUAL,
@@ -537,7 +525,7 @@ bool Robot::_createRootLink(const std::string& rootLinkName, Frame& referenceFra
 
     _pseudo_joint = new Joint(this, BASE_INDEX, _pseudo_link, rootLink,
                               ProtectedJointProperties("base", Joint::FLOATING),
-                              DofProperties());
+                              std::vector<DofProperties>());
     _jointNameToIndex[_pseudo_joint->name()] = BASE_INDEX;
 
     _pseudo_link->_addChildJoint(_pseudo_joint);
@@ -553,10 +541,18 @@ bool Robot::_createRootLink(const std::string& rootLinkName, Frame& referenceFra
     return true;
 }
 
+int Robot::createJointLinkPair(Link &parentLink, const string &newLinkName,
+                               const ProtectedJointProperties &joint_properties,
+                               const DofProperties &dof_properties)
+{
+    std::vector<DofProperties> dfp;
+    dfp.push_back(dof_properties);
+    return createJointLinkPair(parentLink, newLinkName, joint_properties, dof_properties);
+}
 
 int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
                                const ProtectedJointProperties& joint_properties,
-                               const DofProperties& dof_properties)
+                               const std::vector<DofProperties>& dof_properties)
 {
     if(parentLink.isDummy())
     {
@@ -603,13 +599,6 @@ int Robot::createJointLinkPair(Link& parentLink, const string& newLinkName,
     newLink->_setParentJoint(newJoint);
     
     return _links.size()-1;
-}
-
-int Robot::createJointLinkPair(size_t parentLinkID, const string& newLinkName,
-                               const ProtectedJointProperties& joint_properties,
-                               const DofProperties& dof_properties)
-{
-    return createJointLinkPair(link(parentLinkID), newLinkName, joint_properties, dof_properties);
 }
 
 void Robot::removeConnection(string &jointName, bool fillInGap)
